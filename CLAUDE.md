@@ -1,69 +1,105 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-## Commands
-
-```bash
-npm install        # primeira vez
-npm start          # roda o Electron em dev (electron .)
-npm run build:win  # gera dist/ com NSIS installer + portable (x64)
-```
-
-There is no test suite, linter, or type checker configured. Don't invent commands for them.
-
-User-facing strings are in **pt-BR** (the team is Brazilian). Match that when editing UI text or comments.
+> **For AI agents coding in this project:** read this file in full before any code change.
+> Rules (R) are mandatory. Anti-patterns (A) are forbidden. Exceptions (E) are the only tolerated violations.
+> When you discover a new rule, add it here. When a rule becomes unworkable, add an exception rather than removing — preserves history.
 
 ## Architecture
 
-Electron app with the standard 3-process split. Files at the repo root are the whole app — `renderer/` is the front-end and `agent-skills/` is an unrelated vendored repo (its own `.git`, `CLAUDE.md`, etc.) that should be ignored when working on Saci.
+Saci is a single-author Electron desktop app for the Estratégia design team — browses brand/category folders, previews PSD/PSB/AI/INDD/raster files, and opens them in the user's default tool. Target platforms: **Windows + macOS + Linux**.
 
-```
-main.js        Main process: IPC, folder scan, worker pool, thumbnail orchestration
-preload.js     contextBridge — only exposes window.api with a fixed handler list
-psd-worker.js  worker_threads runtime — handles 'render_psd', 'resize_buffer', 'resize_file'
-renderer/      UI (vanilla JS, no framework, no bundler). app.js owns all state + DOM.
-```
+Three-process split (standard Electron):
 
-### Worker pool (the non-obvious part)
+- **Main process** (`main.js`) — IPC handlers, folder scan, worker pool orchestration, thumbnail cache.
+- **Preload** (`preload.js`) — narrow `window.api` surface via `contextBridge`. Renderer has no Node access.
+- **Worker thread** (`psd-worker.js`) — runs `ag-psd` + `jimp` in parallel to keep the UI responsive.
+- **Renderer** (`renderer/`) — vanilla HTML/CSS/JS. **No framework, no bundler.** Thumbnails load lazily via `IntersectionObserver`.
 
-`PsdWorkerPool` in `main.js` is the heart of the app. It runs **2 worker threads** with:
+Persistent state lives in `app.getPath('userData')`:
+- `config.json` — root folder picked on first run
+- `thumb-cache/<sha1>.jpg` — derived, regenerable; key includes a `CACHE_VERSION` constant in `main.js`
 
-- **60s per-task timeout** (`PSD_RENDER_TIMEOUT_MS`). On timeout the worker is `terminate()`d and respawned 500ms later — a stuck PSD must never block the UI.
-- **Respawn on `error` event** with 1s backoff.
-- Tasks are dispatched as `{type, ...}` payloads. `type` is one of `render_psd`, `resize_buffer`, `resize_file`. `task()` is the generic entry point; `render()` is the legacy alias for `render_psd`.
-- When a payload carries a `Buffer`, its `ArrayBuffer` is added to the `transferList` for zero-copy.
+Build: `electron-builder`. No transpilation step. Node 18+ required.
 
-`ag-psd` runs in Node (no DOM), so the worker calls `agPsd.initializeCanvas` with a stub canvas/image (see `makeStubCanvas`). Don't remove the stub — `ag-psd` calls into it during composite generation.
+Detailed design notes (worker pool semantics, PSD binary parser, cache invalidation rules) live in `docs/GOTCHAS.md`.
 
-### Thumbnail pipeline
+## Hard Rules
 
-`ipcMain.handle('thumbnail:get', ...)` is the single entry point. The flow:
+**R1 — Cross-platform from day one.** All paths via `path.join` and `app.getPath(...)`. No hardcoded `D:\`, `/Users/`, or `%APPDATA%`. UI and behavior must work on Windows, macOS, Linux.
 
-1. `.ai` / `.eps` / `.indd` → return `{unsupported: true}` immediately. No preview is possible.
-2. Cache lookup: `sha1('v' + CACHE_VERSION + '|' + path + '|' + mtime + '|' + size)` keyed JPEG in `%APPDATA%\Saci\thumb-cache`. Hits return as `data:` URL.
-3. Raster images (`png/jpg/jpeg/gif/webp`): hard 50MB skip, otherwise resized in the worker. Transparency is flattened to white because the cache format is JPEG.
-4. PSD/PSB: `extractPsdThumbnailJpeg` is a **hand-rolled binary parser** that scans the Image Resources block for resource IDs `1036` (thumbnail) or `1033` (legacy thumbnail). It reads only the first 16MB of the file. If the embedded JPEG is **≥ 400×400** it's used directly (after a worker resize). Otherwise the worker calls `ag-psd` to render a full composite — slow but sharp. Embedded-small is used only as a last-resort fallback when render also fails.
+**R2 — No new runtime dependencies without justification in the PR description.** The DNA is "minimal stack". Dev-time tools (test runners, linters, formatters) are fine.
 
-**`CACHE_VERSION`** is at the top of the thumbnail section in `main.js`. **Bump it whenever the thumbnail output format or size changes** — old cache entries become unreachable automatically (the hash differs) so users get fresh thumbnails without manual cache clearing.
+**R3 — Pure-logic functions are unit-tested.** A function is "pure logic" if it has no Electron, IPC, filesystem, or DOM dependency. Tests live in `test/<module>.test.js` and run via `node --test`. The pre-commit hook runs them.
 
-### Folder scan
+**R4 — No silent `catch`.** Every `catch` block either logs the error with context or rethrows. Returning `null`/`undefined` on failure is allowed only when the caller documents and handles that contract.
 
-`scanFolder` recurses up to **depth 4** from the configured root. Top-level subfolders are treated as "groups" (brands/categories) and rendered in the sidebar. `node_modules` and dotfiles are skipped. The supported extension set is `SUPPORTED_EXTS` in `main.js`.
+**R5 — File size budget: source file ≤ 400 lines.** When exceeded, split by responsibility. Files currently over budget are listed in `E2` — split during a `refactor:` PR, not while doing feature work.
 
-### Renderer
+**R6 — Function size budget: ≤ 50 lines.** Exception: top-level orchestration handlers (e.g. `ipcMain.handle` callbacks) may exceed when they are mostly sequential calls to other functions.
 
-`renderer/app.js` keeps everything in module-level globals (`allGroups`, `activeGroupName`, `searchQuery`, `rootPath`). No framework, no build step — just `<script src="app.js">`.
+**R7 — Named constants for policy values.** Timeouts, sizes, format identifiers, version numbers: declare at module top with `SCREAMING_SNAKE_CASE`. One-off literals are fine inline.
 
-Thumbnails load via an `IntersectionObserver` on `.file-thumb[data-thumb]` with a 200px `rootMargin` so they pre-load just before scrolling into view. `thumbInflight` is a `Set` keyed by `filePath` to dedupe concurrent requests for the same file.
+**R8 — Comments answer "why", not "what".** No comments restating what code does. Allowed: invariants, hidden constraints, workarounds for specific bugs (with reference). One short line is the default; no multi-paragraph docstrings.
 
-`index.html` has a strict CSP: `default-src 'self'; img-src 'self' data:`. Thumbnails are delivered as `data:image/jpeg;base64,...` from the main process — don't try to load them via `file://` (CSP will block) and don't add remote sources without updating the CSP.
+**R9 — Language convention: development surface is English-only; user-facing UI is bilingual EN + pt-BR.**
 
-### Security boundary
+- *Development surface* (English-only): code identifiers, comments, file/folder names, commit messages, branch names, PR titles/descriptions, all documentation (`CLAUDE.md`, `README.md`, `docs/**`), config keys, log/console messages.
+- *UI surface* (EN + pt-BR): visible labels, button text, placeholders, tooltips, error toasts, empty states, menu items. Stored in an i18n layer keyed by string ID, with both locales defined. **Never inline a pt-BR-only literal in new HTML/JSX/template code** — route through the i18n layer (or add a `TODO(i18n)` if the layer is not yet in place).
+- Default locale is auto-detected from the OS (`app.getLocale()` in main, `navigator.language` in renderer); the user may override in settings.
+- Existing pt-BR content predates this rule and is tracked as `E3` for migration.
 
-`webPreferences` uses `contextIsolation: true` + `nodeIntegration: false`. The renderer has no Node access — everything goes through `window.api` in `preload.js`. When adding a feature that needs filesystem/shell access, add an `ipcMain.handle` in `main.js` and a matching `ipcRenderer.invoke` wrapper in `preload.js`. Never widen the preload surface beyond the explicit handler list.
+**R10 — Commit messages follow Conventional Commits.** Allowed types: `feat`, `fix`, `refactor`, `test`, `chore`, `docs`, `perf`, `ci`. Subject ≤ 72 chars, imperative mood. Body explains *why*. No co-author trailers.
 
-## State on disk (per user, Windows)
+**R11 — Branches follow `<type>/<short-description>`** using the same type set as commits. Examples: `feat/psd-diagnostics`, `fix/cache-mtime-invalidation`, `refactor/main-into-modules`.
 
-- `%APPDATA%\Saci\config.json` — `{ rootPath }`. Picked on first run via `dialog.showOpenDialog`.
-- `%APPDATA%\Saci\thumb-cache\<sha1>.jpg` — thumbnail cache. Cleared via `thumbnail:clearCache` IPC, or just delete the folder.
+**R12 — `main` is integrated only through pull requests.** No direct push to `main`. The PR template (`.github/pull_request_template.md`) is mandatory and must be filled.
+
+**R13 — Never bypass the pre-commit hook (`--no-verify`).** If the hook is wrong, fix the hook in a separate `chore:` commit.
+
+**R14 — `refactor:` means no behavior change.** A refactor PR must produce identical user-visible output for the same input. If you find a bug while refactoring, fix it in a separate `fix:` PR.
+
+**R15 — Plan before code.** For any change touching ≥ 2 files or ≥ 50 lines, the agent presents a numbered plan and waits for approval before editing.
+
+**R16 — Pause-3 before every commit.** The agent shows `git status`, `git diff --stat`, and the proposed message, then waits for explicit approval.
+
+**R17 — Never `git push` without explicit instruction.** Push is the user's call, every time.
+
+## Anti-patterns
+
+**A1 — Silent error swallowing.** `catch {}` or `catch (e) { return null }` without log. Violates R4.
+
+**A2 — Scope creep in refactor.** Renaming variables, fixing unrelated bugs, or adding features inside a `refactor:` PR. Violates R14.
+
+**A3 — Premature abstraction.** Extracting a "BaseSomethingManager" class for two callers. Three similar lines beats a wrong abstraction. Wait for the third use.
+
+**A4 — Hardcoded paths or platform-specific separators.** `'D:\\Content\\...'`, `'~/Library/...'`. Always compose with `path.join` and OS-aware roots. Violates R1.
+
+**A5 — Reaching across the security boundary.** The renderer must not gain Node access. New main↔renderer features go through `ipcMain.handle` in `main.js` and `contextBridge.exposeInMainWorld` in `preload.js`. Never widen `nodeIntegration` or disable `contextIsolation`.
+
+**A6 — Mixing pt-BR and English on the development surface.** Code identifiers, comments, and docs are English-only (R9). UI translation files (which carry both locales by design) are exempt — they are the i18n layer, not "mixed code".
+
+**A7 — Bumping `CACHE_VERSION` for non-format reasons.** That constant invalidates every user's thumbnail cache. Bump only when the on-disk format or dimensions actually change.
+
+**A8 — Module-level mutable globals in new code.** Tolerated in `renderer/app.js` as legacy (`E1`). Not introduced anywhere new — pass state explicitly or wrap in a module/closure.
+
+## Documented Exceptions
+
+**E1 — Renderer state in module globals (`renderer/app.js`).** The current renderer keeps state in module-level variables (`allGroups`, `activeGroupName`, `searchQuery`, `rootPath`). Tolerated until `refactor/renderer-into-modules`. New renderer code must not add to this pattern.
+
+**E2 — `main.js` and `renderer/app.js` exceed R5 (400 lines).** Current sizes: `main.js` ≈ 456, `renderer/app.js` ≈ 329. Known debt, scheduled for `refactor/main-into-modules` and `refactor/renderer-into-modules`. Feature work is not blocked, but new code must not enlarge these files — extract into new modules instead.
+
+**E3 — Existing pt-BR content predating R9.** Two legacy concerns, two separate migrations:
+
+- **E3a — pt-BR comments and identifiers in source files** (`main.js`, `psd-worker.js`, `renderer/app.js`, etc.). Migration: `refactor/dev-surface-to-en` — translates comments, renames any pt-BR identifiers. Pure dev-surface refactor, no behavior change (R14).
+- **E3b — pt-BR-only UI strings** in `renderer/index.html` and string literals in `renderer/app.js`. Migration: `feat/i18n-bilingual-ui` — introduces the i18n layer, extracts current pt-BR strings as the `pt-BR` locale, adds `en` translations.
+
+Do not translate piecemeal during unrelated PRs.
+
+## Related Documents
+
+- `docs/MENTOR_BRIEF.md` — how the AI agent acts as senior mentor for a junior solo dev
+- `docs/GIT_WORKFLOW.md` — branching, PRs, hooks, release tags
+- `docs/GOTCHAS.md` — known traps: worker pool timeouts, PSD binary parser, cache versioning, cross-platform pitfalls
+- `docs/AGENT_PLAYBOOK.md` — orchestration between Claude Chat / Code / Cowork
+- `Agent-kit/` — workflow prompts (`start-task.md`, `setup-code.md`, etc.) for new sessions
+- `README.md` — user-facing project description
