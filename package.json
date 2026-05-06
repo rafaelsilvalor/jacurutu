@@ -1,0 +1,56 @@
+{
+  "name": "saci",
+  "version": "1.0.0",
+  "description": "Saci — área de trabalho do time de design da Estratégia. Encontra modelos, abre arquivos e diagnostica PSDs em um clique.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win"
+  },
+  "author": "Estratégia",
+  "license": "ISC",
+  "dependencies": {
+    "ag-psd": "^25.0.0",
+    "jimp": "^0.22.12"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.estrategia.saci",
+    "productName": "Saci",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "psd-worker.js",
+      "renderer/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
+  }
+}

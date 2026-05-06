@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:" />
+  <title>Saci</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Tela inicial: configurar pasta -->
+  <div id="setup" class="setup hidden">
+    <div class="setup-card">
+      <h1>Saci</h1>
+      <p>Para começar, selecione a pasta <strong>Modelos</strong> no seu computador.</p>
+      <p class="hint">Geralmente: <code>D:\Content\Trabalho\EstrategiaConcursos\Modelos</code></p>
+      <button id="btn-pick" class="btn btn-primary">Selecionar pasta</button>
+    </div>
+  </div>
+
+  <!-- App principal -->
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">⚡</span>
+        <span>Saci</span>
+      </div>
+      <div class="search-wrap">
+        <input id="search" type="text" placeholder="Buscar modelo... (ex: simulado, ecj, reels)" autocomplete="off" />
+        <button id="btn-clear-search" class="btn-icon" title="Limpar">✕</button>
+      </div>
+      <div class="actions">
+        <button id="btn-reload" class="btn-icon" title="Recarregar">⟳</button>
+        <button id="btn-change-folder" class="btn-icon" title="Trocar pasta">📁</button>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <div class="sidebar-title">Marcas / Categorias</div>
+      <div id="groups-list" class="groups-list"></div>
+      <div class="root-info" id="root-info"></div>
+    </aside>
+
+    <main class="content">
+      <div id="empty-state" class="empty hidden">
+        <p>Nenhum modelo encontrado.</p>
+      </div>
+      <div id="files-grid" class="files-grid"></div>
+    </main>
+
+    <footer class="statusbar">
+      <span id="status-text">Carregando...</span>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
