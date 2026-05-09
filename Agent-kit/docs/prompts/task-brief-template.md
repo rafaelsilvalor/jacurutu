@@ -15,7 +15,9 @@ tarefas L.
 ## Como usar manualmente
 
 1. Copia o template abaixo
-2. Salva como `BRIEF_<nome-curto>.md` na raiz do projeto
+2. Salva como `docs/tasks/<NNN>-<slug>/brief.md` (cria a pasta;
+   numeração `NNN` zero-padded em ordem cronológica, slug
+   curto-descritivo em kebab-case)
 3. Preenche cada seção (instruções inline em `[colchetes]`)
 4. Remove instruções e colchetes antes de finalizar
 5. Comita o brief antes de iniciar a tarefa
@@ -27,8 +29,12 @@ tarefas L.
 ```markdown
 # Brief: [Título curto da tarefa]
 
+> **Categoria:** [M | L]
+> **Plan required:** [yes | no] — ver "Quando pular Pausa 1" abaixo
+> **Branch:** `[tipo]/[descricao-kebab]`
+>
 > Cole este brief inteiro no agente executor (Claude Code, Cowork)
-> ao iniciar a tarefa. Tarefa categoria [M ou L].
+> ao iniciar a tarefa.
 
 ---
 
@@ -107,22 +113,27 @@ A tarefa só é concluída quando **todos** os itens forem verdadeiros:
 
 ### Verificações de processo
 
-- [ ] Antes de tocar código, plano em passos numerados foi
-      apresentado e aprovado
-- [ ] Pausa 3 (git status + git diff --stat) antes de cada commit
+- [ ] Se `Plan required: yes` — plano em passos numerados foi
+      apresentado e aprovado antes de qualquer mudança (Pausa 1)
+- [ ] Pausa 2 — primeiro arquivo modificado mostrado pra revisão
+      antes de seguir (sempre obrigatória)
+- [ ] Pausa 3 — `git status` + `git diff --stat` + mensagem
+      proposta antes de cada commit (sempre obrigatória)
 - [ ] Se algum critério não pôde ser atendido, foi reportado
       explicitamente
 
-## Pontos de pausa obrigatórios
+## Pontos de pausa
 
 Pelo `AGENT_PLAYBOOK.md` Capítulo 2:
 
 - **Pausa 1 (antes de qualquer código):** apresentar plano numerado
-  e aguardar aprovação
+  e aguardar aprovação. **Obrigatória se `Plan required: yes`;
+  pulada se `Plan required: no`** (ver "Quando pular Pausa 1"
+  abaixo).
 - **Pausa 2 (após primeiro arquivo modificado):** mostrar resultado
-  e aguardar revisão
+  e aguardar revisão. **Sempre obrigatória.**
 - **Pausa 3 (antes de cada commit):** mostrar `git status` +
-  `git diff --stat` + mensagem proposta
+  `git diff --stat` + mensagem proposta. **Sempre obrigatória.**
 
 Em caso de:
 - Bug não-relacionado encontrado → reportar e perguntar
@@ -130,6 +141,28 @@ Em caso de:
 - Gotcha não documentado descoberto → reportar e documentar
 
 **NÃO siga em frente "consertando" sem permissão.**
+
+## Quando pular Pausa 1 (`Plan required: no`)
+
+Pausa 1 ("agente apresenta plano numerado antes de qualquer código") protege contra agente inventar abordagem que o brief não especificou. É overhead quando o brief **é** o plano — quando todas as decisões estão fechadas e o trabalho do agente é executar, não desenhar.
+
+**Pular Pausa 1 só quando TODOS os critérios valem:**
+
+- Todas as decisões arquiteturais estão registradas neste brief ou em docs canônicos (`CLAUDE.md`, `MENTOR_BRIEF.md`)
+- Os critérios de pronto são concretos e verificáveis sem interpretação
+- Não há ambiguidade sobre quais arquivos tocar nem como
+
+**Tarefas típicas `Plan required: no`:**
+- Atualizar docs com texto já especificado no brief
+- Edições mecânicas (rename, format, mover arquivos)
+- Adicionar regra a arquivo estruturado em local especificado
+
+**Tarefas típicas `Plan required: yes`:**
+- Refactor com escolhas de implementação a fazer
+- Feature nova com decisões de design
+- Bug fix onde causa raiz é hipótese, não confirmação
+
+⚠️ **Pausa 2 (após primeiro arquivo) e Pausa 3 (antes de cada commit) são SEMPRE obrigatórias, independente de `Plan required`.** Elas pegam drift que o brief não previu (Lição #6 do `AGENT_PLAYBOOK.md`).
 
 ## Documentos de referência (leia antes de começar)
 

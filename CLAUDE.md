@@ -64,6 +64,10 @@ Detailed design notes (worker pool semantics, PSD binary parser, cache invalidat
 
 **R17 — Never `git push` without explicit instruction.** Push is the user's call, every time.
 
+**R18 — Persistent application state goes through the `storage/` module.** Code that reads or writes user state (config, thumbnail cache, future catalog/annotations) routes through `storage.<method>(...)`, never via direct `fs.*` for those concerns. The module exposes a single public interface; concrete backends (file, SQLite, HTTP) live behind it. New persistence concerns add a method to `storage/`, never bypass it. Rationale: the project will evolve into a hybrid client (local + central catalog) within ~6 months — routing all persistence through one seam keeps callers stable when backends change.
+
+**R19 — Extension points dispatch via registries (Map-backed).** When the codebase needs dispatch by key — file extension → handler, view id → view module, action id → action module — the dispatch is a registry that consumers query (`registry.get(key)`) and producers self-register into (`registry.register(key, handler)`). Consumer code does not enumerate producers. Three categories qualify under the "third use" criterion (A3): file format handlers (4 cases — PSD/PSB, AI, INDD, raster), renderer view router (3 cases — browser, file detail, settings), file action menu (3+ cases — open, reveal, etc.). Other extension surfaces (e.g. external integrations) are deferred until a real second case appears.
+
 ## Anti-patterns
 
 **A1 — Silent error swallowing.** `catch {}` or `catch (e) { return null }` without log. Violates R4.
@@ -95,11 +99,17 @@ Detailed design notes (worker pool semantics, PSD binary parser, cache invalidat
 
 Do not translate piecemeal during unrelated PRs.
 
+**E4 — Persistent state not yet routed through `storage/` (R18).** Current `main.js` and `psd-worker.js` use direct `fs.*` for `config.json` and `thumb-cache/<sha1>.jpg`. Migration: brief 001 (`refactor/storage-layer`).
+
+**E5 — Dispatch tables not yet routed through registries (R19).** Format dispatch is hardcoded in `main.js`; the renderer is monolithic in `renderer/app.js`; file actions are ad-hoc. Migrations: brief 002 (`refactor/format-registry`), brief 004 (`refactor/renderer-views`), brief 005 (`refactor/action-registry`).
+
 ## Related Documents
 
 - `docs/MENTOR_BRIEF.md` — how the AI agent acts as senior mentor for a junior solo dev
 - `docs/GIT_WORKFLOW.md` — branching, PRs, hooks, release tags
 - `docs/GOTCHAS.md` — known traps: worker pool timeouts, PSD binary parser, cache versioning, cross-platform pitfalls
 - `docs/AGENT_PLAYBOOK.md` — orchestration between Claude Chat / Code / Cowork
+- `Agent-kit/docs/prompts/task-brief-template.md` — task brief template (4 parts + `Plan required` flag); used to author `docs/tasks/<NNN>-<slug>/brief.md`
+- `docs/tasks/<NNN>-<slug>/` — per-task artifacts: `brief.md`, optional `plan.md`, optional `notes.md`. Created when a task starts; preserved after merge as the historical record
 - `Agent-kit/` — workflow prompts (`start-task.md`, `setup-code.md`, etc.) for new sessions
 - `README.md` — user-facing project description

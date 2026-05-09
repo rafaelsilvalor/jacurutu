@@ -36,6 +36,9 @@
   2. Stand up the Git workflow (trunk-based, PRs, hooks, Conventional Commits, semver tags, GitHub branch protection).
   3. Introduce `node:test` as the unit-test runner for pure logic (binary parser, cache key, helpers, scan).
   4. Then return to the product roadmap: PSD diagnostics, production mode, mass audit, favorites.
+- **Active architectural decisions (recorded 2026-05-09 — refresh as they evolve):**
+  - **DB / persistence:** the project will evolve into a hybrid client within ~6 months — local for personal preferences and cache; central (Estratégia infrastructure) for catalog, annotations, validations, asset links, and task→art linkage. Volume target: tens of thousands of files. Mitigation: route all persistence through a `storage/` interface from day one (`CLAUDE.md` R18; current debt under E4). Open item: who maintains the central infrastructure and whether an API exists — tracked outside code.
+  - **Plugins / extensibility:** plugin model is dev-authored (Neovim-style, not end-user marketplace). Horizon ~6–12 months for a real plugin API; today the work is preparing terrain via registries for format / view / action dispatch (`CLAUDE.md` R19; current debt under E5). External-integration registry is deferred until a real second case appears.
 
 > ⚠️ This section ages fast. Update it after every significant milestone or pivot.
 
@@ -100,25 +103,38 @@ Seed list — grow with each substantive session.
 | `docs/GIT_WORKFLOW.md` | Both agents and the user — branching, PRs, hooks, releases |
 | `docs/GOTCHAS.md` | Both agents and the user — codebase-specific traps |
 | `docs/AGENT_PLAYBOOK.md` | The user — orchestration between Chat / Code / Cowork |
+| `Agent-kit/docs/prompts/task-brief-template.md` | Both agents and the user — task brief template (4 parts + `Plan required` flag) |
+| `docs/tasks/<NNN>-<slug>/` | Per-task artifacts: `brief.md`, `plan.md`, optional `notes.md` |
 | `Agent-kit/` | The user — workflow prompts to start sessions and tasks |
 | `README.md` | End users — what Saci is and how to install it |
 
-## 8. How the user invokes this brief in a new chat session
+## 8. Context to load per session type
 
-Snippet to paste into a fresh Claude chat (kept in pt-BR because that's the chat language; the *files* it points to are English).
+Different chat sessions need different context. Load only what is needed; oversharing dilutes the agent's attention.
+
+| Session type | Always load | Add when relevant |
+|---|---|---|
+| Mentoring / architectural decision | `CLAUDE.md`, `MENTOR_BRIEF.md` | Topic-specific docs |
+| Modeling a new task (generate brief) | `CLAUDE.md`, `MENTOR_BRIEF.md`, `AGENT_PLAYBOOK.md`, `GIT_WORKFLOW.md`, `GOTCHAS.md`, `Agent-kit/docs/prompts/task-brief-template.md` | — |
+| Reviewing an agent's plan | `CLAUDE.md`, `MENTOR_BRIEF.md`, `AGENT_PLAYBOOK.md` (chapters 2–3), the task's `brief.md` | The new `plan.md` |
+| Code review by reading | `CLAUDE.md`, `MENTOR_BRIEF.md`, `GOTCHAS.md` | Code under review |
+| Continuing a paused task | `CLAUDE.md`, `MENTOR_BRIEF.md`, the task's `brief.md`, `plan.md`, and `STATE.md` if present | — |
+
+### Default starting prompt for a fresh chat
+
+Snippet to paste into a fresh Claude chat (pt-BR because chat is pt-BR; files referenced are English):
 
 ```
 Olá. Estou continuando o projeto Saci.
 
-Lê estes arquivos do meu repositório (no GitHub: rafaelsilvalor/saci):
-- CLAUDE.md
-- docs/MENTOR_BRIEF.md
-- docs/GIT_WORKFLOW.md
-- docs/GOTCHAS.md
+Tipo de sessão: [mentoria | modelar tarefa | revisar plano | code review | continuar tarefa]
 
-Depois de ler, age como meu mentor sênior técnico seguindo o
-MENTOR_BRIEF.md. Onde paramos foi: [última coisa].
+Carrega os arquivos correspondentes ao tipo de sessão na tabela §8 do MENTOR_BRIEF.md.
+Eu também colei [lista do que colei diretamente].
 
-Antes de propor próximo passo, me confirma em uma frase quem você
-entendeu que eu sou e onde estamos.
+Depois de ler, age como meu mentor sênior técnico seguindo o MENTOR_BRIEF.md.
+Onde paramos foi: [última coisa].
+
+Antes de propor próximo passo, confirma em uma frase quem você entendeu que eu sou
+e onde estamos.
 ```
