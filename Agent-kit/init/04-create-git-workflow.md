@@ -61,11 +61,9 @@ em main. Sem `rebase` em commits empurrados. Sempre rola pra frente
 **G-R8 — `STATE.md` durante tarefas L.** Tarefa estrutural cria
 `STATE.md` na raiz pra preservar contexto entre sessões.
 
-**G-R9 — Commits de agente IA têm trailer Co-authored-by.**
-```
-Co-authored-by: Claude <noreply@anthropic.com>
-```
-Permite rastrear autoria via `git log --grep="Co-authored-by"`.
+**G-R9 — Sem trailer Co-authored-by.** Commits são atribuídos ao
+autor humano. Espelha `CLAUDE.md` R10 ("No co-author trailers")
+e `GIT_WORKFLOW.md` G-R3.
 
 Pergunta ao usuário pra cada uma: **vale pra esse projeto?
 Modificar? Adicionar?**
