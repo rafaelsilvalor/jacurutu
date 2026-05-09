@@ -59,14 +59,23 @@ Procura ativamente armadilhas no que descrevi:
 Levanta as armadilhas como perguntas, não como acusações.
 
 PASSO 5 — Compilação do brief:
-Gera o BRIEF_<nome-curto>.md seguindo o template de
-docs/prompts/task-brief-template.md. Use as decisões da entrevista
-pra preencher cada seção.
+- Determina o próximo número livre em `docs/tasks/` (NNN com
+  zero-padding, ex.: 001, 002) e um slug curto descritivo em
+  kebab-case
+- Determina `Plan required: yes | no` baseado no critério em
+  `Agent-kit/docs/prompts/task-brief-template.md` (seção "Quando
+  pular Pausa 1")
+- Gera o brief seguindo o template de
+  `Agent-kit/docs/prompts/task-brief-template.md`. Use as decisões
+  da entrevista pra preencher cada seção
+- Caminho de saída: `docs/tasks/<NNN>-<slug>/brief.md`
 
 PASSO 6 — Revisão final:
 Mostra o brief gerado. Pergunta se há algo a ajustar. Quando
-aprovado, cria o arquivo e sugere próximo passo (commitar o brief
-e iniciar a tarefa com docs/workflows/start-task.md).
+aprovado, salva como `docs/tasks/<NNN>-<slug>/brief.md`. Sugere
+próximo passo: commitar o brief com mensagem
+`docs(tasks): add brief for <NNN>-<slug>` e iniciar a tarefa via
+`Agent-kit/docs/workflows/start-task.md` no Claude Code.
 
 Princípios:
 - Brief reflete MEU projeto, não template genérico
@@ -82,8 +91,9 @@ Princípios:
 
 A conversa vai durar 15-30 min dependendo do tamanho da tarefa.
 
-Resultado: `BRIEF_<nome>.md` na raiz do projeto, pronto pra ser
-referenciado pelo agente executor.
+Resultado: `docs/tasks/<NNN>-<slug>/brief.md`, pronto pra ser
+referenciado pelo agente executor. O `plan.md` (se
+`Plan required: yes`) e quaisquer `notes.md` ficam na mesma pasta.
 
 ## Variantes
 
