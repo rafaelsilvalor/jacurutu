@@ -122,7 +122,7 @@ Different chat sessions need different context. Load only what is needed; oversh
 
 ### Default starting prompt for a fresh chat
 
-Snippet to paste into a fresh Claude chat (pt-BR because chat is pt-BR; files referenced are English):
+Snippet to paste into a fresh Claude chat. Shown in pt-BR because chat operates in pt-BR (M-R10). The surrounding documentation is English (R9); the snippet itself is an embedded chat-starter example, not documentation prose.
 
 ```
 Olá. Estou continuando o projeto Saci.
