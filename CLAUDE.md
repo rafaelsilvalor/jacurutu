@@ -41,12 +41,15 @@ Detailed design notes (worker pool semantics, PSD binary parser, cache invalidat
 
 **R8 — Comments answer "why", not "what".** No comments restating what code does. Allowed: invariants, hidden constraints, workarounds for specific bugs (with reference). One short line is the default; no multi-paragraph docstrings.
 
-**R9 — Language convention: development surface is English-only; user-facing UI is bilingual EN + pt-BR.**
+**R9 — Language convention: agent-consumed surface is English-only; human-edited interfaces in `Agent-kit/` may be pt-BR; user-facing UI is bilingual EN + pt-BR.**
 
-- *Development surface* (English-only): code identifiers, comments, file/folder names, commit messages, branch names, PR titles/descriptions, all documentation (`CLAUDE.md`, `README.md`, `docs/**`), config keys, log/console messages.
+The dev surface splits by *audience*, not by directory.
+
+- *Agent-consumed surface* (English-only): code identifiers, comments, file/folder names, commit messages, branch names, PR titles/descriptions, canonical documentation (`CLAUDE.md`, `README.md`, `docs/**`), task artifacts (`docs/tasks/**`), config keys, log/console messages. Includes any block inside `Agent-kit/` that produces canonical output — e.g. the template body inside `Agent-kit/docs/prompts/task-brief-template.md` becomes a committed `brief.md`, so that block is English even though the surrounding usage notes are pt-BR.
+- *Human-edited interface* (pt-BR is acceptable): the prompts in `Agent-kit/init/*.md`, `Agent-kit/setup-chat.md`, `Agent-kit/docs/prompts/README.md`, and the prose around copy-paste templates in `Agent-kit/docs/prompts/`. Rationale: the user reads, copies, and customizes these directly; pt-BR reduces friction for the user without affecting agent quality, because these files are typically pasted into chat (where M-R10 already mandates pt-BR).
 - *UI surface* (EN + pt-BR): visible labels, button text, placeholders, tooltips, error toasts, empty states, menu items. Stored in an i18n layer keyed by string ID, with both locales defined. **Never inline a pt-BR-only literal in new HTML/JSX/template code** — route through the i18n layer (or add a `TODO(i18n)` if the layer is not yet in place).
 - Default locale is auto-detected from the OS (`app.getLocale()` in main, `navigator.language` in renderer); the user may override in settings.
-- Existing pt-BR content predates this rule and is tracked as `E3` for migration.
+- Existing pt-BR content in source files (`main.js`, `psd-worker.js`, `renderer/app.js`) predates this rule and is tracked as `E3` for migration.
 
 **R10 — Commit messages follow Conventional Commits.** Allowed types: `feat`, `fix`, `refactor`, `test`, `chore`, `docs`, `perf`, `ci`. Subject ≤ 72 chars, imperative mood. Body explains *why*. No co-author trailers.
 
