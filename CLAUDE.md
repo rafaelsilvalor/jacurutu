@@ -102,8 +102,6 @@ The dev surface splits by *audience*, not by directory.
 
 Do not translate piecemeal during unrelated PRs.
 
-**E4 — Persistent state not yet routed through `storage/` (R18).** Current `main.js` and `psd-worker.js` use direct `fs.*` for `config.json` and `thumb-cache/<sha1>.jpg`. Migration: brief 001 (`refactor/storage-layer`).
-
 **E5 — Dispatch tables not yet routed through registries (R19).** Format dispatch is hardcoded in `main.js`; the renderer is monolithic in `renderer/app.js`; file actions are ad-hoc. Migrations: brief 002 (`refactor/format-registry`), brief 004 (`refactor/renderer-views`), brief 005 (`refactor/action-registry`).
 
 ## Related Documents

@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const storage = require('./storage');
 
 // Worker pool: renderização de PSD em threads separadas (não trava UI)
 const { Worker } = require('worker_threads');
@@ -141,41 +142,12 @@ function getPsdPool() {
   return psdPool;
 }
 
-// Pasta de cache de thumbnails
-function getThumbDir() {
-  return path.join(app.getPath('userData'), 'thumb-cache');
-}
-function ensureThumbDir() {
-  const dir = getThumbDir();
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  return dir;
-}
-
 const SUPPORTED_EXTS = new Set([
   '.psd', '.psb',
   '.ai', '.eps',
   '.indd',
   '.png', '.jpg', '.jpeg', '.gif', '.webp', '.tif', '.tiff'
 ]);
-
-function getConfigPath() {
-  return path.join(app.getPath('userData'), 'config.json');
-}
-
-function loadConfig() {
-  try {
-    const p = getConfigPath();
-    if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf-8'));
-  } catch (err) { console.error('Erro lendo config:', err); }
-  return { rootPath: null };
-}
-
-function saveConfig(cfg) {
-  try {
-    fs.writeFileSync(getConfigPath(), JSON.stringify(cfg, null, 2), 'utf-8');
-    return true;
-  } catch (err) { console.error('Erro salvando config:', err); return false; }
-}
 
 let mainWindow;
 
@@ -208,7 +180,7 @@ app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) creat
 
 // ---------- IPC: config / scan / abrir ----------
 
-ipcMain.handle('config:get', () => loadConfig());
+ipcMain.handle('config:get', () => storage.config.get());
 
 ipcMain.handle('config:pickFolder', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
@@ -216,14 +188,14 @@ ipcMain.handle('config:pickFolder', async () => {
     properties: ['openDirectory']
   });
   if (result.canceled || result.filePaths.length === 0) return null;
-  const cfg = loadConfig();
+  const cfg = storage.config.get();
   cfg.rootPath = result.filePaths[0];
-  saveConfig(cfg);
+  storage.config.set(cfg);
   return cfg.rootPath;
 });
 
 ipcMain.handle('scan', async () => {
-  const cfg = loadConfig();
+  const cfg = storage.config.get();
   if (!cfg.rootPath || !fs.existsSync(cfg.rootPath)) {
     return { error: 'Caminho não configurado ou inexistente.' };
   }
@@ -357,15 +329,6 @@ async function renderPsdComposite(filePath) {
   }
 }
 
-// Bump quando o formato/tamanho do thumb mudar — invalida caches antigos automaticamente.
-const CACHE_VERSION = 4;
-
-function thumbCacheKey(filePath, mtime, size) {
-  return crypto.createHash('sha1')
-    .update('v' + CACHE_VERSION + '|' + filePath + '|' + mtime + '|' + size)
-    .digest('hex');
-}
-
 function bufferToDataUrl(buf, mime) {
   return 'data:' + mime + ';base64,' + buf.toString('base64');
 }
@@ -376,17 +339,10 @@ ipcMain.handle('thumbnail:get', async (_evt, payload) => {
 
   if (ext === 'ai' || ext === 'eps' || ext === 'indd') return { url: null, unsupported: true };
 
-  const dir = ensureThumbDir();
-  const key = thumbCacheKey(filePath, mtime || 0, size || 0);
-  const cachePath = path.join(dir, key + '.jpg');
+  const key = storage.thumbCache.makeKey(filePath, mtime || 0, size || 0);
 
-  // Cache hit
-  try {
-    if (fs.existsSync(cachePath)) {
-      const data = fs.readFileSync(cachePath);
-      return { url: bufferToDataUrl(data, 'image/jpeg'), cached: true };
-    }
-  } catch {}
+  const cached = storage.thumbCache.get(key);
+  if (cached) return { url: bufferToDataUrl(cached, 'image/jpeg'), cached: true };
 
   // Imagens — sempre redimensiona via worker pra um JPEG enxuto (~15-30KB)
   if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) {
@@ -395,7 +351,7 @@ ipcMain.handle('thumbnail:get', async (_evt, payload) => {
       if (stat.size > 50 * 1024 * 1024) return { url: null, tooLarge: true };
       const resized = await getPsdPool().task({ type: 'resize_file', filePath });
       if (resized && resized.length > 0) {
-        try { fs.writeFileSync(cachePath, resized); } catch {}
+        storage.thumbCache.put(key, resized);
         return { url: bufferToDataUrl(resized, 'image/jpeg') };
       }
       return { url: null, error: 'resize falhou' };
@@ -418,20 +374,20 @@ ipcMain.handle('thumbnail:get', async (_evt, payload) => {
     if (useEmbedded) {
       const resized = await getPsdPool().task({ type: 'resize_buffer', buffer: embedded.buffer });
       const out = (resized && resized.length > 0) ? resized : embedded.buffer;
-      try { fs.writeFileSync(cachePath, out); } catch {}
+      storage.thumbCache.put(key, out);
       return { url: bufferToDataUrl(out, 'image/jpeg'), source: 'embedded', dims: [embedded.width, embedded.height] };
     }
 
     // Fallback: renderiza com ag-psd (qualidade alta, redimensionado no worker)
     const rendered = await renderPsdComposite(filePath);
     if (rendered && rendered.length > 0) {
-      try { fs.writeFileSync(cachePath, rendered); } catch {}
+      storage.thumbCache.put(key, rendered);
       return { url: bufferToDataUrl(rendered, 'image/jpeg'), source: 'rendered' };
     }
 
     // Último recurso: se tem embutida pequena, usa ela mesmo (melhor que nada)
     if (embedded && embedded.buffer && embedded.buffer.length > 0) {
-      try { fs.writeFileSync(cachePath, embedded.buffer); } catch {}
+      storage.thumbCache.put(key, embedded.buffer);
       return { url: bufferToDataUrl(embedded.buffer, 'image/jpeg'), source: 'embedded-small' };
     }
     return { url: null, noEmbedded: true, renderFailed: true };
@@ -440,16 +396,4 @@ ipcMain.handle('thumbnail:get', async (_evt, payload) => {
   return { url: null };
 });
 
-ipcMain.handle('thumbnail:clearCache', async () => {
-  try {
-    const dir = getThumbDir();
-    if (fs.existsSync(dir)) {
-      for (const f of fs.readdirSync(dir)) {
-        try { fs.unlinkSync(path.join(dir, f)); } catch {}
-      }
-    }
-    return { ok: true };
-  } catch (err) {
-    return { ok: false, error: err.message };
-  }
-});
+ipcMain.handle('thumbnail:clearCache', async () => storage.thumbCache.clear());
