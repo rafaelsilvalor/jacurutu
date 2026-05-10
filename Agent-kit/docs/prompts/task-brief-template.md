@@ -27,165 +27,160 @@ tarefas L.
 ## --- TEMPLATE PARA COPIAR ---
 
 ```markdown
-# Brief: [Título curto da tarefa]
+# Brief: [Short task title]
 
-> **Categoria:** [M | L]
-> **Plan required:** [yes | no] — ver "Quando pular Pausa 1" abaixo
-> **Branch:** `[tipo]/[descricao-kebab]`
+> **Category:** [M | L]
+> **Plan required:** [yes | no] — see "When to skip Pause 1" below
+> **Branch:** `[type]/[kebab-description]`
 >
-> Cole este brief inteiro no agente executor (Claude Code, Cowork)
-> ao iniciar a tarefa.
+> Paste this brief into the executor agent (Claude Code, Cowork)
+> at task start.
 
 ---
 
-## Contexto
+## Context
 
-[2-4 frases. Onde isso encaixa no projeto. Por que existe.
-Estado atual relevante. Se já está claro pelo nome do arquivo
-ou da tarefa, omite — não enche.]
+[2-4 sentences. Where this fits in the project. Why it exists.
+Relevant current state. If already clear from the filename or
+task name, omit — don't pad.]
 
-## Objetivo
+## Goal
 
-[1-2 frases imperativas. O que precisa estar diferente no fim.
-Não como, só o quê.]
+[1-2 imperative sentences. What needs to be different at the end.
+Not how, just what.]
 
-## Restrições
+## Constraints
 
-### Restrições não-negociáveis
+### Non-negotiable constraints
 
-1. [Comportamento que não pode mudar]
-2. [API que não pode quebrar]
-3. Seguir todas as regras do `CLAUDE.md` (especialmente
-   [R-X], [A-Y])
-4. Seguir o workflow Git de `docs/GIT_WORKFLOW.md` integralmente:
-   - Branch nova: `[tipo]/[descricao-kebab]`
+1. [Behavior that must not change]
+2. [API that must not break]
+3. Follow all rules in `CLAUDE.md` (especially [R-X], [A-Y])
+4. Follow the Git workflow in `docs/GIT_WORKFLOW.md` fully:
+   - New branch: `[type]/[kebab-description]`
    - Conventional Commits
-   - Pode comitar livremente; **NÃO empurre**
-   - Atualizar `STATE.md` ao final da sessão
-5. Apenas os arquivos diretamente relacionados à tarefa podem ser
-   modificados. Se descobrir que precisa mexer em outra coisa,
-   **PARE e pergunte**.
+   - Commit freely; **DO NOT push**
+   - Update `STATE.md` at session end
+5. Only files directly related to the task may be modified. If
+   you discover something else needs changing, **STOP and ask**.
 
-### Decisões arquiteturais já tomadas (não revisar)
+### Architectural decisions already made (do not revisit)
 
-[Liste decisões fechadas em sessão de design com mentor. O agente
-implementa, não propõe alternativas. Se nenhuma decisão foi
-pré-fechada, omita esta seção e o agente vai propor um plano —
-você revisa em Pausa 1.]
+[List decisions closed in a design session with the mentor. The
+agent implements, does not propose alternatives. If no decisions
+were pre-closed, omit this section — the agent will propose a
+plan you review at Pause 1.]
 
-#### [Decisão 1]
+#### [Decision 1]
 
-[Detalhe específico]
+[Specific detail]
 
-#### [Decisão 2]
+#### [Decision 2]
 
-[Detalhe específico]
+[Specific detail]
 
-## Critério de pronto
+## Done criteria
 
-A tarefa só é concluída quando **todos** os itens forem verdadeiros:
+The task is complete only when **all** items are true:
 
-### Verificações automáticas
+### Automated checks
 
-- [ ] Build passa sem erros
-- [ ] Linter passa sem warnings
-- [ ] Testes passam (se aplicável)
-- [ ] [Outras verificações automatizáveis]
+- [ ] Build passes without errors
+- [ ] Linter passes without warnings
+- [ ] Tests pass (if applicable)
+- [ ] [Other automatable checks]
 
-### Verificações estruturais
+### Structural checks
 
-- [ ] [Estrutura específica esperada]
-- [ ] [Limites de tamanho]
-- [ ] [Anti-patterns ausentes — `grep` ou similar]
+- [ ] [Specific expected structure]
+- [ ] [Size limits]
+- [ ] [Anti-patterns absent — verifiable via `grep` or similar]
 
-### Verificações de comportamento
+### Behavior checks
 
-- [ ] [Comportamento testável]
-- [ ] [Casos edge específicos]
+- [ ] [Testable behavior]
+- [ ] [Specific edge cases]
 
-### Verificações Git
+### Git checks
 
-- [ ] Branch usada: `[tipo]/[descricao]`
-- [ ] Commits seguem Conventional Commits
-- [ ] `git status` na branch limpo ao final
-- [ ] **NÃO** foi feito `git push`
-- [ ] `STATE.md` atualizado pra `completed` ou removido
+- [ ] Branch used: `[type]/[description]`
+- [ ] Commits follow Conventional Commits
+- [ ] `git status` clean on branch at end
+- [ ] **NO** `git push` was executed
+- [ ] `STATE.md` updated to `completed` or removed
 
-### Verificações de processo
+### Process checks
 
-- [ ] Se `Plan required: yes` — plano em passos numerados foi
-      apresentado e aprovado antes de qualquer mudança (Pausa 1)
-- [ ] Pausa 2 — primeiro arquivo modificado mostrado pra revisão
-      antes de seguir (sempre obrigatória)
-- [ ] Pausa 3 — `git status` + `git diff --stat` + mensagem
-      proposta antes de cada commit (sempre obrigatória)
-- [ ] Se algum critério não pôde ser atendido, foi reportado
-      explicitamente
+- [ ] If `Plan required: yes` — numbered step plan was presented
+      and approved before any change (Pause 1)
+- [ ] Pause 2 — first modified file shown for review before
+      proceeding (always required)
+- [ ] Pause 3 — `git status` + `git diff --stat` + proposed
+      message before each commit (always required)
+- [ ] If any criterion could not be met, it was reported
+      explicitly
 
-## Pontos de pausa
+## Pause points
 
-Pelo `AGENT_PLAYBOOK.md` Capítulo 2:
+From `AGENT_PLAYBOOK.md` Chapter 2:
 
-- **Pausa 1 (antes de qualquer código):** apresentar plano numerado
-  e aguardar aprovação. **Obrigatória se `Plan required: yes`;
-  pulada se `Plan required: no`** (ver "Quando pular Pausa 1"
-  abaixo).
-- **Pausa 2 (após primeiro arquivo modificado):** mostrar resultado
-  e aguardar revisão. **Sempre obrigatória.**
-- **Pausa 3 (antes de cada commit):** mostrar `git status` +
-  `git diff --stat` + mensagem proposta. **Sempre obrigatória.**
+- **Pause 1 (before any code):** present a numbered plan and wait
+  for approval. **Required if `Plan required: yes`; skipped if
+  `Plan required: no`** (see "When to skip Pause 1" below).
+- **Pause 2 (after the first modified file):** show the result
+  and wait for review. **Always required.**
+- **Pause 3 (before each commit):** show `git status` +
+  `git diff --stat` + proposed message. **Always required.**
 
-Em caso de:
-- Bug não-relacionado encontrado → reportar e perguntar
-- Limitação técnica que impede critério de pronto → reportar
-- Gotcha não documentado descoberto → reportar e documentar
+In case of:
+- Unrelated bug found → report and ask
+- Technical limitation preventing a done criterion → report
+- Undocumented gotcha discovered → report and document
 
-**NÃO siga em frente "consertando" sem permissão.**
+**DO NOT proceed "fixing" things without permission.**
 
-## Quando pular Pausa 1 (`Plan required: no`)
+## When to skip Pause 1 (`Plan required: no`)
 
-Pausa 1 ("agente apresenta plano numerado antes de qualquer código") protege contra agente inventar abordagem que o brief não especificou. É overhead quando o brief **é** o plano — quando todas as decisões estão fechadas e o trabalho do agente é executar, não desenhar.
+Pause 1 ("the agent presents a numbered plan before any code") guards against the agent inventing an approach the brief did not specify. It is overhead when the brief itself **is** the plan — when all decisions are closed and the agent's job is to execute, not design.
 
-**Pular Pausa 1 só quando TODOS os critérios valem:**
+**Skip Pause 1 only when ALL hold:**
 
-- Todas as decisões arquiteturais estão registradas neste brief ou em docs canônicos (`CLAUDE.md`, `MENTOR_BRIEF.md`)
-- Os critérios de pronto são concretos e verificáveis sem interpretação
-- Não há ambiguidade sobre quais arquivos tocar nem como
+- All architectural decisions are recorded in this brief or in canonical docs (`CLAUDE.md`, `MENTOR_BRIEF.md`)
+- Done criteria are concrete and verifiable without interpretation
+- No ambiguity about which files to touch or how
 
-**Tarefas típicas `Plan required: no`:**
-- Atualizar docs com texto já especificado no brief
-- Edições mecânicas (rename, format, mover arquivos)
-- Adicionar regra a arquivo estruturado em local especificado
+**Typical `Plan required: no` tasks:**
+- Doc updates with text already specified in the brief
+- Mechanical edits (rename, format, move files)
+- Adding a rule to a structured file at a specified location
 
-**Tarefas típicas `Plan required: yes`:**
-- Refactor com escolhas de implementação a fazer
-- Feature nova com decisões de design
-- Bug fix onde causa raiz é hipótese, não confirmação
+**Typical `Plan required: yes` tasks:**
+- Refactor with implementation choices to make
+- New feature with design decisions
+- Bug fix where the root cause is hypothesized, not confirmed
 
-⚠️ **Pausa 2 (após primeiro arquivo) e Pausa 3 (antes de cada commit) são SEMPRE obrigatórias, independente de `Plan required`.** Elas pegam drift que o brief não previu (Lição #6 do `AGENT_PLAYBOOK.md`).
+⚠️ **Pause 2 (after the first file) and Pause 3 (before each commit) are ALWAYS required, regardless of `Plan required`.** They catch drift the brief did not anticipate (Lesson #6 of `AGENT_PLAYBOOK.md`).
 
-## Documentos de referência (leia antes de começar)
+## Reference documents (read before starting)
 
-Em ordem de prioridade:
+In priority order:
 
-1. `CLAUDE.md` — todas as regras técnicas
-2. `docs/GIT_WORKFLOW.md` — workflow operacional
-3. `docs/GOTCHAS.md` — armadilhas conhecidas
-4. [Outros arquivos específicos relevantes]
+1. `CLAUDE.md` — all technical rules
+2. `docs/GIT_WORKFLOW.md` — operational workflow
+3. `docs/GOTCHAS.md` — known traps
+4. [Other specific relevant files]
 
-## Saída esperada
+## Expected output
 
-1. Branch `[tipo]/[descricao]` criada e working tree limpa
-2. Commits descrevendo cada mini-marco da tarefa
-3. `STATE.md` ao final indicando completed
-4. [Arquivo principal da tarefa] reescrito conforme spec
-5. Resumo curto reportado em mensagem final:
-   - Quantos commits, quais
-   - Linhas adicionadas/removidas
-     (`git diff --stat origin/main`)
-   - Qualquer item da checklist que não pôde ser atendido (com
-     justificativa)
-   - Sugestão de próximo passo
+1. Branch `[type]/[description]` created and working tree clean
+2. Commits describing each milestone of the task
+3. `STATE.md` at the end indicating completed (or removed)
+4. [Main file of the task] modified per spec
+5. Brief summary reported in the final message:
+   - How many commits, which
+   - Lines added/removed (`git diff --stat origin/main`)
+   - Any checklist item not met (with justification)
+   - Suggested next step
 ```
 
 ## --- FIM TEMPLATE ---
