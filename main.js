@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const storage = require('./storage');
 
 // Worker pool: renderização de PSD em threads separadas (não trava UI)
 const { Worker } = require('worker_threads');
@@ -158,25 +159,6 @@ const SUPPORTED_EXTS = new Set([
   '.png', '.jpg', '.jpeg', '.gif', '.webp', '.tif', '.tiff'
 ]);
 
-function getConfigPath() {
-  return path.join(app.getPath('userData'), 'config.json');
-}
-
-function loadConfig() {
-  try {
-    const p = getConfigPath();
-    if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf-8'));
-  } catch (err) { console.error('Erro lendo config:', err); }
-  return { rootPath: null };
-}
-
-function saveConfig(cfg) {
-  try {
-    fs.writeFileSync(getConfigPath(), JSON.stringify(cfg, null, 2), 'utf-8');
-    return true;
-  } catch (err) { console.error('Erro salvando config:', err); return false; }
-}
-
 let mainWindow;
 
 function createWindow() {
@@ -208,7 +190,7 @@ app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) creat
 
 // ---------- IPC: config / scan / abrir ----------
 
-ipcMain.handle('config:get', () => loadConfig());
+ipcMain.handle('config:get', () => storage.config.get());
 
 ipcMain.handle('config:pickFolder', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
@@ -216,14 +198,14 @@ ipcMain.handle('config:pickFolder', async () => {
     properties: ['openDirectory']
   });
   if (result.canceled || result.filePaths.length === 0) return null;
-  const cfg = loadConfig();
+  const cfg = storage.config.get();
   cfg.rootPath = result.filePaths[0];
-  saveConfig(cfg);
+  storage.config.set(cfg);
   return cfg.rootPath;
 });
 
 ipcMain.handle('scan', async () => {
-  const cfg = loadConfig();
+  const cfg = storage.config.get();
   if (!cfg.rootPath || !fs.existsSync(cfg.rootPath)) {
     return { error: 'Caminho não configurado ou inexistente.' };
   }
