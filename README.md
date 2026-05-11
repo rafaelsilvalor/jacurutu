@@ -2,7 +2,15 @@
 
 Área de trabalho do time de design da Estratégia. Centraliza modelos, produção diária e diagnóstico de arquivos em uma única interface — abre PSDs, AIs, INDDs e imagens direto no app padrão (Photoshop, Illustrator, InDesign).
 
-> *"O Saci do designer — encontra seus arquivos antes de você lembrar onde guardou."*
+> *"O Saci esconde a burocracia. Você cuida da arte."*
+
+## Por que "Saci"?
+
+O Saci-Pererê — figura travessa do folclore brasileiro de uma perna só, gorro vermelho e cachimbo — é famoso por esconder coisas. Chaves, dedais, ferramentas: o que você precisa, o Saci esconde. É uma travessura, não maldade — e por trás dela há um conhecimento profundo (na lenda, o Saci é guardião das ervas medicinais; decide o que se mostra e o que se guarda).
+
+Aqui a metáfora se inverte: o Saci esconde a **burocracia**, não o trabalho. Caminhos de pasta, convenções de nome, links entre Jira e Drive, transições de status, uploads — tudo que separa "vou criar uma arte" de "a arte está entregue" desaparece dentro do redemoinho. O designer vê a tarefa e o arquivo; a infraestrutura some.
+
+É a mesma força do personagem, mirando o alvo certo.
 
 ## Funcionalidades atuais
 
