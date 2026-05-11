@@ -2,7 +2,15 @@
 
 Área de trabalho do time de design da Estratégia. Centraliza modelos, produção diária e diagnóstico de arquivos em uma única interface — abre PSDs, AIs, INDDs e imagens direto no app padrão (Photoshop, Illustrator, InDesign).
 
-> *"O Saci do designer — encontra seus arquivos antes de você lembrar onde guardou."*
+> *"O Saci esconde a burocracia. Você cuida da arte."*
+
+## Por que "Saci"?
+
+O Saci-Pererê — figura travessa do folclore brasileiro de uma perna só, gorro vermelho e cachimbo — é famoso por esconder coisas. Chaves, dedais, ferramentas: o que você precisa, o Saci esconde. É uma travessura, não maldade — e por trás dela há um conhecimento profundo (na lenda, o Saci é guardião das ervas medicinais; decide o que se mostra e o que se guarda).
+
+Aqui a metáfora se inverte: o Saci esconde a **burocracia**, não o trabalho. Caminhos de pasta, convenções de nome, links entre Jira e Drive, transições de status, uploads — tudo que separa "vou criar uma arte" de "a arte está entregue" desaparece dentro do redemoinho. O designer vê a tarefa e o arquivo; a infraestrutura some.
+
+É a mesma força do personagem, mirando o alvo certo.
 
 ## Funcionalidades atuais
 
@@ -19,10 +27,9 @@
 
 ## Roadmap
 
-1. **Diagnóstico de PSD** — análise de cada arquivo: contagem de Smart Objects (instâncias vs. cópias independentes), camadas ocultas, peso de mídia embutida, color mode, resolução. Aponta onde dá pra otimizar sem mexer no original.
-2. **Modo Produção** — visão para arquivos do dia a dia (não só modelos), com histórico de últimos editados, projetos em andamento, status visual.
-3. **Auditoria em massa** — top arquivos com maior potencial de redução de tamanho, scripts JSX gerados pra rodar no Photoshop com a otimização sugerida.
-4. **Favoritos e atalhos personalizados** por designer.
+Visão completa, fases e milestones: [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
+Resumo: o projeto está em transição de **navegador de assets** para **orquestrador de workflow** centrado em tasks (Jira → produção local → Drive → fechar task). A fundação (storage layer, registries, command palette, multi-source) precede as features de produção (M5.1 — tasks com import + cards; M5.2-5.5 — export, upload, fechar task). Os itens antes listados aqui (diagnóstico de PSD, auditoria em massa, favoritos) ficam preservados no parking lot do roadmap canônico.
 
 ## Arquitetura
 
