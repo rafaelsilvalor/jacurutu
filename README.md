@@ -27,10 +27,9 @@ Aqui a metáfora se inverte: o Saci esconde a **burocracia**, não o trabalho. C
 
 ## Roadmap
 
-1. **Diagnóstico de PSD** — análise de cada arquivo: contagem de Smart Objects (instâncias vs. cópias independentes), camadas ocultas, peso de mídia embutida, color mode, resolução. Aponta onde dá pra otimizar sem mexer no original.
-2. **Modo Produção** — visão para arquivos do dia a dia (não só modelos), com histórico de últimos editados, projetos em andamento, status visual.
-3. **Auditoria em massa** — top arquivos com maior potencial de redução de tamanho, scripts JSX gerados pra rodar no Photoshop com a otimização sugerida.
-4. **Favoritos e atalhos personalizados** por designer.
+Visão completa, fases e milestones: [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
+Resumo: o projeto está em transição de **navegador de assets** para **orquestrador de workflow** centrado em tasks (Jira → produção local → Drive → fechar task). A fundação (storage layer, registries, command palette, multi-source) precede as features de produção (M5.1 — tasks com import + cards; M5.2-5.5 — export, upload, fechar task). Os itens antes listados aqui (diagnóstico de PSD, auditoria em massa, favoritos) ficam preservados no parking lot do roadmap canônico.
 
 ## Arquitetura
 
