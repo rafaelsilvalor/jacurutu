@@ -39,6 +39,10 @@
 - **Active architectural decisions (recorded 2026-05-09 — refresh as they evolve):**
   - **DB / persistence:** the project will evolve into a hybrid client within ~6 months — local for personal preferences and cache; central (Estratégia infrastructure) for catalog, annotations, validations, asset links, and task→art linkage. Volume target: tens of thousands of files. Mitigation: route all persistence through a `storage/` interface from day one (`CLAUDE.md` R18; current debt under E4). Open item: who maintains the central infrastructure and whether an API exists — tracked outside code.
   - **Plugins / extensibility:** plugin model is dev-authored (Neovim-style, not end-user marketplace). Horizon ~6–12 months for a real plugin API; today the work is preparing terrain via registries for format / view / action dispatch (`CLAUDE.md` R19; current debt under E5). External-integration registry is deferred until a real second case appears.
+- **Active product direction (recorded 2026-05-10 — refresh as it evolves):**
+  - **Identity shift:** Saci is moving from standalone asset browser to **workflow orchestrator** centered on tasks (Jira → local production → Drive → close). The asset browser remains one view within the new shape. Full roadmap with phases, milestones, parking lot, and pending decisions: `docs/ROADMAP.md`.
+  - **Source-of-truth split for tasks (adopted):** Jira is the source of truth for task **metadata** (title, copy, deadline, assignee). Saci is the source of truth for **production state** (local folder path, files generated, upload status, local task state). When they diverge: Jira wins for metadata, Saci wins for production state.
+  - **Cowork-as-Jira-bridge:** the Jira read path enters Saci through Cowork-produced CSV/JSON imports rather than a direct Jira API client. Direct Jira integration stays parked unless the bridge proves insufficient.
 
 > ⚠️ This section ages fast. Update it after every significant milestone or pivot.
 
@@ -100,6 +104,7 @@ Seed list — grow with each substantive session.
 |---|---|
 | `CLAUDE.md` | Executor agent (Claude Code) — technical rules for code |
 | `docs/MENTOR_BRIEF.md` | Mentor agent (Claude in chat) — this file |
+| `docs/ROADMAP.md` | Both — product roadmap (phases, milestones, parking lot, pending decisions) |
 | `docs/GIT_WORKFLOW.md` | Both agents and the user — branching, PRs, hooks, releases |
 | `docs/GOTCHAS.md` | Both agents and the user — codebase-specific traps |
 | `docs/AGENT_PLAYBOOK.md` | The user — orchestration between Chat / Code / Cowork |
