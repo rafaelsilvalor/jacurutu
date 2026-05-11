@@ -110,6 +110,7 @@ Do not translate piecemeal during unrelated PRs.
 - `docs/GIT_WORKFLOW.md` — branching, PRs, hooks, release tags
 - `docs/GOTCHAS.md` — known traps: worker pool timeouts, PSD binary parser, cache versioning, cross-platform pitfalls
 - `docs/AGENT_PLAYBOOK.md` — orchestration between Claude Chat / Code / Cowork
+- `docs/ROADMAP.md` — product roadmap (phases, milestones, parking lot, pending decisions); ages in sync with `MENTOR_BRIEF.md` §2
 - `Agent-kit/docs/prompts/task-brief-template.md` — task brief template (4 parts + `Plan required` flag); used to author `docs/tasks/<NNN>-<slug>/brief.md`
 - `docs/tasks/<NNN>-<slug>/` — per-task artifacts: `brief.md`, optional `plan.md`, optional `notes.md`. Created when a task starts; preserved after merge as the historical record
 - `Agent-kit/` — workflow prompts (`start-task.md`, `setup-code.md`, etc.) for new sessions
