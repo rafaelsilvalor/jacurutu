@@ -21,6 +21,9 @@ Templates copiáveis pra cenários recorrentes de orquestração.
 
 ### Continuidade
 
+- **`close-chat-session.md`** — encerrar sessão de chat (mentoria,
+  modelar tarefa, revisar plano, code review) com recap salvo em
+  docs/sessions/
 - **`resume-session.md`** — retomar trabalho do dia anterior
   (qualquer interface)
 - **`recover-stuck-agent.md`** — agente travou ou estado inesperado
