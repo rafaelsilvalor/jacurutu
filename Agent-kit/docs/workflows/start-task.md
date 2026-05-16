@@ -13,7 +13,7 @@ Antes de usar, você precisa **já ter**:
 1. Decidido categoria da tarefa (S/M/L do AGENT_PLAYBOOK)
 2. Escrito brief da tarefa (use `init/07-create-brief.md` se não
    tiver)
-3. Salvado o brief na raiz do projeto (`BRIEF_<nome-curto>.md`)
+3. Salvado o brief em `docs/tasks/<NNN>-<slug>/brief.md`
 
 Se ainda não tem brief, **pare** — escreva primeiro.
 
@@ -25,14 +25,14 @@ brief — basta uma frase no chat.
 ## --- COPIAR ---
 
 ```
-Iniciando tarefa nova no projeto. Brief específico salvo em
-BRIEF_[nome-da-tarefa].md.
+Iniciando tarefa nova no projeto. Brief em
+docs/tasks/<NNN>-<slug>/brief.md.
 
 PASSO 1 — Leitura obrigatória:
 1. CLAUDE.md
 2. docs/GIT_WORKFLOW.md
 3. docs/GOTCHAS.md
-4. BRIEF_[nome-da-tarefa].md
+4. docs/tasks/<NNN>-<slug>/brief.md
 
 PASSO 2 — Pre-flight:
 - git status (working tree deve estar limpo)
