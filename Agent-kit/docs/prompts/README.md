@@ -5,8 +5,9 @@ por tarefa** em vez de "todo dia".
 
 ## Catálogo
 
-- **`task-brief-template.md`** — template do `BRIEF_<nome>.md` pra
-  criar antes de tarefa M ou L
+- **`task-brief-template.md`** — template do brief
+  (`docs/tasks/<NNN>-<slug>/brief.md`) pra criar antes de tarefa M
+  ou L
 
 ## Diferença entre `prompts/` e `workflows/`
 
