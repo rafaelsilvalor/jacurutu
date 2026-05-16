@@ -71,6 +71,18 @@ The dev surface splits by *audience*, not by directory.
 
 **R19 — Extension points dispatch via registries (Map-backed).** When the codebase needs dispatch by key — file extension → handler, view id → view module, action id → action module — the dispatch is a registry that consumers query (`registry.get(key)`) and producers self-register into (`registry.register(key, handler)`). Consumer code does not enumerate producers. Three categories qualify under the "third use" criterion (A3): file format handlers (4 cases — PSD/PSB, AI, INDD, raster), renderer view router (3 cases — browser, file detail, settings), file action menu (3+ cases — open, reveal, etc.). Other extension surfaces (e.g. external integrations) are deferred until a real second case appears.
 
+**R20 — TypeScript strict mode (project-wide).** Every `tsconfig.json` in the v2 monorepo extends a base config with `"strict": true`. The directives `// @ts-ignore` and `// @ts-expect-error` are forbidden without a one-line comment explaining the reason and a TODO with date.
+
+**R21 — ESM only; `.js` extension in imports.** All packages declare `"type": "module"` in `package.json`. Imports reference the compiled output name (e.g. `import { foo } from "./bar.js"` even when the source is `bar.ts`). This is a Node ESM requirement, not a stylistic choice.
+
+**R22 — No bundler; `tsc` per package.** Each workspace compiles via `tsc -p .` into its own `dist/`. No esbuild, rollup, webpack, or similar. Bundling is a Phase 3+ packaging concern, not part of the core build chain.
+
+**R23 — `node:test` for testing.** No jest, vitest, mocha, ava. Test files colocate with their source as `*.test.ts`. The exact runner integration (compile-and-test, `tsx` loader, or `--experimental-strip-types`) is fixed during Phase 1 bootstrap. Rationale: zero-dependency testing keeps the monorepo lean.
+
+**R24 — No `any` type.** Use `unknown` for inputs requiring type narrowing. `any` is reserved for justified escape hatches and requires a one-line comment with the rationale.
+
+**R25 — Hexagonal architecture: dependency direction.** The `core` package defines domain logic and port interfaces. Adapter packages (`adapter-jira`, `adapter-sheets`, future others) implement ports and depend on `core`. The `core` package never imports from adapters. The composition root (currently `cli`) wires adapters into `core`. Verification: `grep -rn 'from.*adapter' core/` returns no matches.
+
 ## Anti-patterns
 
 **A1 — Silent error swallowing.** `catch {}` or `catch (e) { return null }` without log. Violates R4.
@@ -91,6 +103,8 @@ The dev surface splits by *audience*, not by directory.
 
 ## Documented Exceptions
 
+**Note on v1 freeze:** all exceptions below apply to the Electron-v1 codebase, currently in freeze (`MENTOR_BRIEF.md` §2). No new work resolves them; they remain documented for historical context and any critical-bug-only v1 maintenance. New v2 exceptions, if needed, take fresh numbering starting at E6.
+
 **E1 — Renderer state in module globals (`renderer/app.js`).** The current renderer keeps state in module-level variables (`allGroups`, `activeGroupName`, `searchQuery`, `rootPath`). Tolerated until `refactor/renderer-into-modules`. New renderer code must not add to this pattern.
 
 **E2 — `main.js` and `renderer/app.js` exceed R5 (400 lines).** Current sizes: `main.js` ≈ 456, `renderer/app.js` ≈ 329. Known debt, scheduled for `refactor/main-into-modules` and `refactor/renderer-into-modules`. Feature work is not blocked, but new code must not enlarge these files — extract into new modules instead.
@@ -102,7 +116,7 @@ The dev surface splits by *audience*, not by directory.
 
 Do not translate piecemeal during unrelated PRs.
 
-**E5 — Dispatch tables not yet routed through registries (R19).** Format dispatch is hardcoded in `main.js`; the renderer is monolithic in `renderer/app.js`; file actions are ad-hoc. Migrations: brief 002 (`refactor/format-registry`), brief 004 (`refactor/renderer-views`), brief 005 (`refactor/action-registry`).
+**E5 — Dispatch tables in v1 codebase violate R19.** Format dispatch is hardcoded in `main.js`; the renderer is monolithic in `renderer/app.js`; file actions are ad-hoc. Originally scheduled migrations (`refactor/format-registry`, `refactor/renderer-views`, `refactor/action-registry` — slots 004-006) burned in v1→v2 pivot (`MENTOR_BRIEF.md` §2, recorded 2026-05-15). No new work against these violations during v1 freeze.
 
 ## Related Documents
 

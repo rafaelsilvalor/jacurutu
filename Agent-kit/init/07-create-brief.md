@@ -2,7 +2,7 @@
 
 > **Quando usar:** começo de tarefa M ou L. Você (usuário) descreve
 > o que precisa fazer e este prompt guia a conversa pra produzir um
-> `BRIEF_<nome>.md` adequado.
+> brief adequado em `docs/tasks/<NNN>-<slug>/brief.md`.
 >
 > **Onde colar:** chat (claude.ai). É discussão, não execução.
 
@@ -13,7 +13,7 @@
 ```
 Preciso criar um brief pra tarefa nova no projeto. Vou te descrever
 o que quero fazer; me ajude a entender as necessidades reais e gerar
-um BRIEF_<nome>.md adequado pro projeto.
+um brief adequado pro projeto em `docs/tasks/<NNN>-<slug>/brief.md`.
 
 Antes de começar a entrevista:
 

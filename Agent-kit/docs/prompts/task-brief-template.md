@@ -2,7 +2,7 @@
 
 ## Quando usar
 
-Criar `BRIEF_<nome>.md` pra tarefa nova de categoria M ou L.
+Criar `docs/tasks/<NNN>-<slug>/brief.md` pra tarefa nova de categoria M ou L.
 
 > **Recomendação:** prefira usar `init/07-create-brief.md` —
 > agente entrevista você e gera brief adequado. Use template manual
@@ -21,6 +21,17 @@ tarefas L.
 3. Preenche cada seção (instruções inline em `[colchetes]`)
 4. Remove instruções e colchetes antes de finalizar
 5. Comita o brief antes de iniciar a tarefa
+6. Iniciar a tarefa via `Agent-kit/docs/workflows/start-task.md`
+   (cola o COPIAR block desse workflow no executor; o workflow
+   aponta pro brief já no disco).
+
+> **Sobre o "Edit 1 — Save this brief":** briefs 009+ usam caminho B
+> (usuário salva o brief no disco antes de invocar o executor). O
+> stub "Edit 1 — Save this brief verbatim" foi descontinuado e
+> substituído por "Edit 1 — Verify brief on disk and commit":
+> executor confirma presença e faz `git add` + commit como commit
+> #1. Briefs 000-008 usaram caminho A e ficam como estão no
+> histórico.
 
 ---
 
@@ -33,8 +44,9 @@ tarefas L.
 > **Plan required:** [yes | no] — see "When to skip Pause 1" below
 > **Branch:** `[type]/[kebab-description]`
 >
-> Paste this brief into the executor agent (Claude Code, Cowork)
-> at task start.
+> Save this brief to `docs/tasks/<NNN>-<slug>/brief.md`. Invoke
+> the executor with the prompt in
+> `Agent-kit/docs/workflows/start-task.md`.
 
 ---
 
