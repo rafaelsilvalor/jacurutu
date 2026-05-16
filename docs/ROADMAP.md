@@ -100,6 +100,7 @@ Ideas anchored but unscheduled. Each evaluates against the current phase's goal 
 - **Tags, comments, versioning** — depend on central catalog.
 - **Direct Jira write-back** — currently parked; the coordination pipeline reads Jira but doesn't write. Evaluate after Phase 4 ships.
 - **Source-of-truth split formalization for tasks** — concept carried from the 2026-05-10 product direction (Jira = task metadata; Saci = production state). Encoded in domain types as Phase 3 designs `ProductionFlow`.
+- **Docs site (Astro Starlight)** — post-Phase-1 tooling task; enters as a workspace, same npm/TS ecosystem as v2 monorepo.
 
 ## Pending decisions
 
