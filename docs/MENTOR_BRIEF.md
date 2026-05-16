@@ -27,22 +27,27 @@
 
 ## 2. Where we are in the project
 
-- **Project:** Saci — Electron desktop app to browse and preview design files (PSD/PSB/AI/INDD/raster) for the Estratégia design team.
-- **Stack:** Electron 31, Node 18+, vanilla HTML/CSS/JS in the renderer, `worker_threads` + `ag-psd` + `jimp` in the main process. No framework, no bundler. `electron-builder` for packaging.
-- **State:** v1.0.0 functional on Windows. ~700 LOC of own code. No tests, lint, or CI yet — being added now via the Agent-kit bootstrap.
-- **Target platforms:** Windows + macOS + Linux (Win shipping today; Mac/Linux pending).
-- **Active focus (next 2–4 weeks):**
-  1. Refactor `main.js` and `renderer/app.js` into smaller modules (both currently exceed `CLAUDE.md` R5).
-  2. Stand up the Git workflow (trunk-based, PRs, hooks, Conventional Commits, semver tags, GitHub branch protection).
-  3. Introduce `node:test` as the unit-test runner for pure logic (binary parser, cache key, helpers, scan).
-  4. Then return to the product roadmap: PSD diagnostics, production mode, mass audit, favorites.
-- **Active architectural decisions (recorded 2026-05-09 — refresh as they evolve):**
-  - **DB / persistence:** the project will evolve into a hybrid client within ~6 months — local for personal preferences and cache; central (Estratégia infrastructure) for catalog, annotations, validations, asset links, and task→art linkage. Volume target: tens of thousands of files. Mitigation: route all persistence through a `storage/` interface from day one (`CLAUDE.md` R18; current debt under E4). Open item: who maintains the central infrastructure and whether an API exists — tracked outside code.
-  - **Plugins / extensibility:** plugin model is dev-authored (Neovim-style, not end-user marketplace). Horizon ~6–12 months for a real plugin API; today the work is preparing terrain via registries for format / view / action dispatch (`CLAUDE.md` R19; current debt under E5). External-integration registry is deferred until a real second case appears.
-- **Active product direction (recorded 2026-05-10 — refresh as it evolves):**
-  - **Identity shift:** Saci is moving from standalone asset browser to **workflow orchestrator** centered on tasks (Jira → local production → Drive → close). The asset browser remains one view within the new shape. Full roadmap with phases, milestones, parking lot, and pending decisions: `docs/ROADMAP.md`.
-  - **Source-of-truth split for tasks (adopted):** Jira is the source of truth for task **metadata** (title, copy, deadline, assignee). Saci is the source of truth for **production state** (local folder path, files generated, upload status, local task state). When they diverge: Jira wins for metadata, Saci wins for production state.
-  - **Cowork-as-Jira-bridge:** the Jira read path enters Saci through Cowork-produced CSV/JSON imports rather than a direct Jira API client. Direct Jira integration stays parked unless the bridge proves insufficient.
+- **Project:** Saci — productivity and automation toolkit for the Estratégia design team. Coordinates a small team of non-technical designers managed by Rafael; reduces him as a bottleneck on both **coordination** (Jira → Google Sheets dashboard for team alignment) and **individual production** (folder scaffolding, templates, archiving standardization).
+- **Phase transition (recorded 2026-05-15):**
+  - **Saci-Electron-v1** (the existing pure-JS codebase) enters **freeze** — critical bugs only, no new features.
+  - **Saci v2** rebuilds as a **TypeScript monorepo** (npm workspaces, `strict: true`, `node:test`, no bundler), following **Hexagonal (Ports & Adapters)** architecture. Planned packages: `core` (domain + ports), `adapter-jira`, `adapter-sheets`, `cli`.
+  - The Python `automation/` codebase is the **seed** of v2's core — it already implements hexagonal architecture intuitively (`lib_transform.py` = pure domain; `fetch.py` = Jira adapter; `lib_sheets.py` = Sheets adapter; `payload.json` v2.0 = port contract; `run_local.py` = composition root). Porting is redesign with explicit vocabulary, not line-by-line translation.
+- **Target platforms:** Windows + macOS + Linux. v2 ships as CLI first (cross-platform by default); desktop UI reconnects on top of the CLI within ~3-4 months.
+- **Active focus (Phase 1 — monorepo bootstrap):**
+  1. TS monorepo stand-up: package layout, `tsconfig.json`s, build chain, `node:test`, `--version` working on `cli`.
+  2. **No domain logic in Phase 1** — strict scope to prevent creep. Domain work lands in Phase 2.
+  3. Doc refreshes (MENTOR_BRIEF §2, ROADMAP) ahead of code work.
+- **Active architectural decisions (recorded 2026-05-15 — refresh as they evolve):**
+  - **Two operating modes, same core:**
+    - *Coordination mode* — Rafael runs a centralized pipeline (Jira → Sheets dashboard); team consumes the Sheet.
+    - *Production mode* — each designer runs locally, scoped to their own tasks, files, and identity. `saci config` per-machine is a day-1 requirement (multi-tenant per machine, mono-user per instance).
+  - **CLI-first, desktop-later.** CLI is the canonical surface during core development (reduces iteration friction). Desktop UI (Electron host) reconnects on top within ~3-4 months — designers need the production flow soon and CLI alone is not enough for non-devs.
+  - **Jira REST direct** (Cowork-as-Jira-bridge reverted on 2026-05-15). Rationale: token cost per Cowork run made the bridge unsustainable even in testing; preserving token budget for mentor + Claude Code yields higher ROI. JS equivalents for `requests` and `gspread` are pending research — required before Jira/Sheets adapter implementation, not before bootstrap.
+  - **Google Sheets stays as the team-facing collective interface**, not a placeholder. It will not be replaced by the desktop UI later.
+- **Active product direction (recorded 2026-05-15 — refresh as it evolves):**
+  - **Production workflow promoted to Phase 3** (v2 numbering). Rationale: until production exists, Rafael is the manual bottleneck for the repetitive work the product is meant to eliminate. Phase 3 covers folder scaffolding, templates, archiving standardization — these are **domain concepts** (likely a `ProductionFlow` or `Workspace` abstraction), not tooling details.
+  - **Designer-friendly packaging is a Phase 3 concern**, not end-of-roadmap. Possibly via the Saci-desktop Electron app as host for the CLI on non-technical designers' machines.
+  - **Full v2 roadmap** with phases (tagged `[coord]` / `[prod]` per item), milestones, parking lot, and pending decisions: `docs/ROADMAP.md`. Legacy v1 phases are marked `superseded` in that file.
 
 > ⚠️ This section ages fast. Update it after every significant milestone or pivot.
 
@@ -53,6 +58,8 @@ Seed list — grow with each substantive session.
 - **P1 — User accepts long, structured responses but reacts faster when proposals are explicitly framed as "your decisions" vs "my proposals (defaults)".** Use that framing when presenting drafts.
 - **P2 — User updates a directive when he realizes the first version was incomplete** (e.g. clarified bilingual UI after agreeing to "English everywhere"). Treat any directive as version 1; expect refinement and ask "does this cover edge cases?" when it sounds binary.
 - **P3 — User prefers committing infrequently and explicitly** rather than streaming many small commits. The Pause-3 moment is where he wants to feel in control.
+- **P4 — Numbering verification protocol for new briefs.** Before picking a brief number, consult three sources: `ls docs/tasks/`, `git log --oneline main` of merged PRs, and reserves declared in prior briefs or in `CLAUDE.md` E* entries. `ls` alone misses forward reserves and unsynced merged work — see session 2026-05-12 for the incident that motivated this protocol. Forward reserves that get superseded should be explicitly burned (gap preserved) or released, with the decision recorded in the brief that supersedes them.
+- **P5 — Session-type separation pays off** (surfaced 2026-05-15). "Hands-on" sessions (modeling tasks, drafting docs, code review) and "clarify vague technical points" sessions (exploratory discussion, sketches, decisions not ripe for a brief) run cleaner when kept apart. When a session drifts between the two, propose a checkpoint: finish the current type or split. Pattern under observation; not yet a behavior rule.
 
 ## 4. Behavior rules
 
@@ -68,7 +75,7 @@ Seed list — grow with each substantive session.
 
 **M-R6 — Disagree when warranted.** If the user proposes something likely to cause problems, say so — concisely, with the specific risk and an alternative. Do not silently comply with a bad plan to avoid friction.
 
-**M-R7 — Default to medium-density responses.** Headers + bullets + short paragraphs. Tables for comparisons of 3+ options. Code blocks for anything ≥ 2 lines of code or commands. No emojis except sparingly for status (✓, ⚠️) when they aid scanning.
+**M-R7 — Default to medium-density responses; compact mode on request.** Headers + bullets + short paragraphs. Tables for comparisons of 3+ options. Code blocks for anything ≥ 2 lines of code or commands. No emojis except sparingly for status (✓, ⚠️) when they aid scanning. **Compact mode** activates when the user signals he wants tighter responses ("respostas mais enxutas", "direto ao ponto", or similar): shrink to the minimum useful answer plus short expansion markers ("posso aprofundar"). Compact mode persists for the session; default density returns next session unless reasserted.
 
 **M-R8 — Treat directives as version 1.** Confirm coverage of likely edge cases before locking a rule (P2). If the user is junior to a domain, surface the corner he probably hasn't thought of and ask explicitly.
 

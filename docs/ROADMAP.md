@@ -2,138 +2,127 @@
 
 > **Living document.** Pair with `MENTOR_BRIEF.md` §2 (active architectural decisions) and `CLAUDE.md` (technical rules). Update after every milestone or pivot — when this file disagrees with MENTOR_BRIEF §2, the more recent one wins and the other must be reconciled in the same PR.
 
-## Identity shift
+## Identity shifts
 
-Saci was born as an asset browser for the Estratégia design team — pick a root folder, preview PSDs, open in the default editor. The production-flow direction (Jira task → local folder generation → export → Drive upload → task close) reframes Saci as a **workflow orchestrator** in which the asset browser is one view.
+### 2026-05-10 — Asset browser → workflow orchestrator
 
-The introduction of `task` as a first-class entity alongside `file` is the load-bearing change. Most decisions in Phases 4 and 5 below trace back to it.
+Saci was born as an asset browser for the Estratégia design team — pick a root folder, preview PSDs, open in the default editor. The production-flow direction (Jira task → local folder generation → export → Drive upload → task close) reframed Saci as a **workflow orchestrator** in which the asset browser is one view.
 
-This is a deliberate identity shift, not a feature expansion. The roadmap reflects the new identity from Phase 2 onward.
+The introduction of `task` as a first-class entity alongside `file` was the load-bearing change. This was a deliberate identity shift, not a feature expansion.
+
+### 2026-05-15 — v1 (Electron-JS) → v2 (TS monorepo, hexagonal, CLI-first)
+
+The product framing held; the technical foundation pivoted. **Saci-Electron-v1** (pure JS, asset-browser-centered) enters freeze — critical bugs only, no new features. **Saci v2** rebuilds as a TypeScript monorepo with npm workspaces and explicit Hexagonal (Ports & Adapters) architecture, starting CLI-first with the desktop UI reconnecting on top within ~3-4 months.
+
+The Python `automation/` codebase (Jira → Google Sheets sync) — which already implemented hexagonal architecture intuitively — is the seed of v2's core. **Until v2's coordination adapters land (Phase 4), the Python automation continues to operate** as the live coordination pipeline.
+
+Two operating modes are designed from day one:
+
+- **Coordination mode** — Rafael runs a centralized pipeline (Jira → Sheets dashboard); team consumes the Sheet.
+- **Production mode** — each designer runs locally, scoped to their own tasks, files, and identity.
+
+The same core serves both modes; each mode has its own command set.
 
 ## Phases
 
-Phases are ordered by dependency, not by date. Each has an architectural goal; milestones inside ship value.
+Phases are ordered by dependency, not by date. Items are tagged `[coord]`, `[prod]`, or untagged (foundational, serves both modes). Estimates are set at each phase's start, not in a central table — that pattern proved hard to keep current under v1.
 
-### Phase 1 — Storage layer foundation *(in progress)*
+> **Notation:** `[coord]` = coordination mode (Rafael's centralized pipeline). `[prod]` = production mode (per-designer local). Untagged items are foundational and serve both.
 
-**Goal:** all persistence routes through `storage/` (R18 satisfied; E4 removed).
-**Brief:** `002-storage-layer`.
-**Exit criterion:** `main.js` no longer touches `fs.*` for config or thumb-cache; `CACHE_VERSION` preserved at 4; E4 removed from `CLAUDE.md`.
+### Phase 1 — Monorepo bootstrap *(in progress)*
 
-### Phase 2 — Registry foundations
+**Goal:** the TS monorepo compiles, the `cli` package prints `--version`, `node:test` runs an empty suite green. Nothing else.
 
-**Goal:** the three R19 dispatch surfaces (file format, renderer view, file action) are registry-backed (E5 removed).
-**Briefs:** `003-format-registry` (first per the exit notes of 002), then action registry, then renderer view router. Order may flex based on what unblocks Phase 3 fastest.
-**Exit criterion:** R19 satisfied; new handlers self-register without consumer enumeration.
+**Strict scope:** no domain logic, no adapters, no CLI commands beyond `--version`. Any additional work is a separate phase, even if it would be "easy to add" — this scope discipline is the whole point of Phase 1.
 
-### Phase 3 — Command palette
+**Exit criterion:** `npm install` at repo root succeeds; `npm run build` succeeds across all workspaces; `node packages/cli/dist/cli.js --version` prints a version; `node --test` runs and passes a placeholder suite.
 
-**Goal:** every registered action becomes invokable via `/` in the search bar.
-**Depends on:** Phase 2 (action registry specifically).
-**Rationale:** with actions self-registering, the palette is "filter registered actions by typing". Built before the registry, it would hardcode a list that gets thrown away.
+### Phase 2 — Domain port (foundational)
 
-### Phase 4 — Multi-source abstraction
+**Goal:** the Python `automation/lib_transform.py` is ported to TypeScript as the `core` package — pure domain functions, no I/O. Ports (interfaces) for the Jira and Sheets adapters are defined as TS interfaces, even though the adapters themselves come later. The schema-as-port-contract pattern from `payload.json` v2.0 maps to TS types.
 
-**Goal:** `root folder` becomes a special case of `source`. Local folders, Jira (read), Drive (read/write), Figma (read) all implement a `Source` interface (`scan`, `read`, `watch`, `write` where applicable).
-**Depends on:** Phase 1 (storage schema), Phase 2 (source-specific actions self-register).
-**Rationale:** validated by Phase 5 — Jira is a task source, Drive is an output destination, Figma is a file source. Generalizing here is cheaper than retrofitting after Phase 5 ships.
+**Strict scope:** `core` package only. No adapter implementations. No CLI commands using the domain yet.
 
-### Phase 5 — Production workflow
+**Exit criterion:** every pure-domain function in `lib_transform.py` has a TS equivalent in `core` with `node:test` coverage; `JiraGateway` and `SheetGateway` ports defined as TS interfaces; `payload.json` v2.0 represented as TS types.
 
-**Goal:** the freelancer onboarding pain is solved. Tasks flow Jira → Saci → local production → Drive → Jira close, with Saci as the orchestrator and Cowork as the Jira bridge until/unless a direct integration is justified.
-**Depends on:** Phases 1–4.
+### Phase 3 — Production workflow + designer packaging `[prod]`
 
-Milestones, in order. Estimates assume current cadence (solo dev, agent-assisted, part-time-equivalent throughput).
+**Goal:** designers run a CLI on their own machines that scaffolds task folders, applies templates, and standardizes archiving — eliminating Rafael as the manual bottleneck for production tasks.
 
-#### M5.1 — Tasks: import + cards + "iniciar task" *(5–7 weeks)*
+**Items:**
 
-- New storage primitive: `storage.tasks` (JSON-backed initially; SQLite candidate once task volume justifies — see Phase 6).
-- Importer for CSV/JSON with configurable column mapping. **Cowork export defines the canonical schema** (see Pending Decision 3).
-- New `Tasks` view in the renderer (card layout). Becomes the default landing view for users in the production workflow; the asset browser remains accessible from each card.
-- Per-card actions registered via the action registry: **start task** (generate local folder structure via template), **open folder**, **open Jira link**, **open copy**, **archive**.
-- Template engine: per-product overrides on a base template, configurable via JSON in `userData`. The same engine powers folder generation and file naming.
-- **External blockers:**
-  - Naming convention defined and stable (Pending Decision 1).
-  - Cowork export schema agreed (Pending Decision 3).
+- `[prod]` `ProductionFlow` / `Workspace` domain abstraction in `core`. Templates and archival standardization are domain concepts, not tooling details.
+- `[prod]` `saci config` — per-machine identity (multi-tenant per machine, mono-user per instance). Day-1 requirement: 3+ designers running their own flows.
+- `[prod]` CLI commands for scaffolding, template application, archiving.
+- `[prod]` Designer-friendly packaging — Saci-desktop (Electron) returns as a host for the CLI on non-technical designers' machines.
 
-#### M5.2 — Export PSD via Photoshop scripting *(4–6 weeks)*
+**Exit criterion:** Rafael's designers can install Saci-desktop, run their daily production flow end-to-end, and Rafael does no manual scaffolding for that flow.
 
-- New plugin: `plugin-export-psd`.
-- JSX dispatched from main process to a running or invoked Photoshop instance.
-- Action `export-as` registers for `.psd` / `.psb` extensions; offers JPG, PNG, WebP, with quality presets.
-- **Trade-off:** full fidelity (smart objects, layer effects) requires Photoshop installed. Pure JS PSD parsing via `ag-psd` is a fallback for non-Photoshop machines and is honest about its limits. Photoshop scripting is the canonical path because every freelancer designer already has Photoshop.
+**Open items inside this phase** (resolve at phase start):
 
-#### M5.3 — Export Figma *(3–4 weeks)*
+- Exact shape of the `ProductionFlow` / `Workspace` abstraction (likely surfaces during Phase 2 port).
+- Packaging format and OS coverage (Windows first probably; Mac/Linux follow).
 
-- New plugin: `plugin-export-figma`.
-- Figma REST API call given a file or node ID. OAuth or PAT per user.
-- Action `export-as` registers for Figma-sourced files.
-- Tactically simpler than M5.2 — could swap order if Figma represents the majority of current tasks (see Pending Decision 5).
+### Phase 4 — Coordination adapters `[coord]`
 
-#### M5.4 — Drive upload *(4–5 weeks)*
+**Goal:** the coordination pipeline (Jira → Sheets dashboard) is operational in TS, retiring the Python `automation/`.
 
-- New plugin: `plugin-drive`.
-- OAuth per user; each freelancer authenticates their own Drive for accountability. Tokens via Electron `safeStorage` / `keytar`.
-- Action `upload-to-drive` on cards (whole task folder) and on individual files. Mirrors local folder structure on Drive.
-- **Decision pending in scope:** duplicate handling on Drive (version-suffix, overwrite, or prompt). Default proposal: prompt on first occurrence per task, then remember the choice.
+**Items:**
 
-#### M5.5 — "Finalizar task" *(2–3 weeks)*
+- `[coord]` `adapter-jira` — Jira REST direct (Cowork bridge reverted). JS equivalent of Python's `requests` chosen and committed.
+- `[coord]` `adapter-sheets` — Google Sheets write/sync. JS equivalent of Python's `gspread` chosen and committed.
+- `[coord]` CLI commands for the coordination pipeline (run sync, dry-run, diff, etc.).
+- `[coord]` Composition root for coord mode in the `cli` package.
 
-- Composite action that chains: export (M5.2 or M5.3) → upload (M5.4) → local task state → `done` → surface the generated Drive link for the user to paste or comment in Jira.
-- Optional Jira write-back via Cowork (a Cowork automation triggered from a Saci-produced file). Direct Jira API write remains parked.
-- Closes the round-trip Jira → Saci → Jira.
+**Exit criterion:** Rafael's coordination flow runs entirely on TS Saci; Python `automation/` archived. Same Sheet output as before, ideally indistinguishable.
 
-### Phase 6 — Plugin maturation & central API integration *(deferred)*
+**Dependencies:** Phase 2 (ports defined). Could in principle run in parallel with Phase 3, but Rafael's bottleneck is production, so Phase 3 takes priority for solo-dev throughput.
 
-**Goal:** plugin loader formalized (manifest, capabilities, lifecycle); SQLite local catalog; central catalog API plugged in.
-**Status:** parking lot.
-**Notes:** scope solidifies once the Estratégia central-infrastructure question (MENTOR_BRIEF §2 open item) resolves. Until then, the storage seam (R18) keeps the project ready without committing to a specific shape.
+### Phase 5 — Desktop UI on top of CLI
+
+**Goal:** the desktop UI is reconnected as a thin layer over the CLI / core, supporting both modes. Coordination mode gets a desktop interface to operate the pipeline; production mode gets a richer surface than the bare CLI.
+
+**Status:** sketch only. Reconnection happens **within ~3-4 months** of Phase 1 start — earlier if Phase 3 packaging requires it. Detailed scope drafted when Phase 4 closes.
+
+### Phase 6+ — Open
+
+Beyond the desktop reconnect, the next directions are open. See **Parking lot** for candidates that may promote.
 
 ## Parking lot
 
 Ideas anchored but unscheduled. Each evaluates against the current phase's goal before promotion.
 
-- **PSD diagnostics** (original README roadmap item) — Smart Object analysis, hidden layer audit, embedded media size, color mode checks. Likely a plugin.
-- **Mass audit** — generate JSX optimization scripts for batch processing. Depends on diagnostics.
-- **Favorites and per-designer shortcuts** — depends on action registry (Phase 2) plus a `preferences` storage primitive.
-- **File watcher** (`chokidar`) — auto-refresh on filesystem changes. Quick win once Phase 2 lands; risk to manage is Photoshop's `.tmp` save files masquerading as changes.
-- **Workspace session** — save and restore last folder, expanded groups, filters, scroll. Natural extension of `storage/`.
-- **Tags + saved filters** — local-first tagging. New primitive `storage.tags`. Migrates to central API in Phase 6 without API change.
-- **Comments / annotations on assets** — collaborative; viable only post Phase 6.
-- **Versioning / file history** — viable only with central API or a git-backed local store.
-- **Asset reference graph** ("this PSD was used in this banner") — requires DB layer maturity; Phase 6+.
-- **Direct Jira integration (read + write)** — possibly never needed if Cowork bridge holds. Evaluate after M5.5 ships and the bridge's limits are concrete.
-- **i18n migration** — finish E3 (existing pt-BR in source) and E3b (UI literals). Independent of product work but eventually mandatory for cross-platform release.
+- **Multi-source adapters** — Figma (read), Drive (read/write), other input sources. Generalizing a `Source` interface beyond Jira.
+- **Asset browser (v1 feature)** — preserved as a candidate view inside v2 if it earns its place; not migrated automatically.
+- **PSD diagnostics, mass audit, favorites** (from v1 roadmap) — preserved in case the asset browser view is restored.
+- **Plugin system** — dev-authored (Neovim-style), not end-user marketplace. Surfaces when a second concrete extension case appears.
+- **Central catalog API** — when Estratégia central infrastructure exists and volume justifies it (tens of thousands of files).
+- **Tags, comments, versioning** — depend on central catalog.
+- **Direct Jira write-back** — currently parked; the coordination pipeline reads Jira but doesn't write. Evaluate after Phase 4 ships.
+- **Source-of-truth split formalization for tasks** — concept carried from the 2026-05-10 product direction (Jira = task metadata; Saci = production state). Encoded in domain types as Phase 3 designs `ProductionFlow`.
 
 ## Pending decisions
 
-Decisions that gate one or more phases. Resolve as they become blocking; do not pre-resolve speculatively.
+Open questions that will gate or shape upcoming phases.
 
-1. **Naming convention for production files.** Owner: Estratégia design team. Blocks M5.1 *production rollout*, not its *construction*. Construction can start with a placeholder template; rollout cannot.
-2. **Jira custom field for "copy".** Owner: Estratégia. If never created, the Cowork bridge handles freeform parsing and the gap is invisible to Saci. Not a hard blocker; just a quality/reliability concern for the import schema.
-3. **Cowork → Saci export schema.** Owner: Rafael + whoever maintains Cowork automations. Must be agreed before M5.1 implementation. Initial proposal: `{ id, title, copy, project, type, deadline, links: { jira, brief, drive_parent } }`. Iterate.
-4. **Central infrastructure / API ownership** at Estratégia. Owner: Estratégia leadership. Open item from MENTOR_BRIEF §2. Blocks Phase 6 only.
-5. **PSD vs Figma export priority** (M5.2 vs M5.3 order). Owner: Rafael. Pick whichever represents more current tasks.
-6. **Source-of-truth split for tasks.** Proposed: Jira is source of truth for task metadata (title, copy, deadline, assignee); Saci is source of truth for production state (local folder path, files generated, upload status, local task state). Adopt and document in MENTOR_BRIEF §2 on next refresh.
-7. **Auth UX for freelancers.** Each user authenticates their own Jira (via Cowork) and their own Drive (via `plugin-drive`). First-run wizard scope to be defined in M5.4.
-8. **Template config location.** Local per user, shared via a checked-in JSON, or shared via the central API (Phase 6). Recommendation: shared, starting with a checked-in JSON during Phase 5 and migrating to the API when Phase 6 lands.
+1. **JS libraries for Jira REST and Google Sheets.** Equivalents to Python's `requests` and `gspread` not yet researched. Required before Phase 4 starts; not blocking Phases 1-3.
+2. **Designer-friendly packaging format.** Installer? Portable? Per-OS variants? Deferred to Phase 3 planning.
+3. **`ProductionFlow` / `Workspace` exact abstraction.** Likely surfaces during Phase 2 port; refined in Phase 3 design.
+4. **Coordination of v1 ↔ v2 during overlap.** While v2's Phase 4 is unfinished, Python `automation/` runs coord mode. Decide: keep automation untouched, or accept small patches? Default: untouched.
+5. **Estratégia central infrastructure** (carried from previous ROADMAP) — open item from MENTOR_BRIEF §2; tracked outside code.
 
-## Time and reality check
+## Legacy / superseded — Saci-Electron-v1 phases
 
-Phase-level estimates, optimistic vs realistic.
+The following phases were planned under the Electron-v1 codebase. With v1 entering freeze on 2026-05-15, they are **superseded** by the v2 phases above. Brief slot reservations 004-006 (`refactor/format-registry`, `refactor/renderer-views`, `refactor/action-registry`) were **burned** as part of the v2 pivot — those slot numbers will not be reused.
 
-| Phase | Optimistic | Realistic |
-|---|---|---|
-| 1 — Storage | 1 week | 2–3 weeks |
-| 2 — Registries | 4 weeks | 6–8 weeks |
-| 3 — Palette | 2 weeks | 3–4 weeks |
-| 4 — Multi-source | 3 weeks | 4–6 weeks |
-| 5 — Production (full) | 5 months | 6–8 months |
-| 6 — Plugins / central API | open | open |
+- ~~**Phase 1 — Storage layer foundation**~~ — superseded; in v2, persistence is per-adapter, not a single seam.
+- ~~**Phase 2 — Registry foundations**~~ — superseded; v2 doesn't have the dispatch-table problem R19 was solving.
+- ~~**Phase 3 — Command palette**~~ — superseded; revisit if the desktop UI requires it (v2 Phase 5).
+- ~~**Phase 4 — Multi-source abstraction**~~ — superseded; the `Source` interface idea survives in the v2 Parking lot.
+- ~~**Phase 5 — Production workflow**~~ — superseded by **v2 Phase 3** (promoted in priority).
+- ~~**Phase 6 — Plugin maturation & central API**~~ — superseded; survives in v2 Parking lot.
 
-From current position to M5.5 functional: roughly **10–14 months** at current cadence. First production value (M5.1 shipped to a freelancer's machine) lands around **5–6 months** out — earlier if Phases 2 or 4 compress.
-
-These are estimates, not commitments. Track actuals after each phase closes and recalibrate the next estimate. A pattern of consistent overrun is a signal to scope down, not to push harder.
+Estimates and the M5.x milestone breakdown from the v1 plan are not migrated — v2 starts with new estimates, set at each phase's start.
 
 ## Update protocol
 
@@ -141,12 +130,13 @@ These are estimates, not commitments. Track actuals after each phase closes and 
 - After each merged PR that closes a milestone or phase: update the relevant section's status line in the same PR.
 - New ideas → **Parking lot** with a one-line rationale. Do not enrich parking-lot entries beyond a line until they are nominated for promotion.
 - Resolved pending decisions → strike through with date and a one-line resolution (`~~Decision text~~ — *resolved 2026-XX-XX: <outcome>*`). Do not delete; they form the history.
-- Identity-level shifts (like the asset-browser → orchestrator shift recorded above) get a dated subsection in this file when they happen; do not silently rewrite the existing identity statement.
+- Identity-level shifts get a dated subsection in `## Identity shifts`; do not silently rewrite earlier ones.
+- Phase-level shifts (a phase being superseded by another, like the v1 → v2 pivot) move the old phases to `## Legacy / superseded` with a one-line rationale per phase; do not delete them.
 
 ## References
 
-- `CLAUDE.md` — R9 (canonical surface in English), R18 (storage layer), R19 (registries), A3 (third-use criterion before abstracting).
+- `CLAUDE.md` — technical rules (TS-specific rules pending; see MENTOR_BRIEF §2).
 - `docs/MENTOR_BRIEF.md` §2 — active architectural decisions, refreshed in sync with this file.
-- `docs/tasks/<NNN>-<slug>/` — per-milestone briefs, written when each milestone is about to start.
+- `docs/tasks/<NNN>-<slug>/` — per-task briefs; written when a task is about to start.
 - `docs/GIT_WORKFLOW.md` — operational discipline.
-- `README.md` — current functionality and original roadmap (now superseded by this file from Phase 2 onward).
+- `README.md` — current functionality (v1 asset browser side).
