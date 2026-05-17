@@ -64,22 +64,19 @@ Closed in chat session 2026-05-17. Executor implements; does not propose alterna
 
 ## Plan
 
-### Edit 1 — Verify brief on disk and stage
+### Edit 1 — Verify state
 
-Confirm `docs/tasks/010-agent-kit-to-harness/brief.md` is present. Stage for commit #2.
+The brief was committed together with the file moves and rename in commit #1 by the orchestrator. A follow-up commit #2 by the orchestrator adjusted this Edit to reflect that state. Both commits are already on the branch when you start.
 
-Verify branch state:
+No commit needed for this edit. Verify the following and proceed to Edit 2:
 
 - Current branch: `refactor/agent-kit-to-harness`
-- Commit #1 present: `git log --oneline -1` shows the flatten+rename commit
-- Working tree: brief is the only unstaged change
+- `git log --oneline -2` shows two commits: the flatten+rename and the brief adjustment
+- Working tree is clean
 - Directory check: `ls harness/` returns `README.md  init/  prompts/  skills-plan/  workflows/`
+- Brief is present at `docs/tasks/010-agent-kit-to-harness/brief.md`
 
-Commit #2:
-
-```
-docs(tasks): add brief for 010-agent-kit-to-harness
-```
+Executor commits start at #3 (Edit 2 onward).
 
 ### Edit 2 — Sweep refs in project canonicals (`docs/`)
 
