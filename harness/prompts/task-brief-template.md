@@ -21,7 +21,7 @@ tarefas L.
 3. Preenche cada seção (instruções inline em `[colchetes]`)
 4. Remove instruções e colchetes antes de finalizar
 5. Comita o brief antes de iniciar a tarefa
-6. Iniciar a tarefa via `Agent-kit/docs/workflows/start-task.md`
+6. Iniciar a tarefa via `harness/workflows/start-task.md`
    (cola o COPIAR block desse workflow no executor; o workflow
    aponta pro brief já no disco).
 
@@ -46,7 +46,7 @@ tarefas L.
 >
 > Save this brief to `docs/tasks/<NNN>-<slug>/brief.md`. Invoke
 > the executor with the prompt in
-> `Agent-kit/docs/workflows/start-task.md`.
+> `harness/workflows/start-task.md`.
 
 ---
 

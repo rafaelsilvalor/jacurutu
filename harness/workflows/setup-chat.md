@@ -15,7 +15,7 @@ Chat **não toca seu disco**. É espaço de pensamento.
 ## Pré-requisitos
 
 - Projeto já tem documentação canônica (`CLAUDE.md`, `MENTOR_BRIEF`,
-  etc. — gerados pelo `agent-kit/init/`)
+  etc. — gerados pelo `harness/init/`)
 - Você consegue colar texto longo e arquivos no chat
 
 ---
