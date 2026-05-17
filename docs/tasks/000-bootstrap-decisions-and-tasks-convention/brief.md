@@ -15,7 +15,7 @@ A mentoring chat session on 2026-05-09 closed two architectural decisions for Sa
 1. **Persistence will become hybrid** within ~6 months — local for personal preferences and cache; central (Estratégia infrastructure) for catalog, annotations, validations, asset links, and task→art linkage. Volume target: tens of thousands of files.
 2. **Plugins will exist** at a 6–12-month horizon, dev-authored, Neovim-style (not end-user marketplace). Until then, three extension surfaces — file format dispatch, renderer view router, file action menu — already meet the "third use" criterion (`CLAUDE.md` A3) and warrant the registry pattern now.
 
-The same session also adopted a per-task artifact convention (`docs/tasks/<NNN>-<slug>/brief.md` + `plan.md` + optional `notes.md`) and a new `Plan required: yes | no` flag on briefs, plus two minor consistency fixes in the Agent-kit prompts.
+The same session also adopted a per-task artifact convention (`docs/tasks/<NNN>-<slug>/brief.md` + `plan.md` + optional `notes.md`) and a new `Plan required: yes | no` flag on briefs, plus two minor consistency fixes in the harness prompts.
 
 This brief consolidates all of that into the canonical docs **before** the refactor work starts (briefs 001 through 005). No code is touched.
 
@@ -26,8 +26,8 @@ After this task:
 - `CLAUDE.md` carries two new rules (R18, R19) that encode the architectural decisions, plus two new exceptions (E4, E5) documenting current debt against them.
 - `docs/MENTOR_BRIEF.md` records the active architectural decisions (§2), references the new template (§7), and replaces its closing snippet with a session-context map (§8).
 - `docs/prompts/task-brief-template.md` adopts the `docs/tasks/<NNN>-<slug>/` convention, adds the `Plan required` flag, and documents when Pause 1 may be skipped.
-- `Agent-kit/init/07-create-brief.md` is aligned with the new task structure and the `Plan required` flag.
-- `Agent-kit/init/04-create-git-workflow.md` no longer instructs the bootstrap to create a `Co-authored-by` rule (which contradicts the actual `GIT_WORKFLOW.md` G-R3 and `CLAUDE.md` R10).
+- `harness/init/07-create-brief.md` is aligned with the new task structure and the `Plan required` flag.
+- `harness/init/04-create-git-workflow.md` no longer instructs the bootstrap to create a `Co-authored-by` rule (which contradicts the actual `GIT_WORKFLOW.md` G-R3 and `CLAUDE.md` R10).
 - `docs/tasks/000-bootstrap-decisions-and-tasks-convention/brief.md` exists, containing this brief verbatim.
 
 No code is modified. No new dependency is added.
@@ -42,8 +42,8 @@ No code is modified. No new dependency is added.
 | 2 | `CLAUDE.md` | Add 2 rules (R18, R19), 2 exceptions (E4, E5), update Related Documents |
 | 3 | `docs/MENTOR_BRIEF.md` | Augment §2; update §7 table; replace §8 entirely |
 | 4 | `docs/prompts/task-brief-template.md` | Update template header; update "Como usar manualmente"; update "Pontos de pausa obrigatórios"; add new "Quando pular Pausa 1" section; update "Verificações de processo" checklist |
-| 5 | `Agent-kit/init/07-create-brief.md` | Update PASSO 5, PASSO 6, "Resultado" line |
-| 6 | `Agent-kit/init/04-create-git-workflow.md` | Replace G-R9 entry |
+| 5 | `harness/init/07-create-brief.md` | Update PASSO 5, PASSO 6, "Resultado" line |
+| 6 | `harness/init/04-create-git-workflow.md` | Replace G-R9 entry |
 
 ### Out of scope
 
@@ -59,7 +59,7 @@ No code is modified. No new dependency is added.
 ### Conventions
 
 - `CLAUDE.md` and `docs/MENTOR_BRIEF.md` content stays in English (R9 — dev surface)
-- `docs/prompts/task-brief-template.md` and `Agent-kit/init/*.md` content stays in pt-BR (existing language of those files)
+- `docs/prompts/task-brief-template.md` and `harness/init/*.md` content stays in pt-BR (existing language of those files)
 - All commits follow Conventional Commits (`CLAUDE.md` R10, `GIT_WORKFLOW.md` G-R3)
 - No `Co-authored-by` trailer on any commit (`GIT_WORKFLOW.md` G-R3)
 - Pre-commit hook is not yet installed in the repo at the time of this brief; if it is installed by then, do not bypass with `--no-verify` (`CLAUDE.md` R13)
@@ -326,7 +326,7 @@ Pausa 1 ("agente apresenta plano numerado antes de qualquer código") protege co
 - [ ] "Verificações de processo" checklist has the new wording (4 items)
 - [ ] All other sections of the file (`O que ENTRA no brief`, `O que NÃO entra`, `Tamanho ideal`, etc.) are byte-identical to before
 
-### Edit 5 — `Agent-kit/init/07-create-brief.md`
+### Edit 5 — `harness/init/07-create-brief.md`
 
 #### 5a. Replace PASSO 5
 
@@ -374,7 +374,7 @@ Mostra o brief gerado. Pergunta se há algo a ajustar. Quando
 aprovado, salva como `docs/tasks/<NNN>-<slug>/brief.md`. Sugere
 próximo passo: commitar o brief com mensagem
 `docs(tasks): add brief for <NNN>-<slug>` e iniciar a tarefa via
-`Agent-kit/docs/workflows/start-task.md` no Claude Code.
+`harness/workflows/start-task.md` no Claude Code.
 ```
 
 #### 5c. Update the "O que esperar" section's "Resultado:" line
@@ -401,7 +401,7 @@ referenciado pelo agente executor. O `plan.md` (se
 - [ ] "Resultado:" line under "O que esperar" mentions the new path
 - [ ] Other sections of the file (Variantes, Princípio em jogo, etc.) byte-identical to before
 
-### Edit 6 — `Agent-kit/init/04-create-git-workflow.md`
+### Edit 6 — `harness/init/04-create-git-workflow.md`
 
 #### 6a. Replace the G-R9 entry inside "Passo 1 — Hard Rules de Git"
 
@@ -473,11 +473,11 @@ Six commits, in this order. Each commit is a single thematic change. **Do not bu
 4. docs(prompts): adopt docs/tasks structure and add Plan required flag
    — touches only docs/prompts/task-brief-template.md
 
-5. chore(agent-kit): align init/07-create-brief with new tasks structure
-   — touches only Agent-kit/init/07-create-brief.md
+5. chore(harness): align init/07-create-brief with new tasks structure
+   — touches only harness/init/07-create-brief.md
 
-6. chore(agent-kit): remove Co-authored-by from init/04 prompt
-   — touches only Agent-kit/init/04-create-git-workflow.md
+6. chore(harness): remove Co-authored-by from init/04 prompt
+   — touches only harness/init/04-create-git-workflow.md
 ```
 
 Each commit body should explain *why* in one or two short paragraphs (G-R3, G-R4). For commits 2 and 3, reference the chat session date (2026-05-09) and the architectural decisions consolidated.

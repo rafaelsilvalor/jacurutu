@@ -18,8 +18,8 @@ Bundle of five docs-only follow-ups consolidated from session 2026-05-16-008-mod
 
 Two stale-debt items surfaced while modeling this brief:
 
-- `start-task.md` and other `Agent-kit/**` files still reference the deprecated `BRIEF_<name>.md` path (the `docs/tasks/<NNN>-<slug>/brief.md` convention was introduced in brief 000 but not propagated everywhere). Sweep included here.
-- `setup-code.md` patterns 1 ("plan always required") and 5 ("Co-authored-by trailer") contradict canonical rules. **Out of scope** for this brief — deferred to a future `agent-kit-cleanup` task.
+- `start-task.md` and other `harness/**` files still reference the deprecated `BRIEF_<name>.md` path (the `docs/tasks/<NNN>-<slug>/brief.md` convention was introduced in brief 000 but not propagated everywhere). Sweep included here.
+- `setup-code.md` patterns 1 ("plan always required") and 5 ("Co-authored-by trailer") contradict canonical rules. **Out of scope** for this brief — deferred to a future `harness-cleanup` task.
 
 No application code is touched. No new dependency is added.
 
@@ -31,9 +31,9 @@ After this task:
 
 - `CLAUDE.md` contains rules R20–R25 (TypeScript strict mode, ESM imports, no bundler, `node:test`, no `any`, hexagonal dependency direction).
 - `CLAUDE.md` E5 is rewritten to reflect v1 freeze status; a section-level note clarifies that all current exceptions apply to v1.
-- `Agent-kit/docs/prompts/task-brief-template.md` instructs caminho B invocation, includes a new step 6 in "Como usar manualmente", and carries a convention note documenting the "Edit 1" pattern shift.
-- `Agent-kit/docs/workflows/start-task.md` references `docs/tasks/<NNN>-<slug>/brief.md` consistently.
-- All other `Agent-kit/docs/workflows/*.md` and `Agent-kit/init/*.md` files have any remaining `BRIEF_<name>.md` references replaced with the canonical path.
+- `harness/prompts/task-brief-template.md` instructs caminho B invocation, includes a new step 6 in "Como usar manualmente", and carries a convention note documenting the "Edit 1" pattern shift.
+- `harness/workflows/start-task.md` references `docs/tasks/<NNN>-<slug>/brief.md` consistently.
+- All other `harness/workflows/*.md` and `harness/init/*.md` files have any remaining `BRIEF_<name>.md` references replaced with the canonical path.
 - `docs/ROADMAP.md` parking lot lists Astro Starlight as a candidate.
 - `docs/tasks/009-bundle-ts-rules-and-workflow/brief.md` is the brief on disk, committed as commit #1.
 
@@ -45,18 +45,18 @@ After this task:
 |---|---|---|
 | 1 | `docs/tasks/009-bundle-ts-rules-and-workflow/brief.md` | Pre-saved by user; verified + committed as commit #1 |
 | 2 | `CLAUDE.md` | Add R20–R25 (after R19); rewrite E5; add header note to "Documented Exceptions" section |
-| 3 | `Agent-kit/docs/prompts/task-brief-template.md` | Update header note in TEMPLATE PARA COPIAR; add step 6 to "Como usar manualmente"; add caminho B convention note |
-| 4 | `Agent-kit/docs/workflows/start-task.md` | Update Pré-requisitos #3 path; update COPIAR block (2 spots) |
-| 5 | `Agent-kit/docs/workflows/*.md` (other) | Sweep + replace `BRIEF_<name>.md` references |
-| 6 | `Agent-kit/init/*.md` | Sweep + replace `BRIEF_<name>.md` references |
+| 3 | `harness/prompts/task-brief-template.md` | Update header note in TEMPLATE PARA COPIAR; add step 6 to "Como usar manualmente"; add caminho B convention note |
+| 4 | `harness/workflows/start-task.md` | Update Pré-requisitos #3 path; update COPIAR block (2 spots) |
+| 5 | `harness/workflows/*.md` (other) | Sweep + replace `BRIEF_<name>.md` references |
+| 6 | `harness/init/*.md` | Sweep + replace `BRIEF_<name>.md` references |
 | 7 | `docs/ROADMAP.md` | Append one entry to `## Parking lot` |
 
 ### Out of scope
 
 - Any application code (`main.js`, `psd-worker.js`, `preload.js`, `renderer/**`, `storage/**`, anything under `assets/`, anything under `automation/`). v1 is in freeze (MENTOR_BRIEF §2); v2 has no code yet.
 - `package.json`, `package-lock.json`, `.gitignore`, `.githooks/`.
-- `Agent-kit/docs/workflows/setup-code.md` patterns 1 ("plan always required") and 5 ("Co-authored-by trailer"). Both contradict canonical rules but are unrelated to caminho B and the new TS rules. Deferred to a separate brief (proposed: `agent-kit-cleanup`).
-- Translating any pt-BR section of `task-brief-template.md`, `start-task.md`, or `Agent-kit/init/*.md` into English. R9 explicitly carves these out as human-edited interface.
+- `harness/workflows/setup-code.md` patterns 1 ("plan always required") and 5 ("Co-authored-by trailer"). Both contradict canonical rules but are unrelated to caminho B and the new TS rules. Deferred to a separate brief (proposed: `harness-cleanup`).
+- Translating any pt-BR section of `task-brief-template.md`, `start-task.md`, or `harness/init/*.md` into English. R9 explicitly carves these out as human-edited interface.
 - Reorganizing `CLAUDE.md` into v1 / v2 sections. R1–R19 remain in place; R20–R25 are appended.
 - Adding TypeScript rules beyond R20–R25. Error handling, CLI library, file naming, branded types, and other refinements are deferred to Phase 2+ when context informs the decision (M-R8).
 - Any `git push` (CLAUDE.md R17 / GIT_WORKFLOW.md G-R5).
@@ -64,7 +64,7 @@ After this task:
 ### Conventions
 
 - `CLAUDE.md` and `docs/ROADMAP.md` additions: **English** (R9 — agent-consumed surface).
-- `Agent-kit/docs/prompts/task-brief-template.md` and `Agent-kit/docs/workflows/start-task.md` additions: **pt-BR** in surrounding prose (existing language of those files); the English block inside the `--- TEMPLATE PARA COPIAR ---` markers stays English.
+- `harness/prompts/task-brief-template.md` and `harness/workflows/start-task.md` additions: **pt-BR** in surrounding prose (existing language of those files); the English block inside the `--- TEMPLATE PARA COPIAR ---` markers stays English.
 - All commits follow Conventional Commits (CLAUDE.md R10, GIT_WORKFLOW.md G-R3); all commits in this brief use type `docs:`.
 - No `Co-authored-by` trailer (GIT_WORKFLOW.md G-R3).
 - Pre-commit hook is not bypassed with `--no-verify` (CLAUDE.md R13).
@@ -78,7 +78,7 @@ Closed in the design session (chat, 2026-05-16). Executor implements; does not p
 - **D3 — E5 rewrite + section header note are separate sub-edits but the same commit** (both belong to the "Documented Exceptions cleanup" theme).
 - **D4 — Caminho B companion is `start-task.md`, not `setup-code.md`.** `setup-code.md` carries pre-flight only and does not receive briefs.
 - **D5 — Pasteable prompt is the existing `start-task.md` COPIAR block with updated paths.** Not a separate minimal prompt; the workflow file remains the single source of truth for executor invocation.
-- **D6 — Sweep scope is `Agent-kit/docs/workflows/**.md` (except `start-task.md`, already handled in Edit 4) and `Agent-kit/init/**.md`.** Other locations (e.g. `docs/`) are not swept. Existing briefs 000–008 are historical and left as-is.
+- **D6 — Sweep scope is `harness/workflows/**.md` (except `start-task.md`, already handled in Edit 4) and `harness/init/**.md`.** Other locations (e.g. `docs/`) are not swept. Existing briefs 000–008 are historical and left as-is.
 
 ---
 
@@ -166,7 +166,7 @@ Commit (3a + 3b together): `docs(claude): reconcile E5 and add v1-freeze note in
 
 Five sub-edits across two files. All five go in a single commit.
 
-#### 4a. `Agent-kit/docs/prompts/task-brief-template.md` — header note in TEMPLATE PARA COPIAR
+#### 4a. `harness/prompts/task-brief-template.md` — header note in TEMPLATE PARA COPIAR
 
 Inside the `## --- TEMPLATE PARA COPIAR ---` block, locate this exact text (the brief intro blockquote, in English):
 
@@ -180,22 +180,22 @@ Replace with:
 ```markdown
 > Save this brief to `docs/tasks/<NNN>-<slug>/brief.md`. Invoke
 > the executor with the prompt in
-> `Agent-kit/docs/workflows/start-task.md`.
+> `harness/workflows/start-task.md`.
 ```
 
-#### 4b. `Agent-kit/docs/prompts/task-brief-template.md` — "Como usar manualmente" step 6
+#### 4b. `harness/prompts/task-brief-template.md` — "Como usar manualmente" step 6
 
 Locate the "Como usar manualmente" numbered list. After step 5 (`Comita o brief antes de iniciar a tarefa`), insert this new step 6:
 
 ```markdown
-6. Iniciar a tarefa via `Agent-kit/docs/workflows/start-task.md`
+6. Iniciar a tarefa via `harness/workflows/start-task.md`
    (cola o COPIAR block desse workflow no executor; o workflow
    aponta pro brief já no disco).
 ```
 
 (Language: pt-BR, matching the surrounding section.)
 
-#### 4c. `Agent-kit/docs/prompts/task-brief-template.md` — caminho B convention note
+#### 4c. `harness/prompts/task-brief-template.md` — caminho B convention note
 
 After the new step 6 (4b above) and before the next section heading in the file, insert this standalone paragraph (not a numbered step), preceded and followed by a blank line:
 
@@ -211,7 +211,7 @@ After the new step 6 (4b above) and before the next section heading in the file,
 
 (Language: pt-BR.)
 
-#### 4d. `Agent-kit/docs/workflows/start-task.md` — Pré-requisitos #3
+#### 4d. `harness/workflows/start-task.md` — Pré-requisitos #3
 
 Locate the "Pré-requisitos" section. Find this exact line:
 
@@ -225,7 +225,7 @@ Replace with:
 3. Salvado o brief em `docs/tasks/<NNN>-<slug>/brief.md`
 ```
 
-#### 4e. `Agent-kit/docs/workflows/start-task.md` — COPIAR block (2 spots)
+#### 4e. `harness/workflows/start-task.md` — COPIAR block (2 spots)
 
 Inside the `## --- COPIAR ---` block:
 
@@ -268,12 +268,12 @@ Commit (all five sub-edits together): `docs(workflows): implement caminho B for 
 
 ---
 
-### Edit 5 — Sweep `Agent-kit/**` for stale `BRIEF_<name>.md` references
+### Edit 5 — Sweep `harness/**` for stale `BRIEF_<name>.md` references
 
 Run a search and replace across:
 
-- `Agent-kit/docs/workflows/*.md` — **except** `start-task.md` (already handled in Edit 4)
-- `Agent-kit/init/*.md`
+- `harness/workflows/*.md` — **except** `start-task.md` (already handled in Edit 4)
+- `harness/init/*.md`
 
 For each occurrence of the pattern `BRIEF_<something>.md` (the old per-brief filename convention from before brief 000), replace it with the canonical `docs/tasks/<NNN>-<slug>/brief.md` pattern. Adapt the surrounding phrasing to read naturally in the new context.
 
@@ -291,11 +291,11 @@ If a reference appears in prose discussing "the brief" generally (without the `B
 
 #### Verification (Edit 5)
 
-- [ ] `grep -rn 'BRIEF_[A-Za-z0-9_-]*\.md' Agent-kit/` returns no matches
+- [ ] `grep -rn 'BRIEF_[A-Za-z0-9_-]*\.md' harness/` returns no matches
 - [ ] List of files modified is reported in the commit body
-- [ ] No file outside `Agent-kit/docs/workflows/` (except `start-task.md`, already handled) or `Agent-kit/init/` is touched
+- [ ] No file outside `harness/workflows/` (except `start-task.md`, already handled) or `harness/init/` is touched
 
-Commit: `docs(workflows): sweep agent-kit for stale BRIEF_<name>.md references`
+Commit: `docs(workflows): sweep harness for stale BRIEF_<name>.md references`
 
 ---
 
@@ -371,10 +371,10 @@ Six commits, in this order:
    — touches only CLAUDE.md
 
 4. docs(workflows): implement caminho B for brief invocation
-   — touches Agent-kit/docs/prompts/task-brief-template.md
-     and Agent-kit/docs/workflows/start-task.md
+   — touches harness/prompts/task-brief-template.md
+     and harness/workflows/start-task.md
 
-5. docs(workflows): sweep agent-kit for stale BRIEF_<name>.md references
+5. docs(workflows): sweep harness for stale BRIEF_<name>.md references
    — touches files identified by the sweep (list each in the commit body)
 
 6. docs(roadmap): add astro starlight to parking lot
@@ -395,7 +395,7 @@ A single message reporting:
 
 1. Branch name and `git log --oneline main..HEAD` (should show 6 commits in the order above)
 2. `git diff --stat origin/main...HEAD` (line counts per file)
-3. Result of the sweep verification: `grep -rn 'BRIEF_[A-Za-z0-9_-]*\.md' Agent-kit/` (expected: empty)
+3. Result of the sweep verification: `grep -rn 'BRIEF_[A-Za-z0-9_-]*\.md' harness/` (expected: empty)
 4. List of files modified by Edit 5
 5. Any out-of-scope items encountered, with the reason they were paused per Pause 2 / Pause 3 protocol
 6. Confirmation that no `git push` was run
@@ -407,5 +407,5 @@ A single message reporting:
 - `CLAUDE.md` — R9 (English on dev surface), R10 (Conventional Commits), R13 (no `--no-verify`), R17 (no proactive push)
 - `docs/MENTOR_BRIEF.md` — §2 (v2 pivot context), §3 P4 (numbering protocol)
 - `docs/GIT_WORKFLOW.md` — G-R3 (no co-author trailer), G-R5 (push is the user's call)
-- `Agent-kit/docs/prompts/task-brief-template.md` — template being modified
-- `Agent-kit/docs/workflows/start-task.md` — workflow being modified
+- `harness/prompts/task-brief-template.md` — template being modified
+- `harness/workflows/start-task.md` — workflow being modified

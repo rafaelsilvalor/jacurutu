@@ -20,12 +20,12 @@
   reminder appended (D5 inlined in the rule, in addition to the
   workflow's Pré-requisitos). → `docs/MENTOR_BRIEF.md` §4.
 - **One-line exception note above M-R13** acknowledging the 8–12
-  ceiling from `Agent-kit/init/03-create-mentor-brief.md` is
+  ceiling from `harness/init/03-create-mentor-brief.md` is
   intentionally exceeded. → `docs/MENTOR_BRIEF.md` §4.
 - **`close-chat-session.md` workflow created** with 7 sections.
   Editorial change vs the brief: Trigger (D6) section promoted
-  above the COPIAR block for mentor visibility. → `Agent-kit/docs/workflows/close-chat-session.md`.
-- **Catalog entry added** in `Agent-kit/docs/workflows/README.md`
+  above the COPIAR block for mentor visibility. → `harness/workflows/close-chat-session.md`.
+- **Catalog entry added** in `harness/workflows/README.md`
   under "Continuidade", above `resume-session.md`.
 - **Task numbering: 007.** Initial choice 004 conflicted with
   `refactor/format-registry` reserved by brief 003 D5; corrected
@@ -42,7 +42,7 @@
 - **Project knowledge sync is manual, not automatic.** Established
   during this session. Re-upload of canonical files is now an
   explicit post-merge step. → no doc change yet; candidate
-  addition to `Agent-kit/docs/workflows/close-task.md`.
+  addition to `harness/workflows/close-task.md`.
 - **Workflow ownership clarified.** `close-chat-session.md` runs
   in the chat (mentor), not in the executor. The executor
   suggesting `/close-chat-session` mid-handoff was a role
@@ -53,8 +53,8 @@
 ## Open items
 
 - **Sync project knowledge** (manual): re-upload `docs/MENTOR_BRIEF.md`,
-  `Agent-kit/docs/workflows/README.md`, the new
-  `Agent-kit/docs/workflows/close-chat-session.md`, and optionally
+  `harness/workflows/README.md`, the new
+  `harness/workflows/close-chat-session.md`, and optionally
   `docs/tasks/007-chat-session-rituals/brief.md`. Blocks the audit.
 - **Mentor audit pending.** Three dimensions agreed:
   (1) technical diff of M-R13/M-R14, close-chat-session.md,
@@ -79,8 +79,8 @@
 
 - Files merged via PR #6:
   - `docs/MENTOR_BRIEF.md` (M-R13, M-R14, exception note)
-  - `Agent-kit/docs/workflows/close-chat-session.md` (new)
-  - `Agent-kit/docs/workflows/README.md` (catalog update)
+  - `harness/workflows/close-chat-session.md` (new)
+  - `harness/workflows/README.md` (catalog update)
   - `docs/tasks/007-chat-session-rituals/brief.md` (new)
 - Squashed commit on `main`: `5eafae5 Docs/chat session rituals (#6)`.
 - Branch `docs/chat-session-rituals` deleted locally and remotely.

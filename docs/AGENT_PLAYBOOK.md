@@ -210,7 +210,7 @@ This document — and `CLAUDE.md`, `MENTOR_BRIEF.md`, `GIT_WORKFLOW.md`, `GOTCHA
 If the same mistake happens twice within a few weeks:
 - **First time:** fix and move on.
 - **Second time:** add to `CLAUDE.md` as a rule (Rn) or anti-pattern (An). Reference the two incidents in the rule's reasoning.
-- **Third time:** it means the rule isn't being read. Move it into the agent's session-start checklist (`Agent-kit/docs/workflows/setup-code.md`) so it's surfaced explicitly.
+- **Third time:** it means the rule isn't being read. Move it into the agent's session-start checklist (`harness/workflows/setup-code.md`) so it's surfaced explicitly.
 
 ### When to expand vs simplify
 
@@ -236,5 +236,5 @@ Read this file end-to-end every 4–6 weeks until lessons #1–#10 are reflexes.
 | `docs/GIT_WORKFLOW.md` | Operational git discipline — branches, PRs, hooks, releases |
 | `docs/GOTCHAS.md` | Stack-specific traps catalog (`G-CAT-N` IDs) |
 | `docs/AGENT_PLAYBOOK.md` | This file — orchestration manual for the user |
-| `Agent-kit/docs/workflows/` | Pre-built session templates for common situations |
+| `harness/workflows/` | Pre-built session templates for common situations |
 | `README.md` | End-user description of Saci |

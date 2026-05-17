@@ -268,7 +268,7 @@ git rebase --abort         # if mid-rebase
 git merge --abort          # if mid-merge
 ```
 
-When more recovery is needed, see `Agent-kit/docs/workflows/gitflow-emergency-recovery.md`.
+When more recovery is needed, see `harness/workflows/gitflow-emergency-recovery.md`.
 
 ## Anti-patterns (G-A*)
 
@@ -293,4 +293,4 @@ When more recovery is needed, see `Agent-kit/docs/workflows/gitflow-emergency-re
 - `CLAUDE.md` — code rules. R10–R17 cover the principles behind this file.
 - `docs/MENTOR_BRIEF.md` — chat-mentor behavior; M-R3 mirrors Pause-3.
 - `docs/GOTCHAS.md` — codebase traps that interact with git workflow (e.g. `CACHE_VERSION` bump as its own commit).
-- `Agent-kit/docs/workflows/` — pre-built session templates: `start-task.md`, `setup-code.md`, `gitflow-merge-into-main.md`, `gitflow-emergency-recovery.md`, etc.
+- `harness/workflows/` — pre-built session templates: `start-task.md`, `setup-code.md`, `gitflow-merge-into-main.md`, `gitflow-emergency-recovery.md`, etc.
