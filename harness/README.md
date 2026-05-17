@@ -1,7 +1,6 @@
-# Agent Kit
+# Harness
 
-Kit de inicialização pra orquestrar agentes IA (Claude Chat, Claude
-Cowork, Claude Code) em qualquer projeto de software.
+Harness de orquestração — meta-tooling para trabalhar com agentes IA neste projeto (Claude Chat, Cowork, Code). Não é scaffolding programático; é doutrina, workflows e prompts.
 
 > **Premissa:** este kit não te dá documentos prontos. Te dá
 > **prompts que fazem o agente gerar os documentos certos pro seu
@@ -11,25 +10,17 @@ Cowork, Claude Code) em qualquer projeto de software.
 ## Estrutura
 
 ```
-agent-kit/
-├── README.md                  ← este arquivo
-├── init/                      ← prompts de inicialização (use 1x por projeto)
-│   ├── 01-bootstrap-project.md
-│   ├── 02-create-claude-md.md
-│   ├── 03-create-mentor-brief.md
-│   ├── 04-create-git-workflow.md
-│   ├── 05-create-gotchas.md
-│   ├── 06-create-agent-playbook.md
-│   └── 07-create-brief.md
-└── docs/                      ← funciona pra qualquer projeto
-    ├── workflows/             ← prompts pra ações recorrentes
-    ├── prompts/               ← templates densos
-    └── skills-plan/           ← plano de skills
+harness/
+├── README.md
+├── init/
+├── workflows/
+├── prompts/
+└── skills-plan/
 ```
 
 ## Como usar (primeira vez no projeto)
 
-1. **Copia a pasta `agent-kit/` pra raiz do seu projeto** e renomeia
+1. **Copia a pasta `harness/` pra raiz do seu projeto** e renomeia
    pra `docs/` (ou onde quiser que vivam as instruções)
 2. **Abre Claude Chat** (claude.ai) — recomendo começar lá, é onde a
    discussão fica melhor
@@ -76,7 +67,7 @@ Esse kit te dá o **processo**. Os artefatos vêm depois.
 Cola no chat:
 
 ```
-Estou começando projeto novo. Quero usar o agent-kit pra inicializar
+Estou começando projeto novo. Quero usar o harness pra inicializar
 documentação. Lê o arquivo init/01-bootstrap-project.md e segue as
 instruções dele.
 ```

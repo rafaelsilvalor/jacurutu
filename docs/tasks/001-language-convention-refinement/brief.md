@@ -10,9 +10,9 @@
 
 ## Context
 
-Rule R9 of `CLAUDE.md` mandates "all documentation" to be English. Strict reading puts the prompts in `Agent-kit/init/*.md`, `Agent-kit/setup-chat.md`, and the prose around `Agent-kit/docs/prompts/task-brief-template.md` in violation, since those are pt-BR.
+Rule R9 of `CLAUDE.md` mandates "all documentation" to be English. Strict reading puts the prompts in `harness/init/*.md`, `harness/setup-chat.md`, and the prose around `harness/prompts/task-brief-template.md` in violation, since those are pt-BR.
 
-A 2026-05-09 mentoring session re-examined the rule's intent. The conclusion: R9 was authored with two distinct audiences conflated. Files that the **agent** consumes directly (canonical docs, code, commits, briefs that get committed) benefit from English (better LLM reasoning). Files that the **user** edits and pastes into chat directly (Agent-kit prompts, copy-paste templates) are *interfaces*, not documentation; pt-BR there reduces friction for the user without affecting agent quality (the user pastes them into chat, where M-R10 already mandates pt-BR).
+A 2026-05-09 mentoring session re-examined the rule's intent. The conclusion: R9 was authored with two distinct audiences conflated. Files that the **agent** consumes directly (canonical docs, code, commits, briefs that get committed) benefit from English (better LLM reasoning). Files that the **user** edits and pastes into chat directly (harness prompts, copy-paste templates) are *interfaces*, not documentation; pt-BR there reduces friction for the user without affecting agent quality (the user pastes them into chat, where M-R10 already mandates pt-BR).
 
 Two specific consequences:
 
@@ -25,11 +25,11 @@ A small explanatory note is also added to `MENTOR_BRIEF.md` §8 to clarify why t
 
 After this task:
 
-- `CLAUDE.md` R9 distinguishes three surfaces: agent-consumed (English), human-edited interface in `Agent-kit/` (pt-BR acceptable), UI (bilingual).
-- The template body inside `Agent-kit/docs/prompts/task-brief-template.md` (the block between `## --- TEMPLATE PARA COPIAR ---` and `## --- FIM TEMPLATE ---`) is fully in English.
+- `CLAUDE.md` R9 distinguishes three surfaces: agent-consumed (English), human-edited interface in `harness/` (pt-BR acceptable), UI (bilingual).
+- The template body inside `harness/prompts/task-brief-template.md` (the block between `## --- TEMPLATE PARA COPIAR ---` and `## --- FIM TEMPLATE ---`) is fully in English.
 - `docs/MENTOR_BRIEF.md` §8 has a one-sentence note explaining the embedded pt-BR snippet.
 
-No code is touched. No new dependency. No translation of `Agent-kit/init/*.md` prompts (out of scope under the new R9).
+No code is touched. No new dependency. No translation of `harness/init/*.md` prompts (out of scope under the new R9).
 
 ## Constraints
 
@@ -39,14 +39,14 @@ No code is touched. No new dependency. No translation of `Agent-kit/init/*.md` p
 |---|---|---|
 | 1 | `docs/tasks/001-language-convention-refinement/brief.md` | New file (this brief, saved verbatim) |
 | 2 | `CLAUDE.md` | Replace the entire R9 block |
-| 3 | `Agent-kit/docs/prompts/task-brief-template.md` | Replace the content between the `--- TEMPLATE PARA COPIAR ---` and `--- FIM TEMPLATE ---` markers with an English version |
+| 3 | `harness/prompts/task-brief-template.md` | Replace the content between the `--- TEMPLATE PARA COPIAR ---` and `--- FIM TEMPLATE ---` markers with an English version |
 | 4 | `docs/MENTOR_BRIEF.md` | Replace one paragraph in §8 |
 
 ### Out of scope
 
 - Translating any pt-BR prose **around** the template in `task-brief-template.md` ("Quando usar", "Como usar manualmente", "Princípios pra preencher bem", "O que ENTRA no brief", "O que NÃO entra", "Tamanho ideal"). Those are user-facing instructions and stay pt-BR per the new R9.
-- Translating `Agent-kit/init/01-bootstrap-project.md` through `Agent-kit/init/07-create-brief.md`. Out of scope under the new R9.
-- Translating `Agent-kit/setup-chat.md` or `Agent-kit/docs/prompts/README.md`. Same reason.
+- Translating `harness/init/01-bootstrap-project.md` through `harness/init/07-create-brief.md`. Out of scope under the new R9.
+- Translating `harness/setup-chat.md` or `harness/prompts/README.md`. Same reason.
 - Translating the chat-starter snippet inside `MENTOR_BRIEF.md` §8. The snippet stays pt-BR — it is an embedded example of a chat message, and chat is pt-BR per M-R10. Only the surrounding intro paragraph is updated.
 - Any application code (`main.js`, `psd-worker.js`, `preload.js`, `renderer/app.js`, `renderer/index.html`, etc.).
 - Adding, removing, or renumbering any other rule, anti-pattern, or exception in `CLAUDE.md`.
@@ -87,12 +87,12 @@ Find this exact block (the entirety of the current R9 entry, from the bold rule 
 Replace with exactly:
 
 ```
-**R9 — Language convention: agent-consumed surface is English-only; human-edited interfaces in `Agent-kit/` may be pt-BR; user-facing UI is bilingual EN + pt-BR.**
+**R9 — Language convention: agent-consumed surface is English-only; human-edited interfaces in `harness/` may be pt-BR; user-facing UI is bilingual EN + pt-BR.**
 
 The dev surface splits by *audience*, not by directory.
 
-- *Agent-consumed surface* (English-only): code identifiers, comments, file/folder names, commit messages, branch names, PR titles/descriptions, canonical documentation (`CLAUDE.md`, `README.md`, `docs/**`), task artifacts (`docs/tasks/**`), config keys, log/console messages. Includes any block inside `Agent-kit/` that produces canonical output — e.g. the template body inside `Agent-kit/docs/prompts/task-brief-template.md` becomes a committed `brief.md`, so that block is English even though the surrounding usage notes are pt-BR.
-- *Human-edited interface* (pt-BR is acceptable): the prompts in `Agent-kit/init/*.md`, `Agent-kit/setup-chat.md`, `Agent-kit/docs/prompts/README.md`, and the prose around copy-paste templates in `Agent-kit/docs/prompts/`. Rationale: the user reads, copies, and customizes these directly; pt-BR reduces friction for the user without affecting agent quality, because these files are typically pasted into chat (where M-R10 already mandates pt-BR).
+- *Agent-consumed surface* (English-only): code identifiers, comments, file/folder names, commit messages, branch names, PR titles/descriptions, canonical documentation (`CLAUDE.md`, `README.md`, `docs/**`), task artifacts (`docs/tasks/**`), config keys, log/console messages. Includes any block inside `harness/` that produces canonical output — e.g. the template body inside `harness/prompts/task-brief-template.md` becomes a committed `brief.md`, so that block is English even though the surrounding usage notes are pt-BR.
+- *Human-edited interface* (pt-BR is acceptable): the prompts in `harness/init/*.md`, `harness/setup-chat.md`, `harness/prompts/README.md`, and the prose around copy-paste templates in `harness/prompts/`. Rationale: the user reads, copies, and customizes these directly; pt-BR reduces friction for the user without affecting agent quality, because these files are typically pasted into chat (where M-R10 already mandates pt-BR).
 - *UI surface* (EN + pt-BR): visible labels, button text, placeholders, tooltips, error toasts, empty states, menu items. Stored in an i18n layer keyed by string ID, with both locales defined. **Never inline a pt-BR-only literal in new HTML/JSX/template code** — route through the i18n layer (or add a `TODO(i18n)` if the layer is not yet in place).
 - Default locale is auto-detected from the OS (`app.getLocale()` in main, `navigator.language` in renderer); the user may override in settings.
 - Existing pt-BR content in source files (`main.js`, `psd-worker.js`, `renderer/app.js`) predates this rule and is tracked as `E3` for migration.
@@ -105,7 +105,7 @@ The dev surface splits by *audience*, not by directory.
 - [ ] No other rule, anti-pattern, or exception was modified
 - [ ] Total file diff for this commit shows only the R9 region changed
 
-### Edit 3 — `Agent-kit/docs/prompts/task-brief-template.md`: translate the TEMPLATE block
+### Edit 3 — `harness/prompts/task-brief-template.md`: translate the TEMPLATE block
 
 Locate the section that begins with the marker `## --- TEMPLATE PARA COPIAR ---` and ends with the marker `## --- FIM TEMPLATE ---`. Between those two markers, there is a fenced markdown code block (opened with ` ```markdown ` and closed with ` ``` `) containing the brief template body, currently in pt-BR.
 
@@ -343,7 +343,7 @@ Four commits, in this order. Each is a single thematic change.
    — touches only CLAUDE.md
 
 3. docs(prompts): translate task-brief-template TEMPLATE block to English
-   — touches only Agent-kit/docs/prompts/task-brief-template.md
+   — touches only harness/prompts/task-brief-template.md
 
 4. docs(mentor-brief): clarify §8 snippet as embedded chat-starter example
    — touches only docs/MENTOR_BRIEF.md
@@ -377,6 +377,6 @@ In priority order:
 2. `docs/GIT_WORKFLOW.md` — operational discipline (G-R3, G-R5, G-R8, PR template)
 3. `docs/AGENT_PLAYBOOK.md` — Chapter 2 (pause points, drift signals); Lessons #4 and #6 in particular
 4. `docs/MENTOR_BRIEF.md` — context on the user and the relationship; especially M-R10 and patterns P1–P3
-5. `Agent-kit/docs/prompts/task-brief-template.md` — the file being modified by Edit 3; useful to read **before** editing to understand the existing structure (the markers, the surrounding pt-BR prose that stays put)
+5. `harness/prompts/task-brief-template.md` — the file being modified by Edit 3; useful to read **before** editing to understand the existing structure (the markers, the surrounding pt-BR prose that stays put)
 
 If anything in the references contradicts a specific instruction in this brief, **stop and report** rather than choosing a side. The brief is the more recent decision; canonical docs may need a follow-up update this brief did not anticipate.

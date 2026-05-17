@@ -37,7 +37,7 @@ After this task:
 - Any application code (`main.js`, `psd-worker.js`, `preload.js`, `renderer/**`, `storage/**`, anything under `assets/`).
 - Any change to `package.json`, `package-lock.json`, `.gitignore`, `.githooks/`.
 - Any rule, anti-pattern, or exception added/removed in `CLAUDE.md` beyond the Related Documents list (no new R, A, or E entries).
-- Any change to `Agent-kit/**` files.
+- Any change to `harness/**` files.
 - Any change to existing prose in `docs/MENTOR_BRIEF.md` sections other than §2 and §7.
 - Any `git push` (CLAUDE.md R17 / G-R5).
 ### Conventions
@@ -196,7 +196,7 @@ A single message reporting:
 7. Suggested next step:
    - Open PR on GitHub against `main` using the PR template
    - Once merged, author a small follow-up brief (or single-PR docs change) to fix `CLAUDE.md` E2 (line count) and E5 (numbering)
-   - Then proceed to brief 004 (format-registry — first surface of R19), authoring via `Agent-kit/init/07-create-brief.md`
+   - Then proceed to brief 004 (format-registry — first surface of R19), authoring via `harness/init/07-create-brief.md`
 ---
 ## References (read before starting)
 In priority order:

@@ -17,7 +17,7 @@ What is missing is the **lifecycle of a chat session**: how the mentor
 opens (which §8 mode is active), and how the mentor closes (a recap that
 survives into the next session).
 
-The `Agent-kit/docs/workflows/` catalog has `pause-task.md` and
+The `harness/workflows/` catalog has `pause-task.md` and
 `close-task.md` for code tasks but no equivalent for chat sessions
 themselves. This task adds the two rules and the companion workflow.
 
@@ -25,9 +25,9 @@ themselves. This task adds the two rules and the companion workflow.
 
 1. Append **M-R13** ("Confirm session mode before acting") and **M-R14**
    ("Session-close ritual") to `docs/MENTOR_BRIEF.md`.
-2. Create `Agent-kit/docs/workflows/close-chat-session.md`, mirroring
+2. Create `harness/workflows/close-chat-session.md`, mirroring
    the pattern of `pause-task.md` / `close-task.md`.
-3. Index the new workflow in `Agent-kit/docs/workflows/README.md`
+3. Index the new workflow in `harness/workflows/README.md`
    under the "Continuidade" section.
 
 ## Constraints
@@ -42,8 +42,8 @@ themselves. This task adds the two rules and the companion workflow.
    freely, do not push, STATE.md at session end).
 4. Only the following files may be touched:
    - `docs/MENTOR_BRIEF.md`
-   - `Agent-kit/docs/workflows/close-chat-session.md` (new)
-   - `Agent-kit/docs/workflows/README.md`
+   - `harness/workflows/close-chat-session.md` (new)
+   - `harness/workflows/README.md`
    If anything else needs changing, STOP and ask.
 
 ### Architectural decisions already made (do not revisit)
@@ -173,9 +173,9 @@ before resume).
 - `CLAUDE.md` — R9 (English on dev surface), R17 (no proactive push)
 - `docs/MENTOR_BRIEF.md` — current M-R1 through M-R12, §7, §8
 - `docs/GIT_WORKFLOW.md` — Conventional Commits, branch naming
-- `Agent-kit/docs/workflows/pause-task.md` — pattern reference
-- `Agent-kit/docs/workflows/close-task.md` — pattern reference
-- `Agent-kit/docs/workflows/README.md` — catalog to update
+- `harness/workflows/pause-task.md` — pattern reference
+- `harness/workflows/close-task.md` — pattern reference
+- `harness/workflows/README.md` — catalog to update
 
 ## Suggested commit sequence
 
@@ -198,14 +198,14 @@ Executor may compress (2) and (3) into one commit if preferred. Keep
 - [ ] `MENTOR_BRIEF.md` contains M-R13 and M-R14 with wording
   matching the drafts (modulo executor wording refinement)
 - [ ] One-line exception note added above M-R13 (per D2)
-- [ ] `Agent-kit/docs/workflows/close-chat-session.md` exists with
+- [ ] `harness/workflows/close-chat-session.md` exists with
   all 7 required sections
 - [ ] `close-chat-session.md` Pré-requisitos section explicitly
   states the sequential hybrid protocol (D5)
 - [ ] `close-chat-session.md` PASSO 4 reflects hybrid delivery (D4)
 - [ ] `close-chat-session.md` contains a Trigger section reflecting
   D6 (hybrid trigger)
-- [ ] `Agent-kit/docs/workflows/README.md` lists
+- [ ] `harness/workflows/README.md` lists
   `close-chat-session.md` under "Continuidade", above `resume-session.md`
 
 ### Verificações de comportamento

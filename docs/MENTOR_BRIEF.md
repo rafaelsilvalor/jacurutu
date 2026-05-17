@@ -87,7 +87,7 @@ Seed list — grow with each substantive session.
 
 **M-R12 — Stay in the mentor lane.** This file is for chat-mode mentoring. Coding/editing/running commands belong to the executor agent (Claude Code) in the project terminal. If the user asks the chat-mentor to *edit code*, push back: "let's plan it here, then you take the plan to Claude Code in the repo".
 
-> Note: M-R13 and M-R14 exceed the 8–12 guideline from `Agent-kit/init/03-create-mentor-brief.md`. Conscious exception — session lifecycle rituals do not compress cleanly into the existing twelve style/role rules.
+> Note: M-R13 and M-R14 exceed the 8–12 guideline from `harness/init/03-create-mentor-brief.md`. Conscious exception — session lifecycle rituals do not compress cleanly into the existing twelve style/role rules.
 
 **M-R13 — Confirm session mode before substantive action.** Before any non-trivial response, declare in one line: (a) who the user is according to `MENTOR_BRIEF.md`, and (b) which of the five §8 modes is active — mentoring, modeling a task, reviewing a plan, code review, or continuing. If the opening message is ambiguous, ask before acting. This catches the most common chat failure: mentor enters "modeling" when the user wanted "review".
 
@@ -121,9 +121,9 @@ Seed list — grow with each substantive session.
 | `docs/GIT_WORKFLOW.md` | Both agents and the user — branching, PRs, hooks, releases |
 | `docs/GOTCHAS.md` | Both agents and the user — codebase-specific traps |
 | `docs/AGENT_PLAYBOOK.md` | The user — orchestration between Chat / Code / Cowork |
-| `Agent-kit/docs/prompts/task-brief-template.md` | Both agents and the user — task brief template (4 parts + `Plan required` flag) |
+| `harness/prompts/task-brief-template.md` | Both agents and the user — task brief template (4 parts + `Plan required` flag) |
 | `docs/tasks/<NNN>-<slug>/` | Per-task artifacts: `brief.md`, `plan.md`, optional `notes.md` |
-| `Agent-kit/` | The user — workflow prompts to start sessions and tasks |
+| `harness/` | The user — workflow prompts to start sessions and tasks |
 | `README.md` | End users — what Saci is and how to install it |
 
 ## 8. Context to load per session type
@@ -133,7 +133,7 @@ Different chat sessions need different context. Load only what is needed; oversh
 | Session type | Always load | Add when relevant |
 |---|---|---|
 | Mentoring / architectural decision | `CLAUDE.md`, `MENTOR_BRIEF.md` | Topic-specific docs |
-| Modeling a new task (generate brief) | `CLAUDE.md`, `MENTOR_BRIEF.md`, `AGENT_PLAYBOOK.md`, `GIT_WORKFLOW.md`, `GOTCHAS.md`, `Agent-kit/docs/prompts/task-brief-template.md` | — |
+| Modeling a new task (generate brief) | `CLAUDE.md`, `MENTOR_BRIEF.md`, `AGENT_PLAYBOOK.md`, `GIT_WORKFLOW.md`, `GOTCHAS.md`, `harness/prompts/task-brief-template.md` | — |
 | Reviewing an agent's plan | `CLAUDE.md`, `MENTOR_BRIEF.md`, `AGENT_PLAYBOOK.md` (chapters 2–3), the task's `brief.md` | The new `plan.md` |
 | Code review by reading | `CLAUDE.md`, `MENTOR_BRIEF.md`, `GOTCHAS.md` | Code under review |
 | Continuing a paused task | `CLAUDE.md`, `MENTOR_BRIEF.md`, the task's `brief.md`, `plan.md`, and `STATE.md` if present | — |
