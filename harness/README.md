@@ -2,10 +2,11 @@
 
 Harness de orquestração — meta-tooling para trabalhar com agentes IA neste projeto (Claude Chat, Cowork, Code). Não é scaffolding programático; é doutrina, workflows e prompts.
 
-> **Premissa:** este kit não te dá documentos prontos. Te dá
-> **prompts que fazem o agente gerar os documentos certos pro seu
-> projeto específico**. O que você ganha é metodologia + sequência —
-> os arquivos finais nascem da sua primeira conversa com o agente.
+> **Premissa:** o harness é o scaffolding de orquestração permanente
+> deste repositório — workflows, prompts e doutrina pra trabalhar
+> com agentes IA no Saci. O caso de uso primário é operar o projeto
+> dia a dia; o bootstrap em projeto novo (seção secundária abaixo)
+> reaproveita os mesmos artefatos como ponto de partida.
 
 ## Estrutura
 
@@ -18,7 +19,16 @@ harness/
 └── skills-plan/
 ```
 
-## Como usar (primeira vez no projeto)
+## Como usar (em projeto já configurado)
+
+Quando voltar pra projeto que já tem o sistema:
+
+- **Sessão nova de chat:** cola `docs/workflows/setup-chat.md`
+- **Sessão nova de Cowork:** cola `docs/workflows/setup-cowork.md`
+- **Sessão nova de Code:** cola `docs/workflows/setup-code.md`
+- **Tarefa nova:** segue `docs/workflows/start-task.md`
+
+## Bootstrap em projeto novo (caso de uso secundário)
 
 1. **Copia a pasta `harness/` pra raiz do seu projeto** e renomeia
    pra `docs/` (ou onde quiser que vivam as instruções)
@@ -33,15 +43,6 @@ harness/
 A partir daí, você tem o sistema vivo. Workflows ficam em
 `docs/workflows/`, briefs futuros em `docs/prompts/`, etc.
 
-## Como usar (em projeto já configurado)
-
-Quando voltar pra projeto que já tem o sistema:
-
-- **Sessão nova de chat:** cola `docs/workflows/setup-chat.md`
-- **Sessão nova de Cowork:** cola `docs/workflows/setup-cowork.md`
-- **Sessão nova de Code:** cola `docs/workflows/setup-code.md`
-- **Tarefa nova:** segue `docs/workflows/start-task.md`
-
 ## Documentos canônicos que esse kit gera
 
 Após rodar `init/`, seu projeto terá:
@@ -55,12 +56,15 @@ Após rodar `init/`, seu projeto terá:
 Cada um foi **gerado por entrevista**, não copiado de template.
 Por isso reflete seu projeto, não um genérico.
 
-## Princípio do kit
+## Princípio
 
 **Documentos vivos > templates estáticos.** Templates envelhecem.
 Documentos vivem porque foram criados pro contexto deles.
 
-Esse kit te dá o **processo**. Os artefatos vêm depois.
+O harness te dá o **processo** de orquestração — workflows
+copiáveis, prompts de bootstrap, doutrina de pausa. Os artefatos
+canônicos (`CLAUDE.md`, `docs/MENTOR_BRIEF.md`, etc.) nascem desse
+processo e evoluem com o projeto.
 
 ## Próximos passos quando começar projeto novo
 
