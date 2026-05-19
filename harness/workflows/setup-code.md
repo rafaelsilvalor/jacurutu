@@ -51,12 +51,13 @@ PASSO 4 — Aguarda:
 
 Padrões obrigatórios desta sessão:
 1. Apresenta plano numerado antes de qualquer mudança em código
+   se o brief indicar `Plan required: yes` (ou na ausência de
+   brief, se a mudança tocar ≥ 2 arquivos ou ≥ 50 linhas — R15)
 2. Pausa 3 antes de cada commit (mostra git status + git diff
    --stat + mensagem proposta, aguarda autorização)
 3. NÃO faz git push sem minha autorização explícita
-4. Mensagens de commit seguem Conventional Commits
-5. Mensagens de commit incluem trailer
-   "Co-authored-by: Claude <noreply@anthropic.com>"
+4. Mensagens de commit seguem Conventional Commits (R10) sem
+   trailers — sem `Co-authored-by`, sem `Signed-off-by` (G-R3, G-A7)
 ```
 
 ## --- FIM COPIAR ---
@@ -107,7 +108,5 @@ Cola o workflow específico:
 
 ## ❓ PERGUNTAS PRA REVISÃO FUTURA
 
-- A regra de Co-authored-by deveria ser configurada via
-  `.git/config` em vez de exigir do agente toda vez?
 - Vale documentar mais opções de configuração do Claude Code
   (model selection, context limits, etc.)?
