@@ -7,7 +7,6 @@
 Quando o agente está executando tarefa de código com plano numerado
 e múltiplos commits previstos. Triggers detectáveis:
 
-- Existe `BRIEF_*.md` na raiz do projeto
 - Existe `STATE.md` na raiz do projeto
 - Branch atual começa com `feat/`, `fix/`, `refactor/`, etc.
 
@@ -25,9 +24,9 @@ Ao ativar, reforça o protocolo das 3 pausas do AGENT_PLAYBOOK:
 ---
 name: pause-3-protocol
 description: Ativa em sessões de tarefa estruturada (existe
-  BRIEF_*.md, STATE.md, ou branch começa com feat/fix/refactor).
-  Enforça as 3 pausas do AGENT_PLAYBOOK antes de cada commit. Use
-  pra garantir que checkpoints humanos sejam respeitados.
+  STATE.md ou branch começa com feat/fix/refactor). Enforça as 3
+  pausas do AGENT_PLAYBOOK antes de cada commit. Use pra garantir
+  que checkpoints humanos sejam respeitados.
 ---
 
 # Protocolo das 3 pausas
