@@ -1,0 +1,21 @@
+# Default: auto-detect text files, normalize to LF
+* text=auto eol=lf
+
+# Explicitly binary (no normalization, no diff)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.psd binary
+*.psb binary
+*.ai binary
+*.indd binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
