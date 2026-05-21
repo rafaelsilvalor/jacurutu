@@ -36,6 +36,7 @@
 | `G-PLAT` | Cross-platform behavior — Windows / macOS / Linux differences |
 | `G-BUILD` | `electron-builder`, packaging, code signing, autoupdater |
 | `G-I18N` | Internationalization — i18n layer, locale detection, fallbacks |
+| `G-PROC` | Process/orchestration traps when working with AI agents on briefs |
 
 Categories grow as needed. New category: lowercase shortcode, all-caps in IDs.
 
@@ -172,6 +173,28 @@ If folder sizes grow into thousands of files and the hitch becomes user-visible,
 **Workaround:** Always check the return value of `shell.openPath` (already done at `main.js:276-278`). For `shell.showItemInFolder`, the existing `try/catch` in `file:reveal` (`main.js:281-289`) covers most failure modes. Test the buttons on macOS and Linux as part of the cross-platform validation pass.
 
 **Evidence:** Electron docs — `shell.openPath`, `shell.showItemInFolder`. Implementation in `main.js`.
+
+---
+
+### G-PROC-1 — Literal sweeps collide with derived identifiers and meta-discourse in briefs
+
+**Symptom:** A find-and-replace sweep prescribed in a brief corrupts files that should be left intact. Three concrete failure modes:
+
+1. Task folder name `010-agent-kit-to-harness/` becomes `010-harness-to-harness/` after a literal `agent-kit → harness` pass.
+2. Branch name `refactor/agent-kit-to-harness` becomes `refactor/harness-to-harness`.
+3. Prose in the brief itself describing the rename — e.g. "rename agent-kit to harness" — gets rewritten to "rename harness to harness", losing the historical record.
+
+**Cause:** Two failure modes share a root: literal sweeps cannot distinguish between (a) the object of the operation (the rename target — mutate) and (b) meta-discourse about the operation (identifiers derived from the operation; the brief's own prose describing what it does — preserve verbatim). Find-and-replace operates on raw strings without semantic context.
+
+**Workaround:**
+
+1. Before declaring a sweep complete, enumerate the operation's own artifacts (task folder, branch name, brief filename, brief self-references) and exclude them from the sweep explicitly.
+2. For derived identifiers (task folders, branches, prior recap filenames): treat as verbatim records of history; never mutate. Relax the final verification grep to allow them.
+3. For meta-discourse in the brief: list the literal phrases to preserve in a "Do not rewrite" subsection of the brief's "Architectural decisions already made". Or rephrase the brief itself to avoid embedding the old term in normative prose.
+4. When the brief operates on names that appear inside it, distinguish in writing between "the old name" and "the new name" using stable referents (e.g. quote the literal old name with backticks; never let the brief say "rename X to X" after sweep).
+5. When the sweep targets historical artifacts that must be renamed (e.g. retroactive recap rename), enumerate each source-target pair in a table inside the brief. The executor verifies the enumeration matches reality (`ls`) and stops if unexpected files appear; the brief never operates against a generative rule on derived identifiers.
+
+**Evidence:** Brief 010 (`010-agent-kit-to-harness/`), session recap `2026-05-17-mentor-010-harness-rename.md`. Executor's Pausa 3 caught both failure modes before merge. Workaround #5 added during brief 012 modeling, applied immediately in Edit 5 of that same brief.
 
 ---
 
