@@ -57,17 +57,33 @@ PASSO 2 — Compila o recap com cinco campos:
 [bloco curto e copiável que recupera contexto sem reler o recap inteiro]
 
 PASSO 3 — Propõe slug pro arquivo de recap baseado no tópico.
-Caminho default: docs/sessions/YYYY-MM-DD-<slug>.md
+Caminho default: docs/sessions/<YYYY-MM-DD>-mentor-<NNN>-<slug>.md
+  - <YYYY-MM-DD>: data da sessão
+  - mentor: papel fixo (este workflow roda no chat — M-R12)
+  - <NNN>: número da tarefa relacionada (zero-padded). Omite se
+    a sessão não está atrelada a brief específico
+  - <slug>: tópico curto-descritivo em kebab-case
 Pede confirmação do slug antes de finalizar.
 
 PASSO 4 — Entrega o recap como bloco markdown copiável (padrão).
 Opcional, pra uso com Code/Cowork, anexa snippet de criação automática:
 
-  cat > docs/sessions/YYYY-MM-DD-<slug>.md <<'EOF'
+  cat > docs/sessions/<YYYY-MM-DD>-mentor-<NNN>-<slug>.md <<'EOF'
   [conteúdo do recap]
   EOF
 
 PASSO 5 — Lista "vale commitar agora?" candidatos:
+
+Antes de listar, verifica estado da branch:
+
+  1. git branch --show-current
+  2. Se = main: git checkout -b docs/session-recap-<date>-<slug>
+     Razão: commit do recap não pode ir direto em main (G-R1).
+  3. Se != main: confirma que a branch é apropriada pro recap
+     (não é a branch da tarefa de código já mergeada — recap mora
+     em branch dedicada).
+
+Candidatos:
 - STATE.md (se existir)
 - MENTOR_BRIEF.md (novo padrão ou regra nasceu na sessão?)
 - GOTCHAS.md (armadilha nova descoberta?)
