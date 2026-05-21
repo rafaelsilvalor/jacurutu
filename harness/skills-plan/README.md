@@ -64,8 +64,9 @@ Cada arquivo abaixo é **rascunho pra discussão**, não Skill pronta.
 
 - **`commit-discipline.md`** — Skill que reforça Conventional
   Commits + Pausa 3 quando vê pedido pra comitar
-- **`pause-3-protocol.md`** — Skill que enforça Pausa 3 antes de
-  qualquer commit em sessão de tarefa
+- **`task-pauses-protocol.md`** — Skill que reforça Pausa 1 e
+  Pausa 2 em sessão de tarefa estruturada (Pausa 3 fica em
+  commit-discipline.md)
 - **`mentor-handoff.md`** — Skill que ativa quando agente percebe
   que tarefa ficou complexa demais e sugere consultar mentor
 

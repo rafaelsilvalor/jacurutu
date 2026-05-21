@@ -90,7 +90,7 @@ Quando detectar um sinal:
 
 **Recomendação:** **prioridade baixa**. Útil mas tem risco real de
 ativar em situações triviais. Vale criar **só após** ter `commit-discipline`
-e `pause-3-protocol` provados em uso.
+e `task-pauses-protocol` provados em uso.
 
 ## Riscos
 
