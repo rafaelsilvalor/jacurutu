@@ -7,7 +7,12 @@
 
 ## Decisions taken
 
-- **Three R10 subject-length corrections in-flight, applied as one-shot patches.** Brief 012 line 893 asserted "All subject lines ≤ 72 chars" but three prescribed subjects exceeded the cap: commit #4 (79 chars), commit #5 ("…in workflows", 79 chars), commit #8 ("…with LF normalization and binary list", 80 chars). Caught at Pausa 3 of commit #4 before commit landed; corrections proposed inline, three options each presented, mentor selected option C for #4 and pre-authorized drops for #5 and #8. **No commit was published with a >72-char subject.** Root cause sits inside the brief author's text, not in the executor flow — pendency for next chat to fix before the brief is re-used as template.
+- **Three R10 subject-length corrections in-flight — one reactive catch + two mentor-anticipated.** Brief 012 line 893 asserted "All subject lines ≤ 72 chars" but three prescribed subjects exceeded the cap: commit #4 (79 chars), commit #5 ("…in workflows", 79 chars), commit #8 ("…with LF normalization and binary list", 80 chars).
+
+  - **Reactive catch (#4):** executor noticed the overflow at its Pausa 3, raised STOP-and-report with three numbered options; mentor chose option C inline.
+  - **Mentor-anticipated (#5 + #8):** in the same chat turn approving #4's correction, mentor pre-emptively flagged the other two with their corrected forms ("Heads up pras próximas: …"). Executor applied them at the right Pausa 3 without re-flagging.
+
+  **No commit was published with a >72-char subject.** Pattern worth carrying into brief 013: distinguish *executor catches and asks* (reactive — needs STOP-and-report machinery) from *mentor signals ahead* (anticipated — needs only a clean carry-forward channel in the executor's working memory). Root cause sits inside the brief author's text, not in the executor flow — pendency for next chat to fix before the brief is re-used as template.
 
 - **Edit 5a STOP-and-report fired; mentor extended the rename table inline.** `ls docs/sessions/` returned 10 files; brief table enumerated 7 expected. Three surplus files (`2026-05-15-saci-v2-pivot.md`, `2026-05-16-009-bundle-ts-rules-and-workflow.md`, `2026-05-17-010-agent-kit-to-harness.md`) — none in the brief's source-target table. Executor stopped per brief line 319 ("STOP and report. Do not invent a name"). Mentor extended the table in chat with canonical names provided directly. Total renames: 7 (4 prescribed + 3 added). Names came from mentor, never invented by executor. The pattern is exactly the G-PROC-1 workaround #5 in action — and the precedent for `audit-merge` to discuss (table extended in chat is a meta-decision, not in the brief's textual record).
 
