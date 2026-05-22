@@ -45,6 +45,9 @@ Templates copiáveis pra cenários recorrentes de orquestração.
 
 - **`review-pause3.md`** — checklist Pausa 3 (antes de cada commit)
 - **`review-final-task.md`** — revisão completa antes do merge
+- **`audit-merge.md`** — auditoria pós-merge de tarefa (modo code
+  review do §8): três dimensões — diff técnico, aderência ao
+  processo, qualidade do self-review do executor
 
 ## Princípios
 

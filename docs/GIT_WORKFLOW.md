@@ -141,6 +141,22 @@ chmod +x .githooks/pre-commit
 
 The hook will fail the commit if tests fail. To investigate, run `npm test` directly. **Never use `--no-verify` to push past it** (G-R8).
 
+## Per-clone configuration: blame ignore file
+
+After cloning the repo, run once:
+
+```bash
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
+This makes `git blame` skip commits registered in
+`.git-blame-ignore-revs`. The file is created on the first
+renormalization commit; it does not exist in the repo today.
+Setting is per-clone and is not versioned. Without it, `git blame`
+still works but will attribute lines to the renormalization
+commit instead of the original author for any line that was
+retouched by LF/CRLF normalization.
+
 ## Branch protection on GitHub
 
 Configure on `github.com/rafaelsilvalor/saci` → Settings → Branches → Add rule for `main`:
