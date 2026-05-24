@@ -63,10 +63,10 @@ PASSO 5 — Compilação do brief:
   zero-padding, ex.: 001, 002) e um slug curto descritivo em
   kebab-case
 - Determina `Plan required: yes | no` baseado no critério em
-  `harness/prompts/task-brief-template.md` (seção "Quando
-  pular Pausa 1")
+  `.claude/skills/brief-template/SKILL.md` (seção "Pause points"
+  e "Plan required justification")
 - Gera o brief seguindo o template de
-  `harness/prompts/task-brief-template.md`. Use as decisões
+  `.claude/skills/brief-template/SKILL.md`. Use as decisões
   da entrevista pra preencher cada seção
 - Caminho de saída: `docs/tasks/<NNN>-<slug>/brief.md`
 
