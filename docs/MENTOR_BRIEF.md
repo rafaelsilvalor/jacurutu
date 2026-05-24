@@ -89,7 +89,7 @@ Seed list — grow with each substantive session.
 
 > Note: M-R13 and M-R14 exceed the 8–12 guideline from `harness/init/03-create-mentor-brief.md`. Conscious exception — session lifecycle rituals do not compress cleanly into the existing twelve style/role rules.
 
-**M-R13 — Confirm session mode before substantive action.** Before any non-trivial response, declare in one line: (a) who the user is according to `MENTOR_BRIEF.md`, and (b) which of the five §8 modes is active — mentoring, modeling a task, reviewing a plan, code review, or continuing. If the opening message is ambiguous, ask before acting. This catches the most common chat failure: mentor enters "modeling" when the user wanted "review".
+**M-R13 — Confirm session mode before substantive action.** Before any non-trivial response, declare in one line: (a) who the user is according to `MENTOR_BRIEF.md`, and (b) which of the four §8 modes is active — mentoring, reviewing a plan, code review, or continuing. If the opening message is ambiguous, ask before acting. This catches the most common chat failure: mentor enters "mentoring" when the user wanted "review".
 
 **M-R14 — Session-close ritual.** When the user signals the end of a session — either explicitly ("encerrar", "fechar sessão") or via detected signals (farewell, structural closure, topic shift) followed by user confirmation — run the `close-chat-session.md` workflow. Produce a recap covering: decisions taken (each with its target file), open pending items, artifacts generated, the concrete next action, and a paste-ready snippet for the next session. Default save path: `docs/sessions/YYYY-MM-DD-<slug>.md`. The mentor produces the content; the user or an executor writes the file (`CLAUDE.md` R17 still applies — never push proactively). In hybrid sessions (a code task is also active), run `pause-task.md` first, then this ritual.
 
@@ -133,10 +133,11 @@ Different chat sessions need different context. Load only what is needed; oversh
 | Session type | Always load | Add when relevant |
 |---|---|---|
 | Mentoring / architectural decision | `CLAUDE.md`, `MENTOR_BRIEF.md` | Topic-specific docs |
-| Modeling a new task (generate brief) | `CLAUDE.md`, `MENTOR_BRIEF.md`, `AGENT_PLAYBOOK.md`, `GIT_WORKFLOW.md`, `GOTCHAS.md`, `harness/prompts/task-brief-template.md` | — |
-| Reviewing an agent's plan | `CLAUDE.md`, `MENTOR_BRIEF.md`, `AGENT_PLAYBOOK.md` (chapters 2–3), the task's `brief.md` | The new `plan.md` |
-| Code review by reading | `CLAUDE.md`, `MENTOR_BRIEF.md`, `GOTCHAS.md` | Code under review |
-| Continuing a paused task | `CLAUDE.md`, `MENTOR_BRIEF.md`, the task's `brief.md`, `plan.md`, and `STATE.md` if present | — |
+| Reviewing a plan | `CLAUDE.md`, `MENTOR_BRIEF.md`, `AGENT_PLAYBOOK.md` (chapters 2–3, 6), the task's `brief.md` | The validator verdict report; `plan.md` if present |
+| Code review by reading | `CLAUDE.md`, `MENTOR_BRIEF.md`, `GOTCHAS.md` | Code under review; the executor's final report |
+| Continuing a paused task | `CLAUDE.md`, `MENTOR_BRIEF.md`, the task's `brief.md`, and `STATE.md` if present | The latest session recap in `docs/sessions/` |
+
+> **On "modeling a new task":** earlier versions of this table included a fifth mode for modeling new task briefs. Since brief 015 (cluster closer), brief authoring is the planner agent's responsibility inside Claude Code (`docs/AGENT_PLAYBOOK.md` Chapter 6). Chat still hosts architectural design that *precedes* the planner — that work is "mentoring", not "modeling". When the brief shape needs hand-tuning the planner cannot produce (doctrinal briefs, pipeline-modifying briefs, bootstrap scenarios), the user authors the brief via caminho B with chat as a writing partner; this is also a mentoring session, not a separate mode.
 
 ### Default starting prompt for a fresh chat
 
@@ -145,7 +146,7 @@ Snippet to paste into a fresh Claude chat. Shown in pt-BR because chat operates 
 ```
 Olá. Estou continuando o projeto Saci.
 
-Tipo de sessão: [mentoria | modelar tarefa | revisar plano | code review | continuar tarefa]
+Tipo de sessão: [mentoria | revisar plano | code review | continuar tarefa]
 
 Carrega os arquivos correspondentes ao tipo de sessão na tabela §8 do MENTOR_BRIEF.md.
 Eu também colei [lista do que colei diretamente].
