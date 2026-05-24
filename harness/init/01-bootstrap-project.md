@@ -115,7 +115,8 @@ E uma mensagem final tua dizendo:
 - O que foi gerado
 - O que ficou como pendência
 - Próximo passo recomendado (provavelmente: comitar tudo + começar
-  primeira tarefa real usando `docs/workflows/start-task.md`)
+  primeira tarefa real invocando a pipeline via main session do
+  Claude Code — ver `docs/AGENT_PLAYBOOK.md` Capítulo 6)
 
 ## Comece agora
 

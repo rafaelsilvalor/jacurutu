@@ -227,6 +227,83 @@ This is **your** operating manual. It is not the agent's instruction set — tha
 
 Read this file end-to-end every 4–6 weeks until lessons #1–#10 are reflexes. After that, scan the lesson titles only — they will trigger the right behavior on their own.
 
+## Chapter 6 — The orchestration pipeline (planner → brief-validator → executor)
+
+The orchestration pipeline runs inside Claude Code. The main session is the orchestrator; three subagents handle the layers. Chat (claude.ai) stays out of this loop entirely — chat is the architectural surface (mentoring, design decisions, recaps).
+
+This chapter describes how to drive the pipeline and what to do when it surfaces a problem.
+
+### When to use the pipeline vs. caminho B
+
+Two entry points coexist:
+
+- **Pipeline (default for new tasks):** the main session invokes the planner with a task description; planner writes the brief, validator audits it, executor runs it. Use when the task started from a chat-side architectural discussion or a clear single-paragraph delegation.
+- **Caminho B (fallback):** you author the brief manually (typically using the chat-mentor as a writing partner), pre-save it to `docs/tasks/<NNN>-<slug>/brief.md`, and invoke the executor directly. Use when the brief shape needs hand-tuning chat cannot guess (large structural edits, doctrinal briefs, bootstrap scenarios where the pipeline itself is being modified).
+
+The pipeline and caminho B are not mutually exclusive: caminho B is what you reach for when the pipeline would loop on its own creation, or when the task carries decisions that didn't fit a delegation prompt.
+
+> **Lesson #11 — The pipeline is a default, not a mandate.** Use it for clear delegations. Reach for caminho B when the brief needs the kind of judgment that doesn't compress into a prompt. The cost of the wrong choice is small; the cost of forcing the pipeline on a brief it can't handle is a rejected verdict and a redo.
+
+### Invocation patterns
+
+**Pipeline invocation (in the Claude Code main session):**
+
+```
+Open a new task: <task description in 1-2 paragraphs>.
+Invoke @planner.
+```
+
+The main session then:
+1. Invokes planner with the description.
+2. Receives planner's final message (brief authored, branch, commit SHA).
+3. Invokes `@brief-validator` with the brief path and branch.
+4. Receives the validator's verdict report.
+5. If `Verdict: APPROVED` — invokes `@executor` with the same brief path and branch.
+6. If `Verdict: REJECTED` — surfaces the report to you. See "Verdict handling" below.
+
+**Caminho B invocation (in the Claude Code main session):**
+
+```
+Execute brief at docs/tasks/<NNN>-<slug>/brief.md on branch <branch>.
+Invoke @executor.
+```
+
+You skip planner and validator. The executor runs the brief as-is.
+
+### Verdict handling
+
+When the validator emits `Verdict: APPROVED`, the main session proceeds to executor invocation. You see the report but no action is required from you.
+
+When the validator emits `Verdict: REJECTED`, the main session surfaces the report and waits. The report names each failed check, the violated rule with a GitHub deep-link, the observed vs. expected text, and the line in the brief where the failure was detected.
+
+You then choose one of three responses:
+
+1. **Return to chat (claude.ai) to redesign.** The cleanest path when the FAIL reveals an architectural gap — the brief asks for something the validator's checks correctly flag as out of convention. Take the validator report to the mentor; the mentor and you redesign the brief; pre-save the new brief via caminho B; re-invoke validator and executor.
+2. **Fix directly on the branch.** Use when the FAIL is a small mechanical slip the planner introduced (subject overflow, missing section header, branch type mismatch). Edit the brief on disk; re-invoke `@brief-validator` to re-audit. If APPROVED, proceed to executor.
+3. **Override the validator.** Use when you know the FAIL is correct under unusual circumstances the validator can't see (e.g. a brief that intentionally violates a convention to introduce its replacement — the cluster bootstrap case). Skip the validator and invoke `@executor` directly. Document the override in the brief's "Plan required justification" or a dedicated decision block; the mentor session recap should also capture the override.
+
+> **Lesson #12 — REJECTED is a decision point, not a failure state.** The validator's job is to flag mechanical drift; your job is to decide whether the drift is the bug or the convention is the bug. Three responses, one chosen per case, none default. Auto-loop back to planner was rejected at cluster design (D4) precisely because the user-judgment step protects against silent validator errors.
+
+### When NOT to use the pipeline
+
+- **The task modifies the pipeline itself.** Cluster 013-015 is the canonical example: a brief that creates the validator can't be audited by the validator; a brief that redesigns AGENT_PLAYBOOK's pipeline chapter can't be planned by the agent reading the old chapter. Use caminho B for these.
+- **The task is Category S.** A one-line chat message in the executor session is enough. No brief, no pipeline.
+- **The task is exploratory.** Discovery work where the shape of the output is unclear belongs in chat first (mentoring mode); only after the shape stabilizes does it become a brief.
+- **Multiple architectural decisions remain open.** The planner produces briefs from delegations, not from incomplete designs. If the delegation prompt would need to say "and decide between X and Y", the work isn't ready for the pipeline yet.
+
+> **Lesson #13 — The pipeline runs on closed decisions.** Open decisions belong in chat. The planner faithfully encodes what you delegate; if the delegation has gaps, the brief has gaps; if the brief has gaps, the executor will either STOP or invent. None of those are good outcomes.
+
+### Troubleshooting
+
+| Symptom | Diagnosis | Response |
+|---|---|---|
+| Planner STOPs with "ambiguous input" | Delegation prompt lacked clear Goal | Return to chat; rewrite the delegation into 1-2 imperative sentences |
+| Planner STOPs with "NNN resolution conflict" | P4 three-source check disagreed | Manually resolve the slot number; pass it explicitly in the next delegation |
+| Validator REJECTED with FAILs you disagree with | Convention vs. intentional deviation tension | Use override path (option 3 above); document the override |
+| Validator REJECTED with FAILs you didn't anticipate | Planner output drifted from brief-template SKILL | Fix on branch (option 2); re-validate |
+| Executor STOPs at Pause 2 with "file outside scope" | Brief's scope didn't predict a required side-effect | Return to chat; revise scope; re-execute |
+| Executor reports pre-commit-self-audit FAIL | Mechanical slip in commit subject or staging | Fix the subject or restage; re-run the audit; commit |
+
 ## Related documents
 
 | File | Purpose |
@@ -236,5 +313,10 @@ Read this file end-to-end every 4–6 weeks until lessons #1–#10 are reflexes.
 | `docs/GIT_WORKFLOW.md` | Operational git discipline — branches, PRs, hooks, releases |
 | `docs/GOTCHAS.md` | Stack-specific traps catalog (`G-CAT-N` IDs) |
 | `docs/AGENT_PLAYBOOK.md` | This file — orchestration manual for the user |
-| `harness/workflows/` | Pre-built session templates for common situations |
+| `.claude/agents/planner.md` | Planner subagent — authors briefs from delegation prompts |
+| `.claude/agents/brief-validator.md` | Brief-validator subagent — audits briefs with 10 mechanical checks |
+| `.claude/agents/executor.md` | Executor subagent — runs briefs (pipeline-invoked) |
+| `.claude/skills/brief-template/` | Brief authoring template (preloaded by planner and brief-validator) |
+| `.claude/skills/pre-commit-self-audit/` | Executor's Pause-3 self-audit checklist |
+| `harness/workflows/` | Pre-built session templates for manual invocation (parallel surface to `.claude/agents/`) |
 | `README.md` | End-user description of Saci |

@@ -173,6 +173,12 @@ Commit: `[type](<scope>): <imperative subject>`
 
 ## Pause points
 
+Pauses are named in English ("Pause 1", "Pause 2", "Pause 3") on the
+agent-consumed surface (R9). The pt-BR form "Pausa" appears only in
+`harness/` human-edited prose (M-R10 / `CLAUDE.md` R9 — human-edited
+interface allowance). When a brief uses pt-BR "Pausa", validator C9 emits
+FAIL.
+
 From `docs/AGENT_PLAYBOOK.md` Chapter 2:
 
 - **Pause 1 (before any code):** present a numbered plan and wait for
@@ -241,6 +247,38 @@ A single summary message reporting:
 - **Architectural decisions are listed and named (D1, D2, ...).** Agent does
   not revisit them. If a decision needs to change mid-execution, agent stops
   and reports.
+
+### Edit blocks numbering
+
+Each Edit in the "Done criteria" section uses the heading form:
+
+`### Edit N — <description>`
+
+Where:
+- `N` is a positive integer starting at 1.
+- `<description>` is a short imperative phrase summarizing the change
+  (e.g. "Create `.claude/agents/planner.md`").
+- The em-dash (`—`, U+2014) separates `N` from `<description>`, with one
+  space on each side.
+
+Edit numbers are sequential and contiguous within a brief. Sub-edits within
+one Edit use lettered subsections (e.g. `#### 2a.`, `#### 2b.`); they share
+the parent Edit's commit unless the brief explicitly splits them.
+
+### Commit sequence heading
+
+Briefs with multiple commits list the planned commits under a single heading:
+
+`### Commit sequence`
+
+The heading appears once per brief, typically near the end of "Done criteria"
+or in a dedicated section. The list is numbered, each item carries the exact
+Conventional Commits subject the executor will use, and each subject is
+verified ≤ 72 chars per `CLAUDE.md` R10.
+
+Per-Edit `Commit:` annotations inside Edit blocks remain valid; the
+`### Commit sequence` heading provides the consolidated view the validator
+audits in one pass.
 
 ## Size guidance
 

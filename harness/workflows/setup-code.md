@@ -101,7 +101,7 @@ commits indesejados.
 
 Cola o workflow específico:
 
-- **Tarefa nova** → `start-task.md`
+- **Tarefa nova** → invocar pipeline (planner → validator → executor) via main session, ou caminho B (`docs/AGENT_PLAYBOOK.md` Capítulo 6)
 - **Continuar tarefa** → `resume-session.md`
 - **Antes de mexer em algo** → `task-pre-flight.md`
 - **Travou** → `recover-stuck-agent.md`

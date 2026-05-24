@@ -15,9 +15,13 @@ harness/
 ├── README.md
 ├── init/
 ├── workflows/
-├── prompts/
 └── skills-plan/
 ```
+
+> **Nota:** `harness/prompts/` foi removido em 2026-05-23 (brief 015).
+> Continha `task-brief-template.md` (superseded por
+> `.claude/skills/brief-template/SKILL.md` desde brief 013) e seu
+> README local. Sem outros artefatos, o diretório foi excluído.
 
 ## Como usar (em projeto já configurado)
 
@@ -26,7 +30,7 @@ Quando voltar pra projeto que já tem o sistema:
 - **Sessão nova de chat:** cola `docs/workflows/setup-chat.md`
 - **Sessão nova de Cowork:** cola `docs/workflows/setup-cowork.md`
 - **Sessão nova de Code:** cola `docs/workflows/setup-code.md`
-- **Tarefa nova:** segue `docs/workflows/start-task.md`
+- **Tarefa nova:** invoca pipeline (planner → validator → executor) via main session do Claude Code, ou caminho B (`docs/AGENT_PLAYBOOK.md` Capítulo 6)
 
 ## Bootstrap em projeto novo (caso de uso secundário)
 
@@ -41,7 +45,9 @@ Quando voltar pra projeto que já tem o sistema:
 6. **Faz primeiro commit** com toda a documentação gerada
 
 A partir daí, você tem o sistema vivo. Workflows ficam em
-`docs/workflows/`, briefs futuros em `docs/prompts/`, etc.
+`docs/workflows/`. Briefs futuros são autorados via o skill
+`brief-template` em `.claude/skills/brief-template/SKILL.md`
+e salvos em `docs/tasks/<NNN>-<slug>/brief.md`.
 
 ## Documentos canônicos que esse kit gera
 

@@ -45,8 +45,8 @@ Detailed design notes (worker pool semantics, PSD binary parser, cache invalidat
 
 The dev surface splits by *audience*, not by directory.
 
-- *Agent-consumed surface* (English-only): code identifiers, comments, file/folder names, commit messages, branch names, PR titles/descriptions, canonical documentation (`CLAUDE.md`, `README.md`, `docs/**`), task artifacts (`docs/tasks/**`), config keys, log/console messages. Includes any block inside `harness/` that produces canonical output — e.g. the template body inside `harness/prompts/task-brief-template.md` becomes a committed `brief.md`, so that block is English even though the surrounding usage notes are pt-BR.
-- *Human-edited interface* (pt-BR is acceptable): the prompts in `harness/init/*.md`, `harness/setup-chat.md`, `harness/prompts/README.md`, and the prose around copy-paste templates in `harness/prompts/`. Rationale: the user reads, copies, and customizes these directly; pt-BR reduces friction for the user without affecting agent quality, because these files are typically pasted into chat (where M-R10 already mandates pt-BR).
+- *Agent-consumed surface* (English-only): code identifiers, comments, file/folder names, commit messages, branch names, PR titles/descriptions, canonical documentation (`CLAUDE.md`, `README.md`, `docs/**`), task artifacts (`docs/tasks/**`), config keys, log/console messages. Includes any block inside `harness/` that produces canonical output — e.g. the `--- COPIAR ---` blocks inside `harness/workflows/*.md` are pasted into the agent as English instructions, so those blocks are English even though the surrounding usage notes are pt-BR.
+- *Human-edited interface* (pt-BR is acceptable): the prompts in `harness/init/*.md`, `harness/setup-chat.md`, `harness/workflows/README.md`, and the prose around `--- COPIAR ---` blocks in `harness/workflows/`. Rationale: the user reads, copies, and customizes these directly; pt-BR reduces friction for the user without affecting agent quality, because these files are typically pasted into chat (where M-R10 already mandates pt-BR).
 - *UI surface* (EN + pt-BR): visible labels, button text, placeholders, tooltips, error toasts, empty states, menu items. Stored in an i18n layer keyed by string ID, with both locales defined. **Never inline a pt-BR-only literal in new HTML/JSX/template code** — route through the i18n layer (or add a `TODO(i18n)` if the layer is not yet in place).
 - Default locale is auto-detected from the OS (`app.getLocale()` in main, `navigator.language` in renderer); the user may override in settings.
 - Existing pt-BR content in source files (`main.js`, `psd-worker.js`, `renderer/app.js`) predates this rule and is tracked as `E3` for migration.
@@ -125,7 +125,9 @@ Do not translate piecemeal during unrelated PRs.
 - `docs/GOTCHAS.md` — known traps: worker pool timeouts, PSD binary parser, cache versioning, cross-platform pitfalls
 - `docs/AGENT_PLAYBOOK.md` — orchestration between Claude Chat / Code / Cowork
 - `docs/ROADMAP.md` — product roadmap (phases, milestones, parking lot, pending decisions); ages in sync with `MENTOR_BRIEF.md` §2
-- `harness/prompts/task-brief-template.md` — task brief template (4 parts + `Plan required` flag); used to author `docs/tasks/<NNN>-<slug>/brief.md`
 - `docs/tasks/<NNN>-<slug>/` — per-task artifacts: `brief.md`, optional `plan.md`, optional `notes.md`. Created when a task starts; preserved after merge as the historical record
-- `harness/` — workflow prompts (`start-task.md`, `setup-code.md`, etc.) for new sessions
+- `harness/` — workflow prompts (`setup-code.md`, `pause-task.md`, etc.) for new sessions; parallel manual surface to `.claude/agents/`
+- `.claude/agents/` — orchestration subagents: `planner.md`, `brief-validator.md`, `executor.md`; invoked by the Claude Code main session (`docs/AGENT_PLAYBOOK.md` Chapter 6)
+- `.claude/skills/brief-template/` — authoring template for `docs/tasks/<NNN>-<slug>/brief.md`; preloaded by planner and brief-validator
+- `.claude/skills/pre-commit-self-audit/` — five mechanical checks run by the executor before every Pause 3
 - `README.md` — user-facing project description
