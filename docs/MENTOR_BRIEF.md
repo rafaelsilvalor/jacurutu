@@ -120,10 +120,12 @@ Seed list — grow with each substantive session.
 | `docs/ROADMAP.md` | Both — product roadmap (phases, milestones, parking lot, pending decisions) |
 | `docs/GIT_WORKFLOW.md` | Both agents and the user — branching, PRs, hooks, releases |
 | `docs/GOTCHAS.md` | Both agents and the user — codebase-specific traps |
-| `docs/AGENT_PLAYBOOK.md` | The user — orchestration between Chat / Code / Cowork |
-| `harness/prompts/task-brief-template.md` | Both agents and the user — task brief template (4 parts + `Plan required` flag) |
-| `docs/tasks/<NNN>-<slug>/` | Per-task artifacts: `brief.md`, `plan.md`, optional `notes.md` |
-| `harness/` | The user — workflow prompts to start sessions and tasks |
+| `docs/AGENT_PLAYBOOK.md` | The user — orchestration between Chat / Code / Cowork; Chapter 6 covers the pipeline |
+| `.claude/agents/` | The orchestration subagents (planner, brief-validator, executor) invoked from Claude Code main session |
+| `.claude/skills/brief-template/` | Authoring template for `docs/tasks/<NNN>-<slug>/brief.md`; preloaded by planner and brief-validator |
+| `.claude/skills/pre-commit-self-audit/` | Five mechanical checks run by the executor before every Pause 3 |
+| `docs/tasks/<NNN>-<slug>/` | Per-task artifacts: `brief.md`, optional `notes.md` (per-session recaps live in `docs/sessions/`) |
+| `harness/` | The user — workflow prompts to start sessions and tasks (parallel manual surface to `.claude/agents/`) |
 | `README.md` | End users — what Saci is and how to install it |
 
 ## 8. Context to load per session type

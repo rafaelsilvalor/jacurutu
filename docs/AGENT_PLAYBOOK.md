@@ -313,5 +313,10 @@ You then choose one of three responses:
 | `docs/GIT_WORKFLOW.md` | Operational git discipline — branches, PRs, hooks, releases |
 | `docs/GOTCHAS.md` | Stack-specific traps catalog (`G-CAT-N` IDs) |
 | `docs/AGENT_PLAYBOOK.md` | This file — orchestration manual for the user |
-| `harness/workflows/` | Pre-built session templates for common situations |
+| `.claude/agents/planner.md` | Planner subagent — authors briefs from delegation prompts |
+| `.claude/agents/brief-validator.md` | Brief-validator subagent — audits briefs with 10 mechanical checks |
+| `.claude/agents/executor.md` | Executor subagent — runs briefs (pipeline-invoked) |
+| `.claude/skills/brief-template/` | Brief authoring template (preloaded by planner and brief-validator) |
+| `.claude/skills/pre-commit-self-audit/` | Executor's Pause-3 self-audit checklist |
+| `harness/workflows/` | Pre-built session templates for manual invocation (parallel surface to `.claude/agents/`) |
 | `README.md` | End-user description of Saci |

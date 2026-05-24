@@ -21,6 +21,8 @@
 
 **G-R8 — Pre-commit hook runs `npm test`.** Hook lives in `.githooks/pre-commit`, configured via `core.hooksPath`. Never bypass with `--no-verify`. Mirrors `CLAUDE.md` R13.
 
+> **Note on executor self-audit:** the executor agent (`.claude/agents/executor.md`) additionally invokes the `pre-commit-self-audit` skill (`.claude/skills/pre-commit-self-audit/`) before every Pause 3. The skill runs five mechanical checks (subject length, Conventional Commits type, imperative mood, no `Co-authored-by`, staged scope). This is **complementary to** G-R8, not a substitute — `npm test` still runs via the git hook on commit. Manual-invocation surface does not run the self-audit; pipeline-invoked executor does.
+
 **G-R9 — Releases are tagged with semver.** Format: `vMAJOR.MINOR.PATCH`. Tag from `main` after the release PR merges. `package.json` version stays in sync.
 
 **G-R10 — `STATE.md` during long structural tasks.** Tasks expected to span multiple sessions create `STATE.md` at the repo root to preserve context. Deleted on task close. See template below.
