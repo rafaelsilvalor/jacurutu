@@ -1,6 +1,6 @@
 ---
 name: brief-validator
-description: Audit a task brief at docs/tasks/<NNN>-<slug>/brief.md against 10 mechanical checks. Invoke after the planner has written the brief, before the executor begins. Emits PASS/WARN/FAIL per check and a final APPROVED or REJECTED verdict with GitHub deep-links to the violated rules.
+description: Audit a task brief at docs/tasks/<NNN>-<slug>/brief.md against 10 mechanical checks. Invoke after the planner has written the brief, before the executor begins. Emits PASS or FAIL per check and a final APPROVED or REJECTED verdict with GitHub deep-links to the violated rules.
 model: haiku
 tools: [Read, Bash, Grep, Glob]
 disallowedTools: [Write, Edit]
@@ -50,10 +50,11 @@ and the rules in `CLAUDE.md`, `GIT_WORKFLOW.md`, `AGENT_PLAYBOOK.md`.
 For each check, the verdict is one of:
 
 - **PASS** — check satisfied.
-- **WARN** — convention not yet formalized in canonical docs (brief 014's
-  D11 marker — applies to C6, C7, C9 until brief 015 reconciles
-  `brief-template/SKILL.md`). The brief is not blocked by WARN.
 - **FAIL** — rule violated. Triggers REJECTED if any check is FAIL.
+
+The WARN state defined in brief 014 (D11) is removed in brief 015: C6, C7,
+and C9 now have canonical anchors in `.claude/skills/brief-template/SKILL.md`
+and produce PASS or FAIL only.
 
 ### Rule-to-pattern table
 
@@ -64,15 +65,15 @@ For each check, the verdict is one of:
 | C3 | `grep -nE '^> \*\*Plan required:\*\* (yes\|no)' <brief>` | `CLAUDE.md` R15 |
 | C4 | `grep -nE '^> \*\*Branch:\*\* \`(feat\|fix\|refactor\|test\|chore\|docs\|perf\|ci)/[a-z0-9-]+\`$' <brief>` | `CLAUDE.md` R11 and `GIT_WORKFLOW.md` G-R2 |
 | C5 | Four greps in order; line numbers must be strictly increasing: `grep -nE '^## Context$' <brief>`, `grep -nE '^## Goal$' <brief>`, `grep -nE '^## Constraints$' <brief>`, `grep -nE '^## Done criteria$' <brief>` | `.claude/skills/brief-template/SKILL.md` template sections |
-| C6 (WARN-eligible) | `grep -nE '^### Edit [0-9]+ — .+$' <brief>` (at least one) | Convention; emit WARN until SKILL.md errata lands in brief 015 |
-| C7 (WARN-eligible) | Extract commit subjects via `awk '/^### (Suggested )?[Cc]ommit sequence/,/^### /' <brief> \| grep -E '^[0-9]+\. ' \| sed -E 's/^[0-9]+\. //'`; check each ≤ 72 chars via `wc -L` | `CLAUDE.md` R10 and `GIT_WORKFLOW.md` G-R3. WARN if heading format is non-canonical (variants); FAIL if any subject > 72 chars |
+| C6 | `grep -nE '^### Edit [0-9]+ — .+$' <brief>` (at least one) | `.claude/skills/brief-template/SKILL.md`, "Edit blocks numbering" subsection |
+| C7 | Extract commit subjects via `awk '/^### Commit sequence/,/^### /' <brief> \| grep -E '^[0-9]+\. ' \| sed -E 's/^[0-9]+\. //'`; check each ≤ 72 chars via `wc -L` | `CLAUDE.md` R10, `GIT_WORKFLOW.md` G-R3, and `.claude/skills/brief-template/SKILL.md`, "Commit sequence heading" subsection. FAIL if heading is non-canonical or any subject > 72 chars |
 | C8 | Apply to extracted subjects from C7: each must match `^(feat\|fix\|refactor\|test\|chore\|docs\|perf\|ci)(\([a-z0-9-]+\))?: ` | `CLAUDE.md` R10 |
-| C9 (WARN-eligible) | `grep -nE '^## (Pause points\|Pausa)' <brief>` plus `grep -E 'Pause 1\|Pausa 1' <brief>`, `grep -E 'Pause 2\|Pausa 2' <brief>`, `grep -E 'Pause 3\|Pausa 3' <brief>` | `docs/AGENT_PLAYBOOK.md` Lesson #6. Emit WARN if pt-BR "Pausa" used (convention pending in brief 015) |
+| C9 | `grep -nE '^## Pause points' <brief>` plus `grep -E 'Pause 1' <brief>`, `grep -E 'Pause 2' <brief>`, `grep -E 'Pause 3' <brief>` | `docs/AGENT_PLAYBOOK.md` Lesson #6 and `.claude/skills/brief-template/SKILL.md`, "Pause points" section. FAIL if pt-BR "Pausa" used on agent-consumed brief (R9) |
 | C10 | Strip fenced code blocks, then grep pt-BR markers: `awk '/^```/ { in_code = !in_code; next } !in_code { print NR ": " $0 }' <brief> \| grep -iE '\b(não\|para\|que\|também\|então\|mas\|porque\|quando\|onde\|apenas\|sempre\|nunca\|deve\|pode)\b'` | `CLAUDE.md` R9 |
 
 ### Deep-link emission
 
-For every WARN or FAIL, emit a clickable link to the violated rule's current
+For every FAIL, emit a clickable link to the violated rule's current
 line in `main`. Strategy: run `grep -n` against the canonical file to find
 the current line number, then format as:
 
@@ -104,22 +105,22 @@ parseable by `grep -E '^Verdict: (APPROVED|REJECTED)$'`.
 
 ## Checks
 
-C1 — Header line 1: <PASS | WARN | FAIL>
-C2 — Category: <PASS | WARN | FAIL>
-C3 — Plan required: <PASS | WARN | FAIL>
-C4 — Branch: <PASS | WARN | FAIL>
-C5 — Section presence and order: <PASS | WARN | FAIL>
-C6 — Edit blocks numbering: <PASS | WARN | FAIL>
-C7 — Commit subjects ≤ 72 chars: <PASS | WARN | FAIL>
-C8 — Conventional Commits type prefix: <PASS | WARN | FAIL>
-C9 — Pause declarations: <PASS | WARN | FAIL>
-C10 — Language (R9): <PASS | WARN | FAIL>
+C1 — Header line 1: <PASS | FAIL>
+C2 — Category: <PASS | FAIL>
+C3 — Plan required: <PASS | FAIL>
+C4 — Branch: <PASS | FAIL>
+C5 — Section presence and order: <PASS | FAIL>
+C6 — Edit blocks numbering: <PASS | FAIL>
+C7 — Commit subjects ≤ 72 chars: <PASS | FAIL>
+C8 — Conventional Commits type prefix: <PASS | FAIL>
+C9 — Pause declarations: <PASS | FAIL>
+C10 — Language (R9): <PASS | FAIL>
 
 ## Findings
 
-<For each WARN or FAIL: one block.>
+<For each FAIL: one block.>
 
-### <C-number> — <FAIL | WARN> — <one-line summary>
+### <C-number> — FAIL — <one-line summary>
 
 - **Brief line(s):** `docs/tasks/<NNN>-<slug>/brief.md:<line>`
 - **Rule:** [<rule ID>](https://github.com/rafaelsilvalor/saci/blob/main/<canonical-file>#L<line>)
@@ -133,9 +134,8 @@ Verdict: <APPROVED | REJECTED>
 
 ## Verdict rules
 
-- **APPROVED** if every check is PASS, or PASS+WARN combinations only.
+- **APPROVED** if every check is PASS.
 - **REJECTED** if any check is FAIL.
-- WARN alone never triggers REJECTED.
 
 Get the short SHA via:
 
