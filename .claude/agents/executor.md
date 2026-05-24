@@ -47,6 +47,85 @@ Before starting any Edit, read in this order:
 `.claude/skills/pre-commit-self-audit/SKILL.md` is preloaded; no need to
 re-read.
 
+## STATE.md lifecycle
+
+Before starting any Edit, decide whether the task requires `STATE.md`:
+
+- **Required for Category L tasks** (per `docs/GIT_WORKFLOW.md` G-R10):
+  multi-session tasks or those with structural complexity create
+  `STATE.md` at the repo root to preserve context across sessions.
+- **Optional for Category M tasks**: single-session and short scope —
+  skip unless the user explicitly requests it.
+- **Not used for Category S tasks**: those don't reach this agent.
+
+The brief's `Category:` frontmatter field tells you which applies.
+
+### Creation (before Pause 1, or before Edit 2 if Pause 1 is skipped)
+
+If `STATE.md` is required and does not yet exist:
+
+1. Create `STATE.md` at the repo root, using the template documented in
+   `docs/GIT_WORKFLOW.md` "STATE.md (long tasks)" section.
+2. Populate the fields:
+   - `Goal`: copy from the brief's `## Goal` section (one or two sentences).
+   - `Status`: `in-progress`.
+   - `Last update`: current date/time and the OS you are running on.
+   - `Done so far`: empty (no items yet).
+   - `Next steps`: copy the planned Edit titles from the brief in order.
+3. Stage and commit:
+   ```bash
+   git add STATE.md
+   git commit -m "chore(state): start <NNN>-<slug>"
+   ```
+   Subject must be ≤ 72 chars (R10). This commit precedes Edit 1's
+   brief-verification commit. Rationale: STATE.md captures task intent —
+   if any subsequent Edit fails, the next session can resume from
+   STATE.md alone. Place this commit first; the brief's "Commit
+   sequence" section assumes this ordering.
+
+This commit is **exempt from `pre-commit-self-audit`** because the audit
+expects `EDIT_SCOPE` to align with a brief Edit's declared file list;
+`STATE.md` lifecycle commits are infrastructure outside the Edits.
+
+### Updates (between Edits, on session boundaries)
+
+Between Edits or when pausing a session, update `STATE.md`:
+
+- `Status`: keep `in-progress` (or change to `blocked` with a `Blockers`
+  section if a STOP condition required user input).
+- `Last update`: refresh the timestamp.
+- `Done so far`: add an `[x]` line for each completed Edit.
+- `Next steps`: remove completed items; refine the next concrete action.
+- `Notes for next session`: capture non-obvious context (decisions taken
+  in chat that the brief doesn't yet reflect, hypotheses to test).
+
+Stage and commit each update with subject `chore(state): update <NNN>-<slug>`.
+This commit is also exempt from `pre-commit-self-audit`.
+
+### Removal (after the final Edit's commit, before the Final report)
+
+After the brief's last Edit is committed and verified:
+
+1. Confirm `Status: completed` if you choose to leave `STATE.md` in place
+   for a final summary commit; otherwise skip step 2 and remove directly.
+2. Delete the file:
+   ```bash
+   git rm STATE.md
+   git commit -m "chore(state): remove after <NNN>-<slug>"
+   ```
+   Subject ≤ 72 chars.
+
+This commit is exempt from `pre-commit-self-audit`. After this commit,
+proceed to the Final report.
+
+### When you do NOT touch STATE.md
+
+- Category M task where the user did not request it.
+- Category L task where the user explicitly opted out at delegation time.
+  (Rare; ask if uncertain before skipping.)
+- The file already exists with a different `Goal` — **STOP and report**.
+  Do not overwrite or merge content; the user reconciles.
+
 ## Pauses
 
 You honor three Pauses per `docs/AGENT_PLAYBOOK.md` Chapter 2:
