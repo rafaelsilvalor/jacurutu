@@ -31,9 +31,16 @@ Templates copiáveis pra cenários recorrentes de orquestração.
 ### Tarefas
 
 - **`task-pre-flight.md`** — checklist antes de mexer em código
-- **`start-task.md`** — iniciar tarefa nova com brief
 - **`pause-task.md`** — pausar preservando estado
 - **`close-task.md`** — fechar tarefa pra mergear
+
+> **Nota:** `start-task.md` foi removido em 2026-05-23 (brief 015).
+> Seu conteúdo está absorvido em `.claude/agents/executor.md`
+> (reading order, pre-flight, STATE.md lifecycle, plan + wait).
+> Invocação pipeline-driven via main session do Claude Code é o
+> caminho default; caminho B (brief pré-salvo + invocação direta
+> do executor) continua válido. Ver `docs/AGENT_PLAYBOOK.md`
+> Capítulo 6.
 
 ### Git operations
 

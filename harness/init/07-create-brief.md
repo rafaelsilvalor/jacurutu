@@ -74,8 +74,9 @@ PASSO 6 — Revisão final:
 Mostra o brief gerado. Pergunta se há algo a ajustar. Quando
 aprovado, salva como `docs/tasks/<NNN>-<slug>/brief.md`. Sugere
 próximo passo: commitar o brief com mensagem
-`docs(tasks): add brief for <NNN>-<slug>` e iniciar a tarefa via
-`harness/workflows/start-task.md` no Claude Code.
+`docs(tasks): add brief for <NNN>-<slug>` e iniciar a tarefa
+invocando o executor agent no Claude Code (caminho B — brief já
+está salvo; ver `docs/AGENT_PLAYBOOK.md` Capítulo 6).
 
 Princípios:
 - Brief reflete MEU projeto, não template genérico

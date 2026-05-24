@@ -96,7 +96,7 @@ git branch -D [nome-da-branch-bagunçada]
 git push origin --delete [nome-da-branch-bagunçada]   # se empurrou
 ```
 
-E recomeça com `start-task.md`.
+E recomeça invocando o executor agent (`.claude/agents/executor.md` via pipeline, ou caminho B — brief pré-salvo + invocação direta). Ver `docs/AGENT_PLAYBOOK.md` Capítulo 6.
 
 ## Etapa 4 — Documenta o que aprendeu
 

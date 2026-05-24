@@ -171,5 +171,6 @@ de pensamento aplicável.
 - Cria `docs/AGENT_PLAYBOOK.md`
 - **Próximo passo (e fim do bootstrap):** mostra resumo de tudo
   que foi gerado, sugere comitar tudo, e indica que a partir daí
-  o usuário usa `docs/workflows/start-task.md` pra primeira tarefa
-  real
+  o usuário invoca a pipeline (planner → validator → executor) via
+  main session do Claude Code pra primeira tarefa real
+  (`docs/AGENT_PLAYBOOK.md` Capítulo 6)

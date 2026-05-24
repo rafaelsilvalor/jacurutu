@@ -126,7 +126,7 @@ Do not translate piecemeal during unrelated PRs.
 - `docs/AGENT_PLAYBOOK.md` — orchestration between Claude Chat / Code / Cowork
 - `docs/ROADMAP.md` — product roadmap (phases, milestones, parking lot, pending decisions); ages in sync with `MENTOR_BRIEF.md` §2
 - `docs/tasks/<NNN>-<slug>/` — per-task artifacts: `brief.md`, optional `plan.md`, optional `notes.md`. Created when a task starts; preserved after merge as the historical record
-- `harness/` — workflow prompts (`start-task.md`, `setup-code.md`, etc.) for new sessions
+- `harness/` — workflow prompts (`setup-code.md`, `pause-task.md`, etc.) for new sessions; parallel manual surface to `.claude/agents/`
 - `.claude/agents/` — orchestration subagents: `planner.md`, `brief-validator.md`, `executor.md`; invoked by the Claude Code main session (`docs/AGENT_PLAYBOOK.md` Chapter 6)
 - `.claude/skills/brief-template/` — authoring template for `docs/tasks/<NNN>-<slug>/brief.md`; preloaded by planner and brief-validator
 - `.claude/skills/pre-commit-self-audit/` — five mechanical checks run by the executor before every Pause 3
