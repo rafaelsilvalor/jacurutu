@@ -15,9 +15,13 @@ harness/
 ├── README.md
 ├── init/
 ├── workflows/
-├── prompts/
 └── skills-plan/
 ```
+
+> **Nota:** `harness/prompts/` foi removido em 2026-05-23 (brief 015).
+> Continha `task-brief-template.md` (superseded por
+> `.claude/skills/brief-template/SKILL.md` desde brief 013) e seu
+> README local. Sem outros artefatos, o diretório foi excluído.
 
 ## Como usar (em projeto já configurado)
 
@@ -41,7 +45,9 @@ Quando voltar pra projeto que já tem o sistema:
 6. **Faz primeiro commit** com toda a documentação gerada
 
 A partir daí, você tem o sistema vivo. Workflows ficam em
-`docs/workflows/`, briefs futuros em `docs/prompts/`, etc.
+`docs/workflows/`. Briefs futuros são autorados via o skill
+`brief-template` em `.claude/skills/brief-template/SKILL.md`
+e salvos em `docs/tasks/<NNN>-<slug>/brief.md`.
 
 ## Documentos canônicos que esse kit gera
 
