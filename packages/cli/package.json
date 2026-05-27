@@ -1,0 +1,22 @@
+{
+  "name": "@saci/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/cli.js",
+  "types": "./dist/cli.d.ts",
+  "bin": {
+    "saci": "./dist/cli.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p ."
+  },
+  "dependencies": {
+    "@saci/core": "*",
+    "@saci/adapter-jira": "*",
+    "@saci/adapter-sheets": "*"
+  }
+}
