@@ -44,6 +44,11 @@
   - **CLI-first, desktop-later.** CLI is the canonical surface during core development (reduces iteration friction). Desktop UI (Electron host) reconnects on top within ~3-4 months — designers need the production flow soon and CLI alone is not enough for non-devs.
   - **Jira REST direct** (Cowork-as-Jira-bridge reverted on 2026-05-15). Rationale: token cost per Cowork run made the bridge unsustainable even in testing; preserving token budget for mentor + Claude Code yields higher ROI. JS equivalents for `requests` and `gspread` are pending research — required before Jira/Sheets adapter implementation, not before bootstrap.
   - **Google Sheets stays as the team-facing collective interface**, not a placeholder. It will not be replaced by the desktop UI later.
+  - **Node runtime target: ≥22.0.0** (pinned 2026-05-27 in task 016).
+    Saci v2 runs on Node 22 LTS — enables ESM import attributes
+    (`with { type: "json" }`) and gives comfortable margin for Phase 3
+    production. Pinned in three places: root `package.json` `engines`,
+    `.nvmrc` at repo root, and `packages/cli/package.json` `engines`.
 - **Active product direction (recorded 2026-05-15 — refresh as it evolves):**
   - **Production workflow promoted to Phase 3** (v2 numbering). Rationale: until production exists, Rafael is the manual bottleneck for the repetitive work the product is meant to eliminate. Phase 3 covers folder scaffolding, templates, archiving standardization — these are **domain concepts** (likely a `ProductionFlow` or `Workspace` abstraction), not tooling details.
   - **Designer-friendly packaging is a Phase 3 concern**, not end-of-roadmap. Possibly via the Saci-desktop Electron app as host for the CLI on non-technical designers' machines.

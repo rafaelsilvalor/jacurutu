@@ -111,6 +111,14 @@ Open questions that will gate or shape upcoming phases.
 3. **`ProductionFlow` / `Workspace` exact abstraction.** Likely surfaces during Phase 2 port; refined in Phase 3 design.
 4. **Coordination of v1 ↔ v2 during overlap.** While v2's Phase 4 is unfinished, Python `automation/` runs coord mode. Decide: keep automation untouched, or accept small patches? Default: untouched.
 5. **Estratégia central infrastructure** (carried from previous ROADMAP) — open item from MENTOR_BRIEF §2; tracked outside code.
+6. **CLI library — final choice.** Phase 1 uses the `node:util` `parseArgs`
+   builtin (D4). Revisit at the Phase 2→3 transition when production flow
+   brings real commands — choice between `commander`, `citty`, or
+   continuing with the builtin will be informed by real usage data.
+7. **Versioning policy.** Phase 1–3 use `"version": "0.0.0"` on every
+   `package.json` plus git tags on the root (D5). Decide single vs.
+   independent vs. continued defer in Phase 4 when adapter stability
+   provides input.
 
 ## Legacy / superseded — Saci-Electron-v1 phases
 
