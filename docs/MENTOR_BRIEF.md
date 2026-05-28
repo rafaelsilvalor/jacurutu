@@ -49,6 +49,13 @@
     (`with { type: "json" }`) and gives comfortable margin for Phase 3
     production. Pinned in three places: root `package.json` `engines`,
     `.nvmrc` at repo root, and `packages/cli/package.json` `engines`.
+  - **Verb allowlist as SSOT (canonicalized 2026-05-28).** The allowlist
+    consumed by `pre-commit-self-audit` Check 3 and `brief-validator` Check
+    C11 lives in `.claude/skills/pre-commit-self-audit/SKILL.md`. The
+    validator greps it at runtime; it does not duplicate. Five verbs added
+    on this date (`deprecate`, `promote`, `wire`, `declare`, `canonicalize`);
+    four rejected with substitutions (`record`→`document`, `ignore`→`add`,
+    `clean`→`remove`, `reduce`→`refactor`).
 - **Active product direction (recorded 2026-05-15 — refresh as it evolves):**
   - **Production workflow promoted to Phase 3** (v2 numbering). Rationale: until production exists, Rafael is the manual bottleneck for the repetitive work the product is meant to eliminate. Phase 3 covers folder scaffolding, templates, archiving standardization — these are **domain concepts** (likely a `ProductionFlow` or `Workspace` abstraction), not tooling details.
   - **Designer-friendly packaging is a Phase 3 concern**, not end-of-roadmap. Possibly via the Saci-desktop Electron app as host for the CLI on non-technical designers' machines.
