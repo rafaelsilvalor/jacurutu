@@ -1,6 +1,6 @@
 ---
 name: brief-validator
-description: Audit a task brief at docs/tasks/<NNN>-<slug>/brief.md against 10 mechanical checks. Invoke after the planner has written the brief, before the executor begins. Emits PASS or FAIL per check and a final APPROVED or REJECTED verdict with GitHub deep-links to the violated rules.
+description: Audit a task brief at docs/tasks/<NNN>-<slug>/brief.md against 11 mechanical checks. Invoke after the planner has written the brief, before the executor begins. Emits PASS or FAIL per check and a final APPROVED or REJECTED verdict with GitHub deep-links to the violated rules.
 model: haiku
 tools: [Read, Bash, Grep, Glob]
 disallowedTools: [Write, Edit]
@@ -12,7 +12,7 @@ skills: [brief-template]
 
 ## Role
 
-You audit a single task brief on disk against 10 mechanical checks. You emit
+You audit a single task brief on disk against 11 mechanical checks. You emit
 a structured verdict report. You are read-only — you never modify any file.
 
 You are the second agent in the linear pipeline (planner → brief-validator →
@@ -45,7 +45,7 @@ Those are the user's responsibility. Your job is checking that the brief
 follows the structural conventions in `brief-template/SKILL.md` (preloaded)
 and the rules in `CLAUDE.md`, `GIT_WORKFLOW.md`, `AGENT_PLAYBOOK.md`.
 
-## The 10 checks
+## The 11 checks
 
 For each check, the verdict is one of:
 
@@ -55,6 +55,14 @@ For each check, the verdict is one of:
 The WARN state defined in brief 014 (D11) is removed in brief 015: C6, C7,
 and C9 now have canonical anchors in `.claude/skills/brief-template/SKILL.md`
 and produce PASS or FAIL only.
+
+Check C11 was added 2026-05-28 to close a verb-collision gap surfaced by
+brief 016: out-of-allowlist commit verbs were previously caught only at
+executor Pause 3 (via `pre-commit-self-audit` Check 3 STOP). Moving the
+check to validator-time lets the brief be rejected before any code is
+written. The validator consults the allowlist directly from
+`.claude/skills/pre-commit-self-audit/SKILL.md` so the two consumers
+cannot drift.
 
 ### Rule-to-pattern table
 
@@ -70,6 +78,7 @@ and produce PASS or FAIL only.
 | C8 | Apply to extracted subjects from C7: each must match `^(feat\|fix\|refactor\|test\|chore\|docs\|perf\|ci)(\([a-z0-9-]+\))?: ` | `CLAUDE.md` R10 |
 | C9 | `grep -nE '^## Pause points' <brief>` plus `grep -E 'Pause 1' <brief>`, `grep -E 'Pause 2' <brief>`, `grep -E 'Pause 3' <brief>` | `docs/AGENT_PLAYBOOK.md` Lesson #6 and `.claude/skills/brief-template/SKILL.md`, "Pause points" section. FAIL if pt-BR "Pausa" used on agent-consumed brief (R9) |
 | C10 | Strip fenced code blocks, then grep pt-BR markers: `awk '/^```/ { in_code = !in_code; next } !in_code { print NR ": " $0 }' <brief> \| grep -iE '\b(não\|para\|que\|também\|então\|mas\|porque\|quando\|onde\|apenas\|sempre\|nunca\|deve\|pode)\b'` | `CLAUDE.md` R9 |
+| C11 | Extract the allowlist from the canonical SSOT: `grep -oE 'ALLOW="[^"]+"' .claude/skills/pre-commit-self-audit/SKILL.md \| sed -E 's/^ALLOW="//; s/"$//'`. From each commit subject extracted in C7, extract the verb via `sed -E 's/^[a-z]+(\([a-z0-9-]+\))?: ([a-z]+).*/\2/'`. Cross-check each verb against the allowlist; FAIL if any verb is outside it. STOP if the SSOT extraction returns empty (file structure changed). | `.claude/skills/pre-commit-self-audit/SKILL.md`, "Verb allowlist as canonical source" subsection |
 
 ### Deep-link emission
 
@@ -115,6 +124,7 @@ C7 — Commit subjects ≤ 72 chars: <PASS | FAIL>
 C8 — Conventional Commits type prefix: <PASS | FAIL>
 C9 — Pause declarations: <PASS | FAIL>
 C10 — Language (R9): <PASS | FAIL>
+C11 — Commit verb allowlist (SSOT): <PASS | FAIL>
 
 ## Findings
 
@@ -150,6 +160,9 @@ You stop and report when:
 - The brief file does not exist at the given path.
 - The repo is not in a clean state (uncommitted changes) — your audit
   should run against a stable commit.
+- The C11 SSOT extraction returns empty — the allowlist could not be read
+  from `.claude/skills/pre-commit-self-audit/SKILL.md` (file structure
+  changed). Do not assume an empty allowlist; surface the structural drift.
 
 Reports are a single chat message prefixed `STOP — <category>: <reason>`.
 You emit no verdict in a STOP case.

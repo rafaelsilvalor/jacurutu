@@ -70,7 +70,8 @@ fi
 subject (after the type prefix and colon) must be an imperative-mood verb.
 
 Allowlist (PASS): `add, fix, update, remove, refactor, rename, document,
-migrate, port, bump, drop, restore, revert, support`.
+migrate, port, bump, drop, restore, revert, support, deprecate, promote,
+wire, declare, canonicalize`.
 
 Denylist (FAIL): `added, fixing, updates, fixes, adding, updating, removed,
 refactored, renamed, documented, migrated, ported, bumped, dropped, restored,
@@ -80,7 +81,7 @@ Verb not in either list: STOP and report — do not auto-classify.
 
 ```bash
 VERB=$(printf '%s' "$SUBJECT" | sed -E 's/^[a-z]+(\([a-z0-9-]+\))?: ([a-z]+).*/\2/' | tr '[:upper:]' '[:lower:]')
-ALLOW="add fix update remove refactor rename document migrate port bump drop restore revert support"
+ALLOW="add fix update remove refactor rename document migrate port bump drop restore revert support deprecate promote wire declare canonicalize"
 DENY="added fixing updates fixes adding updating removed refactored renamed documented migrated ported bumped dropped restored reverted supported"
 
 if printf '%s\n' $ALLOW | grep -qx "$VERB"; then
@@ -91,6 +92,32 @@ else
   echo "  imperative mood: STOP — verb '$VERB' not in allowlist or denylist; manual review required"
 fi
 ```
+
+#### Verb allowlist as canonical source
+
+The allowlist above is the single source of truth (SSOT) for commit-subject
+verbs across the agent pipeline. Two consumers read it:
+
+1. This skill's Check 3 — uses the `ALLOW=` variable in the bash snippet above.
+2. `brief-validator` Check C11 — extracts the allowlist from this file at
+   runtime via `grep -oE 'ALLOW="[^"]+"' .claude/skills/pre-commit-self-audit/SKILL.md`
+   and cross-checks every commit subject declared in the brief's "Commit
+   sequence" section.
+
+The validator does **not** duplicate the list. Editing the `ALLOW=` line
+here propagates to both consumers on the next run. When adding or removing
+a verb, update both the inline prose ("Allowlist (PASS): ...") above **and**
+the `ALLOW=` variable — the two must stay in sync because the prose is the
+human read and the variable is the machine read.
+
+#### Verbs considered and not adopted
+
+| Rejected | Use instead | Why |
+|---|---|---|
+| `record` | `document` | "Document" already covers writing things down — decisions, sessions, recaps. "Record" overlaps without adding precision. |
+| `ignore` | `add` | Adding a pattern to `.gitignore` is still adding (an entry). The verb describes the staged change, not the runtime effect. |
+| `clean` | `remove` | "Remove" names specific files or lines. "Clean" implies broader sweeps that often cross into refactor territory and blur scope. |
+| `reduce` | `refactor` | Reducing size, complexity, or duplication is the result of refactoring. The verb should name the action, not its metric. |
 
 ### Check 4 — No `Co-authored-by` trailer staged
 

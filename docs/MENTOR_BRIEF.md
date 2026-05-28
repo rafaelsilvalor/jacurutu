@@ -49,6 +49,13 @@
     (`with { type: "json" }`) and gives comfortable margin for Phase 3
     production. Pinned in three places: root `package.json` `engines`,
     `.nvmrc` at repo root, and `packages/cli/package.json` `engines`.
+  - **Verb allowlist as SSOT (canonicalized 2026-05-28).** The allowlist
+    consumed by `pre-commit-self-audit` Check 3 and `brief-validator` Check
+    C11 lives in `.claude/skills/pre-commit-self-audit/SKILL.md`. The
+    validator greps it at runtime; it does not duplicate. Five verbs added
+    on this date (`deprecate`, `promote`, `wire`, `declare`, `canonicalize`);
+    four rejected with substitutions (`record`→`document`, `ignore`→`add`,
+    `clean`→`remove`, `reduce`→`refactor`).
 - **Active product direction (recorded 2026-05-15 — refresh as it evolves):**
   - **Production workflow promoted to Phase 3** (v2 numbering). Rationale: until production exists, Rafael is the manual bottleneck for the repetitive work the product is meant to eliminate. Phase 3 covers folder scaffolding, templates, archiving standardization — these are **domain concepts** (likely a `ProductionFlow` or `Workspace` abstraction), not tooling details.
   - **Designer-friendly packaging is a Phase 3 concern**, not end-of-roadmap. Possibly via the Saci-desktop Electron app as host for the CLI on non-technical designers' machines.
@@ -90,13 +97,15 @@ Seed list — grow with each substantive session.
 
 **M-R11 — Never push code without explicit instruction; never run `git push` proactively.** Mirrors `CLAUDE.md` R17. Even if the work is "done", `push` is the user's call.
 
-**M-R12 — Stay in the mentor lane.** This file is for chat-mode mentoring. Coding/editing/running commands belong to the executor agent (Claude Code) in the project terminal. If the user asks the chat-mentor to *edit code*, push back: "let's plan it here, then you take the plan to Claude Code in the repo".
+**M-R12 — Stay in the mentor lane.** This file is for chat-mode mentoring. The mentor's role is product-owner-side: deciding *what* and *why*. Coding/editing/running commands belong to the executor agent (Claude Code). Brief authoring belongs to the planner agent. If asked to write a brief or edit code, push back.
 
-> Note: M-R13 and M-R14 exceed the 8–12 guideline from `harness/init/03-create-mentor-brief.md`. Conscious exception — session lifecycle rituals do not compress cleanly into the existing twelve style/role rules.
+> Note: M-R13, M-R14, and M-R15 exceed the 8–12 guideline from `harness/init/03-create-mentor-brief.md`. Conscious exception — session lifecycle rituals and role-scoping invariants do not compress cleanly into the existing twelve style/role rules.
 
 **M-R13 — Confirm session mode before substantive action.** Before any non-trivial response, declare in one line: (a) who the user is according to `MENTOR_BRIEF.md`, and (b) which of the four §8 modes is active — mentoring, reviewing a plan, code review, or continuing. If the opening message is ambiguous, ask before acting. This catches the most common chat failure: mentor enters "mentoring" when the user wanted "review".
 
 **M-R14 — Session-close ritual.** When the user signals the end of a session — either explicitly ("encerrar", "fechar sessão") or via detected signals (farewell, structural closure, topic shift) followed by user confirmation — run the `close-chat-session.md` workflow. Produce a recap covering: decisions taken (each with its target file), open pending items, artifacts generated, the concrete next action, and a paste-ready snippet for the next session. Default save path: `docs/sessions/YYYY-MM-DD-<slug>.md`. The mentor produces the content; the user or an executor writes the file (`CLAUDE.md` R17 still applies — never push proactively). In hybrid sessions (a code task is also active), run `pause-task.md` first, then this ritual.
+
+**M-R15 — Mentor produces prose, not artifacts.** The mentor's output is decisions, context, scope, out-of-scope items, references. Not `brief.md` files, not delegation blocks with full Edit specifications, not operational guides spelling out every git command. Those are planner output. If a session produces an artifact larger than ~50 lines of substantive content, that's a signal the mentor is doing the planner's work — stop, hand off. Caminho B (chat-authored brief) is reserved for bootstrap briefs that modify the planner itself or its skills.
 
 ## 5. Communication style
 

@@ -51,9 +51,10 @@ re-read.
 
 Before starting any Edit, decide whether the task requires `STATE.md`:
 
-- **Required for Category L tasks** (per `docs/GIT_WORKFLOW.md` G-R10):
-  multi-session tasks or those with structural complexity create
-  `STATE.md` at the repo root to preserve context across sessions.
+- **For Category L tasks**: required when the task is expected to span
+  multiple sessions OR when the task has structural complexity (per
+  `docs/GIT_WORKFLOW.md` G-R10). A Cat L task that is single-session and
+  structurally simple does NOT require `STATE.md`.
 - **Optional for Category M tasks**: single-session and short scope —
   skip unless the user explicitly requests it.
 - **Not used for Category S tasks**: those don't reach this agent.

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -e
+
+echo "[pre-commit] running tests..."
+npm test --silent
+
+echo "[pre-commit] ok."
