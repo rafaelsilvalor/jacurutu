@@ -27,39 +27,103 @@
 
 ## 2. Where we are in the project
 
-- **Project:** Saci — productivity and automation toolkit for the Estratégia design team. Coordinates a small team of non-technical designers managed by Rafael; reduces him as a bottleneck on both **coordination** (Jira → Google Sheets dashboard for team alignment) and **individual production** (folder scaffolding, templates, archiving standardization).
-- **Phase transition (recorded 2026-05-15):**
-  - **Saci-Electron-v1** (the existing pure-JS codebase) enters **freeze** — critical bugs only, no new features.
-  - **Saci v2** rebuilds as a **TypeScript monorepo** (npm workspaces, `strict: true`, `node:test`, no bundler), following **Hexagonal (Ports & Adapters)** architecture. Planned packages: `core` (domain + ports), `adapter-jira`, `adapter-sheets`, `cli`.
-  - The Python `automation/` codebase is the **seed** of v2's core — it already implements hexagonal architecture intuitively (`lib_transform.py` = pure domain; `fetch.py` = Jira adapter; `lib_sheets.py` = Sheets adapter; `payload.json` v2.0 = port contract; `run_local.py` = composition root). Porting is redesign with explicit vocabulary, not line-by-line translation.
-- **Target platforms:** Windows + macOS + Linux. v2 ships as CLI first (cross-platform by default); desktop UI reconnects on top of the CLI within ~3-4 months.
+- **Project:** Saci — an **individual production assistant** for the
+  Estratégia design team. Saci v2 automates the repetitive actions
+  around a Jira task — create the local folder, find the right
+  template, open it in the editor, ship the result to Drive — so the
+  designer only does art. A second use case rides on top: an
+  aggregated Sheets view fed unidirectionally by the production
+  instances, giving Rafael (and non-designer coordinators) a
+  team-level picture without pulling designers into a coordination
+  tool.
+- **Repositioning recorded 2026-05-28:** the 2026-05-15 framing kept
+  coordination and production as parallel modes; the 2026-05-28
+  mentor session inverted the priority. Production is primary;
+  coordination is a derived aggregation. The two-modes design is
+  preserved — what changed is which mode drives the architecture.
+- **Phase transition (recorded 2026-05-15, still in force):**
+  - **Saci-Electron-v1** (the existing pure-JS codebase) is in
+    **freeze** — critical bugs only, no new features.
+  - **Saci v2** is being built as a **TypeScript monorepo** (npm
+    workspaces, `strict: true`, `node:test`, no bundler), following
+    **Hexagonal (Ports & Adapters)** architecture. Planned packages:
+    `core` (domain + ports), `adapter-jira`, `adapter-drive`,
+    `adapter-sheets`, `cli`. `adapter-drive` was promoted to first
+    class on 2026-05-28 alongside the repositioning; `adapter-sheets`
+    stays in the list but serves the secondary aggregation surface.
+  - The Python `automation/` codebase remains the **seed** of v2's
+    `core` for the coordination side (`lib_transform.py` = pure
+    domain; `fetch.py` = Jira adapter; `lib_sheets.py` = Sheets
+    adapter; `payload.json` v2.0 = port contract; `run_local.py` =
+    composition root). Porting is redesign with explicit vocabulary,
+    not line-by-line translation. The production-side types
+    (`Workspace`, `TaskManifest`) are new in v2 and have no Python
+    precursor.
+- **Target platforms:** Windows + macOS + Linux. v2 ships as CLI
+  first (cross-platform by default); desktop UI reconnects on top of
+  the CLI within ~3-4 months.
 - **Active focus (Phase 1 — monorepo bootstrap):**
-  1. TS monorepo stand-up: package layout, `tsconfig.json`s, build chain, `node:test`, `--version` working on `cli`.
-  2. **No domain logic in Phase 1** — strict scope to prevent creep. Domain work lands in Phase 2.
+  1. TS monorepo stand-up: package layout, `tsconfig.json`s, build
+     chain, `node:test`, `--version` working on `cli`.
+  2. **No domain logic in Phase 1** — strict scope to prevent creep.
+     Domain work lands in Phase 2.
   3. Doc refreshes (MENTOR_BRIEF §2, ROADMAP) ahead of code work.
-- **Active architectural decisions (recorded 2026-05-15 — refresh as they evolve):**
-  - **Two operating modes, same core:**
-    - *Coordination mode* — Rafael runs a centralized pipeline (Jira → Sheets dashboard); team consumes the Sheet.
-    - *Production mode* — each designer runs locally, scoped to their own tasks, files, and identity. `saci config` per-machine is a day-1 requirement (multi-tenant per machine, mono-user per instance).
-  - **CLI-first, desktop-later.** CLI is the canonical surface during core development (reduces iteration friction). Desktop UI (Electron host) reconnects on top within ~3-4 months — designers need the production flow soon and CLI alone is not enough for non-devs.
-  - **Jira REST direct** (Cowork-as-Jira-bridge reverted on 2026-05-15). Rationale: token cost per Cowork run made the bridge unsustainable even in testing; preserving token budget for mentor + Claude Code yields higher ROI. JS equivalents for `requests` and `gspread` are pending research — required before Jira/Sheets adapter implementation, not before bootstrap.
-  - **Google Sheets stays as the team-facing collective interface**, not a placeholder. It will not be replaced by the desktop UI later.
-  - **Node runtime target: ≥22.0.0** (pinned 2026-05-27 in task 016).
-    Saci v2 runs on Node 22 LTS — enables ESM import attributes
-    (`with { type: "json" }`) and gives comfortable margin for Phase 3
-    production. Pinned in three places: root `package.json` `engines`,
-    `.nvmrc` at repo root, and `packages/cli/package.json` `engines`.
-  - **Verb allowlist as SSOT (canonicalized 2026-05-28).** The allowlist
-    consumed by `pre-commit-self-audit` Check 3 and `brief-validator` Check
-    C11 lives in `.claude/skills/pre-commit-self-audit/SKILL.md`. The
-    validator greps it at runtime; it does not duplicate. Five verbs added
-    on this date (`deprecate`, `promote`, `wire`, `declare`, `canonicalize`);
-    four rejected with substitutions (`record`→`document`, `ignore`→`add`,
-    `clean`→`remove`, `reduce`→`refactor`).
-- **Active product direction (recorded 2026-05-15 — refresh as it evolves):**
-  - **Production workflow promoted to Phase 3** (v2 numbering). Rationale: until production exists, Rafael is the manual bottleneck for the repetitive work the product is meant to eliminate. Phase 3 covers folder scaffolding, templates, archiving standardization — these are **domain concepts** (likely a `ProductionFlow` or `Workspace` abstraction), not tooling details.
-  - **Designer-friendly packaging is a Phase 3 concern**, not end-of-roadmap. Possibly via the Saci-desktop Electron app as host for the CLI on non-technical designers' machines.
-  - **Full v2 roadmap** with phases (tagged `[coord]` / `[prod]` per item), milestones, parking lot, and pending decisions: `docs/ROADMAP.md`. Legacy v1 phases are marked `superseded` in that file.
+- **Active architectural decisions (refresh as they evolve):**
+  - **Two operating modes, same core (recorded 2026-05-15, refined
+    2026-05-28):**
+    - *Production mode (primary)* — each designer runs locally,
+      scoped to their own tasks, files, and identity. `saci config`
+      per-machine is a day-1 requirement (multi-tenant per machine,
+      mono-user per instance). Tasks are portable via `TaskManifest`
+      in their Drive folder; another designer can pick up a task
+      with `saci load <drive-url>`.
+    - *Coordination mode (secondary)* — production instances
+      publish state to a Sheets aggregated view. Designers publish;
+      they do not consume the Sheet back. Granularity (event /
+      rollup / snapshot) is a Phase 4 modeling decision.
+  - **CLI-first, desktop-later.** CLI is the canonical surface
+    during core development (reduces iteration friction). Desktop UI
+    (Electron host) reconnects on top within ~3-4 months — designers
+    need the production flow soon and CLI alone is not enough for
+    non-devs.
+  - **First-class integrations: Jira REST direct + Google Drive.**
+    Jira REST direct (Cowork-as-Jira-bridge reverted on 2026-05-15;
+    token cost made it unsustainable). Drive promoted to first-class
+    on 2026-05-28 because the production loop (find template, upload
+    ship) is Drive-bound. Sheets is the secondary aggregation
+    integration. JS libraries for Jira REST, Google Drive, and
+    Google Sheets are pending research — required before their
+    respective adapters, not before bootstrap.
+  - **Node runtime target: ≥22.0.0** (pinned 2026-05-27 in task
+    016). Saci v2 runs on Node 22 LTS — enables ESM import
+    attributes (`with { type: "json" }`) and gives comfortable
+    margin for Phase 3 production. Pinned in three places: root
+    `package.json` `engines`, `.nvmrc` at repo root, and
+    `packages/cli/package.json` `engines`.
+  - **Verb allowlist as SSOT (canonicalized 2026-05-28).** The
+    allowlist consumed by `pre-commit-self-audit` Check 3 and
+    `brief-validator` Check C11 lives in
+    `.claude/skills/pre-commit-self-audit/SKILL.md`. The validator
+    greps it at runtime; it does not duplicate. Five verbs added on
+    this date (`deprecate`, `promote`, `wire`, `declare`,
+    `canonicalize`); four rejected with substitutions
+    (`record`→`document`, `ignore`→`add`, `clean`→`remove`,
+    `reduce`→`refactor`).
+- **Active product direction (refreshed 2026-05-28):**
+  - **Phase 2 designs `Workspace` and `TaskManifest`** as TS
+    interfaces in `core`, in addition to porting `lib_transform.py`.
+    Pure types only; serialization and persistence are Phase 3.
+  - **Phase 3 is the product core** — local storage, primary command
+    set (`fetch`, `list`, `start`, `ship`, `load`, `status`),
+    3-level template match, pure Drive-path derivation, manifest
+    read/write, `adapter-drive`, designer-friendly packaging.
+    Designer-to-designer handoff is a primary use case.
+  - **Phase 4 is the aggregation surface** — Sheets fed
+    unidirectionally by production instances. Retires the Python
+    `automation/` for coordination.
+  - **Full v2 roadmap** with phases (tagged `[coord]` / `[prod]` per
+    item), parking lot, and pending decisions: `docs/ROADMAP.md`.
+    Legacy v1 phases are marked `superseded` in that file.
 
 > ⚠️ This section ages fast. Update it after every significant milestone or pivot.
 
