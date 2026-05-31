@@ -23,6 +23,39 @@ Two operating modes are designed from day one:
 
 The same core serves both modes; each mode has its own command set.
 
+### 2026-05-28 — Coordination pipeline → individual production assistant
+
+The 2026-05-15 framing kept coordination (Jira → Sheets) and production
+(per-designer local) as parallel modes of the same product. Live use
+proved this symmetric framing wrong: production is where Rafael remains
+the bottleneck and where designers spend most of their time. Saci v2 is
+therefore repositioned as an **individual production assistant**.
+
+The primary loop is per-designer: pull a Jira task, scaffold its
+folder, apply the right template, open it in the editor, ship the
+result to Drive. Coordination (the Jira → Sheets dashboard) becomes a
+**secondary aggregated view**, fed unidirectionally by the production
+instances (designers publish state; they do not consume the Sheet
+back).
+
+Two derived shifts follow:
+
+- **Tasks are portable, the app is not.** Each task carries a
+  `TaskManifest` (JSON in its Drive folder) so another machine can
+  reconstitute the context via `saci load`. Designer-to-designer
+  handoff is promoted from parking lot to a Phase 3 primary use case.
+- **Drive is a first-class integration.** The repositioning makes the
+  Drive round-trip (find template, upload result, read manifest)
+  load-bearing for the primary loop. Sheets stays in the system as the
+  aggregation surface but drops to secondary.
+
+The previous two identity shifts (2026-05-10 asset-browser →
+workflow-orchestrator; 2026-05-15 v1 → v2 technical pivot) are not
+invalidated. The product framing carried in 2026-05-15 (two operating
+modes, same core) is refined here: the modes remain, but the production
+mode is now primary and the coordination mode is a derived aggregation
+built on top of it.
+
 ## Phases
 
 Phases are ordered by dependency, not by date. Items are tagged `[coord]`, `[prod]`, or untagged (foundational, serves both modes). Estimates are set at each phase's start, not in a central table — that pattern proved hard to keep current under v1.
@@ -39,44 +72,129 @@ Phases are ordered by dependency, not by date. Items are tagged `[coord]`, `[pro
 
 ### Phase 2 — Domain port (foundational)
 
-**Goal:** the Python `automation/lib_transform.py` is ported to TypeScript as the `core` package — pure domain functions, no I/O. Ports (interfaces) for the Jira and Sheets adapters are defined as TS interfaces, even though the adapters themselves come later. The schema-as-port-contract pattern from `payload.json` v2.0 maps to TS types.
+**Goal:** the Python `automation/lib_transform.py` is ported to
+TypeScript as the `core` package — pure domain functions, no I/O.
+Ports (interfaces) for the Jira and Sheets adapters are defined as TS
+interfaces, even though the adapters themselves come later.
+Additionally, the central production-mode types — `Workspace` (the
+per-task abstraction tying Jira key, local folder, applied template,
+state, Drive path, and manifest) and `TaskManifest` (the portable JSON
+unit that lives in the Drive folder of a task) — are designed as TS
+interfaces in `core`. Implementation (serialization, persistence,
+command wiring) is Phase 3.
 
-**Strict scope:** `core` package only. No adapter implementations. No CLI commands using the domain yet.
+**Strict scope:** `core` package only. No adapter implementations. No
+CLI commands using the domain yet. Type design is allowed; runtime
+code that reads or writes manifests is Phase 3.
 
-**Exit criterion:** every pure-domain function in `lib_transform.py` has a TS equivalent in `core` with `node:test` coverage; `JiraGateway` and `SheetGateway` ports defined as TS interfaces; `payload.json` v2.0 represented as TS types.
+**Exit criterion:** every pure-domain function in `lib_transform.py`
+has a TS equivalent in `core` with `node:test` coverage;
+`JiraGateway`, `SheetGateway`, and a Drive gateway port are defined as
+TS interfaces; `payload.json` v2.0 represented as TS types; `Workspace`
+and `TaskManifest` defined as TS interfaces with documented field
+contracts.
 
-### Phase 3 — Production workflow + designer packaging `[prod]`
+### Phase 3 — Individual production assistant (product core) `[prod]`
 
-**Goal:** designers run a CLI on their own machines that scaffolds task folders, applies templates, and standardizes archiving — eliminating Rafael as the manual bottleneck for production tasks.
+**Goal:** the per-designer local app runs the full production loop
+end-to-end on one machine — pull tasks, scaffold folders, apply
+templates, ship to Drive, and let any other designer pick the task up
+from its Drive manifest. This is the core of the product after the
+2026-05-28 repositioning.
 
 **Items:**
 
-- `[prod]` `ProductionFlow` / `Workspace` domain abstraction in `core`. Templates and archival standardization are domain concepts, not tooling details.
-- `[prod]` `saci config` — per-machine identity (multi-tenant per machine, mono-user per instance). Day-1 requirement: 3+ designers running their own flows.
-- `[prod]` CLI commands for scaffolding, template application, archiving.
-- `[prod]` Designer-friendly packaging — Saci-desktop (Electron) returns as a host for the CLI on non-technical designers' machines.
+- `[prod]` Local storage with two data categories: (a) Jira mirror —
+  overwritable on every fetch; (b) production state — never
+  overwritten by fetch. Storage loss never destroys work: Jira issues
+  are recreatable from Jira; active tasks are recreatable from their
+  Drive manifests.
+- `[prod]` Primary command set: `fetch` (refresh Jira mirror), `list`
+  (browse local tasks), `start <key>` (scaffold + apply template +
+  open editor + write manifest), `ship <key>` (upload local folder to
+  Drive, update manifest), `load <drive-url>` (reconstitute a task on
+  this machine from its Drive manifest), `status` (one-task overview).
+- `[prod]` 3-level template match: (1) deterministic — strong explicit
+  signals pick a template with no confirmation; (2) suggestion-with-
+  confirmation — medium signals propose a template, designer confirms
+  or picks another; (3) manual — designer picks from the list. MVP
+  covers levels 1 and 3; level 2 lands when heuristics mature. Bypass
+  available via `saci start <key> --template <name>`.
+- `[prod]` Pure Drive-path derivation in `core`: given a Jira issue,
+  `derivePath(issue) → string` returns a deterministic path under the
+  Drive hierarchy (vertical / campaign / date / name). The current
+  hierarchy is tacit; Phase 3 formalizes it as code.
+- `[prod]` Manifest read / write: the `TaskManifest` type from Phase 2
+  becomes a real file written to the task's Drive folder on `start`
+  and updated by `ship` / `load`. Designer-to-designer handoff
+  (designer B picking up a task started by designer A) is a primary
+  use case.
+- `[prod]` `saci config` — per-machine identity (multi-tenant per
+  machine, mono-user per instance). Day-1 requirement: 3+ designers
+  running their own instances.
+- `[prod]` Drive adapter (`adapter-drive`) — Google Drive read / write
+  for templates, manifests, and ship uploads. JS library not yet
+  researched (Pending decision).
+- `[prod]` Designer-friendly packaging — Saci-desktop (Electron)
+  returns as a host for the CLI on non-technical designers' machines.
 
-**Exit criterion:** Rafael's designers can install Saci-desktop, run their daily production flow end-to-end, and Rafael does no manual scaffolding for that flow.
+**Exit criterion:** Rafael's designers can install Saci-desktop, run
+their daily production flow end-to-end on three or more machines, and
+Rafael does no manual scaffolding for that flow. A task started on one
+machine can be loaded and continued on another via its Drive manifest.
 
 **Open items inside this phase** (resolve at phase start):
 
-- Exact shape of the `ProductionFlow` / `Workspace` abstraction (likely surfaces during Phase 2 port).
-- Packaging format and OS coverage (Windows first probably; Mac/Linux follow).
+- Exact shape of the Drive hierarchy formalization (vertical /
+  campaign / date / name — but with which separators, which date
+  format, which fallback for missing fields).
+- Template catalog: where it lives, how it is edited, what its
+  metadata shape is.
+- Deterministic match rules for level 1: which issue signals pick
+  which template (code first, config later when the rules stabilize).
+- `claimed_by` semantics in the manifest: how long a claim lasts,
+  whether it auto-releases, how conflicts on `ship` are resolved.
+- What `ship` uploads: the whole folder, or filtered (no `.psd~`, no
+  swap files).
+- Local folder naming vs Drive folder naming: same name, or
+  transformation between local and Drive.
+- Secondary commands (`cancel`, `reopen`, `archive`, `notes`) — which
+  enter the MVP, which wait for a real second case.
+- Packaging format and OS coverage (Windows first probably; Mac/Linux
+  follow).
 
-### Phase 4 — Coordination adapters `[coord]`
+### Phase 4 — Coordination as aggregated view `[coord]`
 
-**Goal:** the coordination pipeline (Jira → Sheets dashboard) is operational in TS, retiring the Python `automation/`.
+**Goal:** the Sheets dashboard becomes a real aggregated view of what
+is happening across designer instances. Production instances publish
+their state unidirectionally; the Sheet is read-only from the
+designer's perspective. The Python `automation/` retires once this
+lands.
 
 **Items:**
 
-- `[coord]` `adapter-jira` — Jira REST direct (Cowork bridge reverted). JS equivalent of Python's `requests` chosen and committed.
-- `[coord]` `adapter-sheets` — Google Sheets write/sync. JS equivalent of Python's `gspread` chosen and committed.
-- `[coord]` CLI commands for the coordination pipeline (run sync, dry-run, diff, etc.).
+- `[coord]` `adapter-jira` — Jira REST direct (Cowork bridge
+  reverted). JS equivalent of Python's `requests` chosen and
+  committed.
+- `[coord]` `adapter-sheets` — Google Sheets write (publish only;
+  designer instances do not read the Sheet back). JS equivalent of
+  Python's `gspread` chosen and committed.
+- `[coord]` Aggregation strategy — granularity is open: per-event
+  push (each `start` / `ship` triggers a Sheet write), daily rollup,
+  or point-in-time snapshot. Decided during Phase 4 modeling, not
+  now.
+- `[coord]` CLI commands or a background loop for the publish
+  pipeline, depending on the granularity choice.
 - `[coord]` Composition root for coord mode in the `cli` package.
 
-**Exit criterion:** Rafael's coordination flow runs entirely on TS Saci; Python `automation/` archived. Same Sheet output as before, ideally indistinguishable.
+**Exit criterion:** Rafael's coordination view runs entirely on TS
+Saci; Python `automation/` archived. The Sheet content reflects the
+state across designer instances at the chosen granularity.
 
-**Dependencies:** Phase 2 (ports defined). Could in principle run in parallel with Phase 3, but Rafael's bottleneck is production, so Phase 3 takes priority for solo-dev throughput.
+**Dependencies:** Phase 2 (ports defined) and Phase 3 (production
+instances generate the state being aggregated). The aggregation has
+nothing to aggregate until Phase 3 has runtime use, so Phase 4
+follows Phase 3.
 
 ### Phase 5 — Desktop UI on top of CLI
 
@@ -99,7 +217,6 @@ Ideas anchored but unscheduled. Each evaluates against the current phase's goal 
 - **Central catalog API** — when Estratégia central infrastructure exists and volume justifies it (tens of thousands of files).
 - **Tags, comments, versioning** — depend on central catalog.
 - **Direct Jira write-back** — currently parked; the coordination pipeline reads Jira but doesn't write. Evaluate after Phase 4 ships.
-- **Source-of-truth split formalization for tasks** — concept carried from the 2026-05-10 product direction (Jira = task metadata; Saci = production state). Encoded in domain types as Phase 3 designs `ProductionFlow`.
 - **Docs site (Astro Starlight)** — post-Phase-1 tooling task; enters as a workspace, same npm/TS ecosystem as v2 monorepo.
 
 ## Pending decisions
@@ -119,6 +236,22 @@ Open questions that will gate or shape upcoming phases.
    `package.json` plus git tags on the root (D5). Decide single vs.
    independent vs. continued defer in Phase 4 when adapter stability
    provides input.
+8. **`TaskManifest` format.** Exact JSON shape of the manifest file
+   that lives in each task's Drive folder: required fields, optional
+   fields, versioning strategy, file name convention (`.saci.json`
+   or similar). Designed in Phase 2 (type) and finalized in Phase 3
+   (serialization).
+9. **Local storage format.** On-disk layout for the two data
+   categories (Jira mirror — overwritable; production state — never
+   overwritten by fetch). SQLite, JSON files per task, or a hybrid.
+   Decided at Phase 3 start.
+10. **Sheets aggregation granularity.** Per-event push, daily
+    rollup, or point-in-time snapshot. Decided during Phase 4
+    modeling when real usage data from Phase 3 informs the choice.
+11. **Google Drive JS library.** Equivalent for Drive read / write
+    (templates, manifests, ship uploads). Not yet researched.
+    Required before Phase 3 `adapter-drive` work; not blocking
+    Phase 2.
 
 ## Legacy / superseded — Saci-Electron-v1 phases
 
