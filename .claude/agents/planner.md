@@ -30,6 +30,20 @@ If the delegation string lacks a clear task description (cannot infer Goal in
 1-2 sentences), **STOP and report**: `STOP — ambiguous input: <reason>`. Do
 not invent a task.
 
+### Judgment flags (optional delegation input)
+
+The delegation may include a `## Judgment flags` block. Each entry has three
+fields:
+
+- **Location** — the Edit (or spot within an Edit) the flag applies to.
+- **Risk** — one line naming what goes wrong if the spot is treated mechanically.
+- **Action** — the literal guard to install at that location.
+
+For every entry, install a STOP-and-confirm guard at the named location in the
+brief you author. Do not evaluate whether a flag "deserves" a guard; do not
+replace it with a stronger assertion. If the block is absent, no judgment
+guards are required.
+
 ## Procedure
 
 1. **Resolve the task number (P4 — three sources).**
@@ -128,6 +142,23 @@ not invent a task.
    Ready for brief-validator.
    ```
 
+## Authoring gate
+
+Run this gate before writing the brief's commit subjects and before any commit.
+
+1. **Verb allowlist.** For every commit subject you intend to prescribe,
+   extract the leading verb — the first word after `type(scope): `. Grep it
+   against the allowlist in `.claude/skills/pre-commit-self-audit/SKILL.md`
+   (the SSOT — read it at runtime; do not hardcode the list). If a verb is
+   absent, substitute a documented allowlisted verb. If no clear substitute
+   exists, STOP and report.
+2. **P4 evidence.** Record the three-source numbering check in the brief (in
+   the P4 constraint or Edit 1): the relevant lines of `ls docs/tasks/`, the
+   relevant `git log --oneline main` entry, and the `CLAUDE.md` E* reserve
+   check. Do not assert the number without the recorded evidence.
+3. **Judgment flags.** Convert each `## Judgment flags` entry from the
+   delegation into a STOP-and-confirm guard at its named location (see Inputs).
+
 ## STOP conditions
 
 You stop and report (do not proceed) when:
@@ -137,6 +168,10 @@ You stop and report (do not proceed) when:
 - A file at `docs/tasks/<NNN>-<slug>/brief.md` already exists (do not overwrite).
 - Branch creation fails (`main` not up to date, conflicting branch name, etc.).
 - `git commit` fails the pre-commit hook.
+- A prescribed commit verb is absent from the allowlist SSOT and no clear
+  allowlisted substitute exists.
+- A `## Judgment flags` entry references a brief location that does not exist
+  in the planned edits.
 
 Reports are a single chat message prefixed `STOP — <category>: <reason>`.
 
