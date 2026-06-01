@@ -88,3 +88,21 @@ merge manualmente seguindo `gitflow-merge-into-main.md`.
 - Tudo ok → `gitflow-merge-into-main.md`
 - Experimento descartado → `gitflow-experiment-discard.md`
 - Pendências precisam ser ajustadas → volta pra tarefa
+
+## Limpeza pós-merge
+
+Após o squash-merge do PR via GitHub UI:
+
+1. **Delete a branch órfã local.** Squash-merge sempre orfaniza a branch local
+   (o conteúdo entrou em `main` sob outro hash). Forced delete é sempre correto:
+
+   ```bash
+   git checkout main
+   git pull
+   git branch -D <branch>
+   ```
+
+2. **Re-upload dos docs canônicos no project knowledge do claude.ai.** O sync é
+   manual. Re-suba os arquivos que o PR alterou (ex.: `CLAUDE.md`,
+   `docs/MENTOR_BRIEF.md`, `docs/ROADMAP.md`, agentes ou skills tocados) mais o
+   recap da sessão. Bloqueia a próxima sessão de chat de ler as versões frescas.
