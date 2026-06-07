@@ -20,3 +20,23 @@ export {
   pickCopy,
   STOPWORDS_PT,
 } from "./policy.js";
+
+export type {
+  Issue,
+  FilteredOut,
+  PayloadWarning,
+  Payload,
+} from "./payload.js";
+
+export type {
+  JiraGateway,
+  SheetGateway,
+  DriveGateway,
+} from "./gateways.js";
+
+export type {
+  Workspace,
+  TaskManifest,
+  WorkspaceEvent,
+  WorkspaceEventType,
+} from "./workspace.js";
