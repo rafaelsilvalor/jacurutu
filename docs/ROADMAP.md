@@ -87,8 +87,10 @@ command wiring) is Phase 3.
 CLI commands using the domain yet. Type design is allowed; runtime
 code that reads or writes manifests is Phase 3.
 
-**Exit criterion:** every pure-domain function in `lib_transform.py`
-has a TS equivalent in `core` with `node:test` coverage;
+**Exit criterion:** every pure-domain function in the Python seed —
+currently split between `lib_transform.py` and the shape-independent
+policy inside `fetch.py`; Jira-shape-coupled functions remain in the
+adapter — has a TS equivalent in `core` with `node:test` coverage;
 `JiraGateway`, `SheetGateway`, and a Drive gateway port are defined as
 TS interfaces; `payload.json` v2.0 represented as TS types; `Workspace`
 and `TaskManifest` defined as TS interfaces with documented field
