@@ -11,3 +11,12 @@ export {
   STOPWORDS_SLUG,
   STOPWORDS_PAIRING,
 } from "./transform.js";
+
+export type { CopySource } from "./types.js";
+
+export {
+  summaryTokens,
+  bestMatchByTokenOverlap,
+  pickCopy,
+  STOPWORDS_PT,
+} from "./policy.js";
