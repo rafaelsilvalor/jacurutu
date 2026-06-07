@@ -1,0 +1,6 @@
+credentials.json
+token.json
+oauth_client.json
+jira_credentials.json
+config.json
+*.local.json
