@@ -1,0 +1,10 @@
+{
+  "spreadsheet_id": "COLE_O_ID_DA_PLANILHA_AQUI",
+  "credentials_path": "D:/Trabalhos/ClaudeCode/Pasta-de-trabalho/automation/credentials.json",
+  "tab_demandas": "Demandas",
+  "tab_finalizadas": "Finalizadas",
+  "tab_hub": "Hub",
+  "jira_user_id": "712020:fde681c4-7f88-423d-b34d-d523ea1ea106",
+  "atlassian_cloud_id": "9795b90e-d410-4737-a422-a7c15f9eadf0",
+  "source_xlsx_for_bootstrap": "D:/Trabalhos/ClaudeCode/Pasta-de-trabalho/AvulsasRafael.xlsx"
+}
