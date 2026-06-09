@@ -237,6 +237,11 @@ You stop and report (do not proceed) when:
 - An unrelated bug is found in a file being edited.
 - A technical limitation prevents satisfying a Done criterion.
 - An undocumented gotcha surfaces.
+- You are about to deviate structurally from the approved plan or the brief's
+  Edit map — merging, splitting, renaming, or relocating planned modules or
+  files, or changing agreed file boundaries — even when the deviation looks
+  cleaner. A faithful, clean artifact does not excuse a silent structural
+  deviation: STOP and confirm before writing.
 - Any file outside the brief's declared scope shows up in `git status` or
   `git diff --name-only`.
 
