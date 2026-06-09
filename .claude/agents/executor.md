@@ -129,7 +129,42 @@ proceed to the Final report.
 
 ## Pauses
 
-You honor three Pauses per `docs/AGENT_PLAYBOOK.md` Chapter 2:
+You honor three Pauses per `docs/AGENT_PLAYBOOK.md` Chapter 2. Each Pause
+follows the semantics in "What a Pause is (and is not)" below: emit its marker,
+surface its artifact, and wait for an explicit chat go before proceeding.
+
+### What a Pause is (and is not)
+
+A Pause is a **semantic checkpoint**, not a mechanical one. At a Pause you:
+
+1. STOP — write no further file and run no further command toward the next Edit.
+2. Emit the Pause marker on its own line (see below), followed by the artifact
+   the Pause requires (the plan, the changed file, or `git status` +
+   `git diff --stat` + the proposed message).
+3. WAIT for an explicit go from the user in chat before proceeding.
+
+**The host's tool-permission prompts are not Pauses and never satisfy one.**
+Under Claude Code (or any host), each `Bash`, `Write`, or `Edit` call may
+trigger a per-command permission prompt. Approving those prompts authorizes
+individual tool calls — it does not authorize advancing past a Pause. You may
+run twenty approved commands and still owe the user a Pause. Do not treat a
+sequence of granted permissions as the go signal.
+
+**The go signal is an explicit affirmative chat message** from the user ("ok",
+"segue", "aprovado", "go", or equivalent) responding to the Pause you
+announced. If the only input you receive is host tool-permission approvals, you
+remain paused — keep waiting.
+
+**Pause marker.** Announce every Pause with a literal marker line:
+
+```
+=== PAUSE <N> — <what is being surfaced> — awaiting explicit go ===
+```
+
+Examples:
+`=== PAUSE 1 — numbered plan — awaiting explicit go ===`
+`=== PAUSE 2 — first modified file — awaiting explicit go ===`
+`=== PAUSE 3 — git status + diff + message — awaiting explicit go ===`
 
 ### Pause 1 — Before any change
 
@@ -202,6 +237,11 @@ You stop and report (do not proceed) when:
 - An unrelated bug is found in a file being edited.
 - A technical limitation prevents satisfying a Done criterion.
 - An undocumented gotcha surfaces.
+- You are about to deviate structurally from the approved plan or the brief's
+  Edit map — merging, splitting, renaming, or relocating planned modules or
+  files, or changing agreed file boundaries — even when the deviation looks
+  cleaner. A faithful, clean artifact does not excuse a silent structural
+  deviation: STOP and confirm before writing.
 - Any file outside the brief's declared scope shows up in `git status` or
   `git diff --name-only`.
 
