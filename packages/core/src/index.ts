@@ -28,6 +28,10 @@ export type {
   Payload,
 } from "./payload.js";
 
+export { assemblePayload, SCHEMA_VERSION } from "./assemble.js";
+
+export type { PayloadMeta } from "./assemble.js";
+
 export type {
   JiraGateway,
   SheetGateway,
