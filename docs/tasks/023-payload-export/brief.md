@@ -117,8 +117,8 @@ rich/link cells. Canonical superset v1 (ordered, `snake_case` IDs):
 | 6 | `entrega_iso` | `parseEntrega(Issue.entrega_iso)[0]` | `YYYY-MM-DD` or `""` (null → `""`) |
 | 7 | `entrega_hora` | `parseEntrega(Issue.entrega_iso)[1]` | `"19h"` / `"19h30"` / `""` |
 | 8 | `nome_curto` | `slugNomeCurto(parent_summary, summary)` | |
-| 9 | `task_filha_url` | `jiraBrowseUrl(key)` | plain string URL |
-| 10 | `task_pai_url` | `jiraBrowseUrl(parent_key)` | `""` when no parent |
+| 9 | `task_filha_url` | `jiraBrowseUrl(jiraBaseUrl, key)` | plain string URL; `""` when `jiraBaseUrl` absent |
+| 10 | `task_pai_url` | `jiraBrowseUrl(jiraBaseUrl, parent_key)` | `""` when no parent or `jiraBaseUrl` absent |
 | 11 | `copy_url` | `Issue.copy_url` | `null` → `""` |
 | 12 | `copy_source` | `Issue.copy_source` | `sister` / `parent` / `fallback` |
 | 13 | `status_jira` | `Issue.status_jira` | |
@@ -127,10 +127,16 @@ rich/link cells. Canonical superset v1 (ordered, `snake_case` IDs):
 | 16 | `run_date` | `Payload.run_date` (envelope) | provenance (D8) |
 | 17 | `generated_at` | `Payload.generated_at` (envelope) | provenance (D8) |
 
-The Jira browse URL is `https://estrategia.atlassian.net/browse/<key>` as a
-plain string column (grounded against `lib_sheets.jira_browse_url`, line 186;
-introduce a `core` constant/helper rather than a spreadsheet link cell). Every
-record value is a `string`; null/absent sources project to `""`.
+The Jira browse URL is produced by a pure helper `jiraBrowseUrl(baseUrl, key)`
+that takes the base URL as a PARAMETER and normalizes trailing slashes,
+mirroring the existing pattern in `packages/adapter-jira/src/http.ts`
+(`replace(/\/+$/, "")`). No instance domain constant anywhere in
+`packages/core` — the base URL is injected, following the 020 D2 precedent
+(`JiraGatewayConfig`). It arrives via the optional top-level `jiraBaseUrl`
+export-config field (D3); when absent, URL columns project to `""`. The column
+is a plain string URL (grounded against `lib_sheets.jira_browse_url`, line
+186 — not a spreadsheet link cell). Every record value is a `string`;
+null/absent sources project to `""`.
 
 #### D3 — Export config: JSON file with named profiles
 
@@ -144,8 +150,10 @@ The config is a JSON file with named profiles. Per-profile fields:
 - `csv` options (when `format` is `"csv"`): `delimiter`, `includeBom`.
 - `output` path: stable, overwritten each run.
 
-A top-level `operator` string label (D8) lives on the config root, outside the
-profiles.
+Two optional top-level fields live on the config root, outside the profiles:
+`operator`, a string label (D8), and `jiraBaseUrl`, the Jira instance base URL
+injected into the projection (D2). When `jiraBaseUrl` is absent, URL columns
+project to `""`.
 
 #### D3-filters — Optional filters (default = export everything)
 
@@ -153,9 +161,11 @@ Both optional; default behavior exports every issue.
 
 - `status`: a set of strings matched against `status_jira`,
   case-insensitive and trimmed on both sides.
-- `entrega` window: a date range applied to the projected `entrega_iso`. When
-  a window is set, rows with a null / empty `entrega_iso` are EXCLUDED (they
-  cannot satisfy a window).
+- `entrega` window: `{ from?, to? }` applied to the projected `entrega_iso`.
+  Both ends are optional `YYYY-MM-DD` strings; bounds are INCLUSIVE; the
+  comparison is plain lexicographic string comparison (valid for `YYYY-MM-DD`).
+  When a window is set (either end present), rows with a null / empty
+  `entrega_iso` are EXCLUDED (they cannot satisfy a window).
 
 No numeric row limit. No other criteria.
 
@@ -191,10 +201,11 @@ precedent from 022). Argv/command wiring is Phase 3. Editing `cli.ts` → STOP.
 
 ## Done criteria
 
-### Edit 1 — Verify brief on disk and commit as commit #1
+### Edit 1 — Verify brief on disk (committed by @planner)
 
-The brief at `docs/tasks/023-payload-export/brief.md` was pre-saved before the
-executor was invoked (caminho B). The executor verifies presence and commits.
+This brief was authored and committed by @planner via the pipeline (caminho A:
+commit #1 `6b733aa`, followed by a mentor-gate revision commit on the same
+branch). The executor only verifies it is present; it does NOT re-commit it.
 
 P4 numbering evidence (recorded; three sources agree):
 
@@ -209,8 +220,7 @@ P4 numbering evidence (recorded; three sources agree):
 - [ ] Directory `docs/tasks/023-payload-export/` exists
 - [ ] File `docs/tasks/023-payload-export/brief.md` exists; first line matches
       the title above
-- [ ] `git add docs/tasks/023-payload-export/brief.md` is staged
-- [ ] Commit #1 created with subject `docs(tasks): add brief for 023-payload-export`
+- [ ] The brief is already committed by @planner (do NOT re-commit)
 
 If the file is missing or the first line does not match, **STOP and report**.
 Do not regenerate the brief from memory.
@@ -223,13 +233,18 @@ layout at Pause 1):
 
 - A fixed, ordered canonical column superset v1 (the 17 columns of D2), exposed
   as a named constant of column IDs.
-- A pure projection `Issue + envelope meta + operator → flat record` producing
-  a `Record<columnId, string>` (every value a `string`; null/absent → `""`).
-  Uses `parseVertical`, `parseEntrega`, `slugNomeCurto`, and a Jira browse-URL
-  helper/constant grounded against `lib_sheets.jira_browse_url`.
+- A pure projection `Issue + context → flat record`, where the context carries
+  `operator`, `run_date`, `generated_at`, and the optional `jiraBaseUrl`.
+  Produces a `Record<columnId, string>` (every value a `string`; null/absent →
+  `""`; URL columns → `""` when `jiraBaseUrl` is absent). Uses `parseVertical`,
+  `parseEntrega`, `slugNomeCurto`, and the pure `jiraBrowseUrl(baseUrl, key)`
+  helper (base URL as a parameter, trailing-slash normalization mirroring
+  `packages/adapter-jira/src/http.ts`). No instance domain constant in `core`
+  (D2; injection precedent 020 D2 `JiraGatewayConfig`).
 - Pure filter functions per D3-filters: `status` set (case-insensitive,
-  trimmed) and `entrega` date-window (null `entrega_iso` excluded when a window
-  is set).
+  trimmed) and `entrega` window `{ from?, to? }` (`YYYY-MM-DD`, both ends
+  optional, inclusive bounds, lexicographic comparison; null `entrega_iso`
+  excluded when a window is set).
 - A pure profile applier: selection / ordering / rename of columns from the
   superset (no computed columns, expressions, or templating).
 - Re-export the public surface from `packages/core/src/index.ts`.
@@ -244,6 +259,8 @@ Verification:
       filters (including null-`entrega_iso` exclusion), and rename/order
 - [ ] `node:test` suite passes (R23)
 - [ ] `grep -rn 'from.*adapter' packages/core/src/` returns no matches (R25)
+- [ ] `grep -rni 'atlassian' packages/core/src/` returns no matches — no
+      hardcoded instance domain in `core` (D2)
 - [ ] No I/O / clock / fs / network primitive imported in the new `core` module
 - [ ] Public surface re-exported from `packages/core/src/index.ts`
 
@@ -254,9 +271,11 @@ Commit: `feat(core): add issue-to-flat-record export projection`
 Create `packages/cli/src/run-export.ts` (the `run-fetch.ts` precedent, D9):
 
 - Reads a `payload.json` and a JSON export-config file from disk.
-- Resolves a named profile from the config; reads the top-level `operator`.
-- Projects each `Payload.issues` entry via the pure `core` projection, stamping
-  `run_date` / `generated_at` from the envelope and `operator` from the config.
+- Resolves a named profile from the config; reads the top-level `operator` and
+  `jiraBaseUrl` fields.
+- Projects each `Payload.issues` entry via the pure `core` projection, passing
+  the context: `run_date` / `generated_at` from the envelope, `operator` and
+  `jiraBaseUrl` from the config root.
 - Applies the profile filters and column selection/rename via the pure `core`
   helpers.
 - Writes `.csv` (hand-rolled RFC 4180 quoting; default delimiter `";"`, BOM on)
@@ -295,6 +314,8 @@ Commit: `feat(cli): add runExport composition for payload export`
 
 - [ ] Default profile (no filters) projects every issue, one row per issue
 - [ ] `status` filter matches case-insensitively and trimmed
+- [ ] `entrega` window bounds are inclusive (`from` / `to` dates themselves
+      match) and compared lexicographically
 - [ ] `entrega` window excludes rows with null/empty `entrega_iso`
 - [ ] Column rename/order reflected in output headers and column order
 - [ ] CSV BOM + RFC 4180 quoting verified on a value containing the delimiter
@@ -364,12 +385,19 @@ In case of:
 
 ### Commit sequence
 
+Already on the branch (caminho A; planner-authored — executor does NOT
+re-commit):
+
 1. `docs(tasks): add brief for 023-payload-export`
-2. `feat(core): add issue-to-flat-record export projection`
-3. `feat(cli): add runExport composition for payload export`
+2. `docs(tasks): update 023 brief per mentor review gate`
+
+Executor-authored:
+
+3. `feat(core): add issue-to-flat-record export projection`
+4. `feat(cli): add runExport composition for payload export`
 
 Each subject is ≤ 72 chars (verified) and leads with an allowlisted verb
-(`add`).
+(`add`, `update`).
 
 ## Reference documents (read before starting)
 
@@ -385,7 +413,9 @@ In priority order:
 8. `packages/core/src/payload.ts` — the `Issue` / `Payload` contract
 9. `packages/core/src/transform.ts` — `parseVertical`, `parseEntrega`,
    `slugNomeCurto`
-10. `automation/sync.py` (`build_new_row`, lines 47-87) and
+10. `packages/adapter-jira/src/http.ts` — trailing-slash normalization pattern
+    mirrored by `jiraBrowseUrl` (D2)
+11. `automation/sync.py` (`build_new_row`, lines 47-87) and
     `automation/lib_sheets.py` (`jira_browse_url`, line 186) — legacy
     grounding only (D1), not a behavior contract
 
