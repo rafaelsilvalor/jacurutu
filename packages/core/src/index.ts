@@ -38,6 +38,23 @@ export type {
   DriveGateway,
 } from "./gateways.js";
 
+export {
+  EXPORT_COLUMNS,
+  jiraBrowseUrl,
+  projectIssue,
+  matchesFilters,
+  applyColumns,
+} from "./export.js";
+
+export type {
+  ExportColumnId,
+  ExportRecord,
+  ExportContext,
+  ExportFilters,
+  ColumnSpec,
+  ColumnSelection,
+} from "./export.js";
+
 export type {
   Workspace,
   TaskManifest,
