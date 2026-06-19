@@ -56,6 +56,29 @@ modes, same core) is refined here: the modes remain, but the production
 mode is now primary and the coordination mode is a derived aggregation
 built on top of it.
 
+### 2026-06-12 — Coordination state in the Sheet → the application owns state
+
+The 2026-05-28 repositioning made production primary and coordination a
+secondary aggregated view, but it still treated the Google Sheet as the surface
+that *held* coordination state: designer instances published into it. Brief 023
+closed a sharper pivot — **the application owns production state** (local now,
+remote later). A spreadsheet is no longer a state-holding surface; it becomes
+**one optional one-way projection target among others** (flat files, BI
+platforms).
+
+Grounding fact: there are no production users of the Python `automation/` today,
+so `sync.py` / `lib_sheets.py` carry no behavior-preserving mandate — they are
+legacy reference only. The sync diff engine (cell ownership, write-conditionals,
+formulas) existed solely because the Sheet held state; with the app owning
+state, none of it is ported. What survives is the issue → row projection, now
+`packages/core/src/export.ts` (shipped in brief 023).
+
+The real target surfaced: feeding BI dashboards (Looker Studio / Power BI /
+Grafana) and consolidating production across designers over time. Export is a
+**fact table**; aggregation and history accumulation belong to the BI layer and
+to Phase 3 state, not to the export. Phase 4 is rescoped accordingly and
+`adapter-sheets` moves to the parking lot.
+
 ## Phases
 
 Phases are ordered by dependency, not by date. Items are tagged `[coord]`, `[prod]`, or untagged (foundational, serves both modes). Estimates are set at each phase's start, not in a central table — that pattern proved hard to keep current under v1.
@@ -139,6 +162,13 @@ from its Drive manifest. This is the core of the product after the
   researched (Pending decision).
 - `[prod]` Designer-friendly packaging — Saci-desktop (Electron)
   returns as a host for the CLI on non-technical designers' machines.
+- `[prod]` CLI human-facing display — a read-side command that renders the
+  current open demands to the terminal for a person to read. Distinct from the
+  machine-readable export (`runExport`); the export feeds files and BI, the
+  display feeds the operator's eyes.
+- `[prod]` State and history accumulation — the app owns production state over
+  time (not just point-in-time snapshots). This is the precondition for any
+  throughput/history view; export snapshots alone cannot produce it.
 
 **Exit criterion:** Rafael's designers can install Saci-desktop, run
 their daily production flow end-to-end on three or more machines, and
@@ -165,38 +195,33 @@ machine can be loaded and continued on another via its Drive manifest.
 - Packaging format and OS coverage (Windows first probably; Mac/Linux
   follow).
 
-### Phase 4 — Coordination as aggregated view `[coord]`
+### Phase 4 — Shared state and the coordination view `[coord]`
 
-**Goal:** the Sheets dashboard becomes a real aggregated view of what
-is happening across designer instances. Production instances publish
-their state unidirectionally; the Sheet is read-only from the
-designer's perspective. The Python `automation/` retires once this
-lands.
+**Goal:** the app-owned production state becomes shareable across designer
+instances, and the team-level coordination view is rebuilt as a **reader of a
+projection off that shared state** — never a state holder. The Python
+`automation/` retires once a coordination consumer reads Saci's state instead of
+the legacy Sheet.
 
 **Items:**
 
-- `[coord]` `adapter-jira` — Jira REST direct (Cowork bridge
-  reverted). JS equivalent of Python's `requests` chosen and
-  committed.
-- `[coord]` `adapter-sheets` — Google Sheets write (publish only;
-  designer instances do not read the Sheet back). JS equivalent of
-  Python's `gspread` chosen and committed.
-- `[coord]` Aggregation strategy — granularity is open: per-event
-  push (each `start` / `ship` triggers a Sheet write), daily rollup,
-  or point-in-time snapshot. Decided during Phase 4 modeling, not
-  now.
-- `[coord]` CLI commands or a background loop for the publish
-  pipeline, depending on the granularity choice.
-- `[coord]` Composition root for coord mode in the `cli` package.
+- `[coord]` Shared/remote state backend — production instances sync their
+  app-owned state to a shared store. Local-only state (Phase 3) is the
+  precondition; the remote backend is designed here.
+- `[coord]` Consolidation across designers — many instances' fact tables roll up
+  into one team-level dataset. Granularity (per-event push, daily rollup,
+  point-in-time snapshot) is decided during Phase 4 modeling, not now.
+- `[coord]` Coordination view as a projection consumer — the team-level picture
+  reads an export/projection of the shared state. Any spreadsheet or BI surface
+  is one such consumer (see Parking lot), not the source of truth.
+- `[coord]` Composition root for coordination mode in the `cli` package.
 
-**Exit criterion:** Rafael's coordination view runs entirely on TS
-Saci; Python `automation/` archived. The Sheet content reflects the
-state across designer instances at the chosen granularity.
+**Exit criterion:** Rafael's coordination view runs entirely on TS Saci, reading
+a projection of app-owned shared state; the Python `automation/` is archived.
 
-**Dependencies:** Phase 2 (ports defined) and Phase 3 (production
-instances generate the state being aggregated). The aggregation has
-nothing to aggregate until Phase 3 has runtime use, so Phase 4
-follows Phase 3.
+**Dependencies:** Phase 3 — there is no shared state to consolidate until
+production instances own and accumulate state at runtime. Phase 4 follows
+Phase 3.
 
 ### Phase 5 — Desktop UI on top of CLI
 
@@ -220,12 +245,18 @@ Ideas anchored but unscheduled. Each evaluates against the current phase's goal 
 - **Tags, comments, versioning** — depend on central catalog.
 - **Direct Jira write-back** — currently parked; the coordination pipeline reads Jira but doesn't write. Evaluate after Phase 4 ships.
 - **Docs site (Astro Starlight)** — post-Phase-1 tooling task; enters as a workspace, same npm/TS ecosystem as v2 monorepo.
+- **Sheets one-way push** — publish a flat projection tab for a downstream
+  reader; named future consumer: Looker Studio. Was the Phase 4 `adapter-sheets`
+  item; demoted by the 2026-06-12 pivot. Promotes when a concrete consumer
+  exists.
+- **XLSX export format** — a second export format beyond CSV + JSON, gated on a
+  separate runtime-dependency (R2) decision. Promotes when demanded.
 
 ## Pending decisions
 
 Open questions that will gate or shape upcoming phases.
 
-1. **JS libraries for Jira REST and Google Sheets.** Equivalents to Python's `requests` and `gspread` not yet researched. Required before Phase 4 starts; not blocking Phases 1-3.
+1. **JS libraries for Jira REST and Google Sheets.** Equivalents to Python's `requests` and `gspread` not yet researched. Required before Phase 4 starts; not blocking Phases 1-3. The Google Sheets (gspread-equivalent) half is no longer pre-Phase-4: after the 2026-06-12 pivot, Sheets is a parking-lot consumer, so its library choice is gated on that promotion, not on Phase 4 start.
 2. **Designer-friendly packaging format.** Installer? Portable? Per-OS variants? Deferred to Phase 3 planning.
 3. **`ProductionFlow` / `Workspace` exact abstraction.** Likely surfaces during Phase 2 port; refined in Phase 3 design.
 4. **Coordination of v1 ↔ v2 during overlap.** While v2's Phase 4 is unfinished, Python `automation/` runs coord mode. Decide: keep automation untouched, or accept small patches? Default: untouched.
