@@ -88,10 +88,11 @@
       mono-user per instance). Tasks are portable via `TaskManifest`
       in their Drive folder; another designer can pick up a task
       with `saci load <drive-url>`.
-    - *Coordination mode (secondary)* — production instances
-      publish state to a Sheets aggregated view. Designers publish;
-      they do not consume the Sheet back. Granularity (event /
-      rollup / snapshot) is a Phase 4 modeling decision.
+    - *Coordination mode (secondary)* — the team-level view consumes
+      a projection of the app-owned shared state. A Sheet is one
+      optional one-way projection target (a reader), not a holder of
+      state. Granularity (event / rollup / snapshot) is a Phase 4
+      modeling decision.
   - **CLI-first, desktop-later.** CLI is the canonical surface
     during core development (reduces iteration friction). Desktop UI
     (Electron host) reconnects on top within ~3-4 months — designers
@@ -101,10 +102,13 @@
     Jira REST direct (Cowork-as-Jira-bridge reverted on 2026-05-15;
     token cost made it unsustainable). Drive promoted to first-class
     on 2026-05-28 because the production loop (find template, upload
-    ship) is Drive-bound. Sheets is the secondary aggregation
-    integration. JS libraries for Jira REST, Google Drive, and
-    Google Sheets are pending research — required before their
-    respective adapters, not before bootstrap.
+    ship) is Drive-bound. Sheets is not a first-class integration:
+    the 2026-06-12 pivot demoted it to a one-way projection target in
+    the parking lot, built only when a concrete consumer (e.g. Looker
+    Studio) exists. JS libraries for Jira REST and Google Drive are
+    pending research — required before their respective adapters, not
+    before bootstrap. The Google Sheets library is no longer
+    pre-adapter: it is gated on the parking-lot promotion.
   - **Node runtime target: ≥22.0.0** (pinned 2026-05-27 in task
     016). Saci v2 runs on Node 22 LTS — enables ESM import
     attributes (`with { type: "json" }`) and gives comfortable
@@ -129,8 +133,10 @@
     3-level template match, pure Drive-path derivation, manifest
     read/write, `adapter-drive`, designer-friendly packaging.
     Designer-to-designer handoff is a primary use case.
-  - **Phase 4 is the aggregation surface** — Sheets fed
-    unidirectionally by production instances. Retires the Python
+  - **Phase 4 consolidates app-owned shared state** — production
+    instances sync their state to a shared store; the team-level view
+    reads a projection of it. Any Sheets or BI surface is a projection
+    consumer, not the source of aggregation. Retires the Python
     `automation/` for coordination.
   - **Full v2 roadmap** with phases (tagged `[coord]` / `[prod]` per
     item), parking lot, and pending decisions: `docs/ROADMAP.md`.
