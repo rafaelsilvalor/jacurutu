@@ -6,22 +6,22 @@
 
 ## Architecture
 
-Saci is a single-author Electron desktop app for the Estratégia design team — browses brand/category folders, previews PSD/PSB/AI/INDD/raster files, and opens them in the user's default tool. Target platforms: **Windows + macOS + Linux**.
+Saci v2 is a TypeScript monorepo (npm workspaces, Node ≥22, ESM-only with `.js` import extensions, `tsc` per package, no bundler) following Hexagonal (Ports & Adapters) architecture. It is **CLI-first**; the desktop UI is a later phase that reconnects on top of the CLI. The product is an individual production assistant for the Estratégia design team — pull a Jira task, scaffold its folder, apply the right template, ship the result to Drive — with a secondary team-level coordination view layered on top.
 
-Three-process split (standard Electron):
+**The application owns production state** (local now, remote later). A spreadsheet is not a state-holding surface; it is one optional one-way projection target among others (flat files, BI platforms). Export is a **fact table**: one row per issue, zero aggregation — aggregation and history belong to the BI layer and to Phase 3 state.
 
-- **Main process** (`main.js`) — IPC handlers, folder scan, worker pool orchestration, thumbnail cache.
-- **Preload** (`preload.js`) — narrow `window.api` surface via `contextBridge`. Renderer has no Node access.
-- **Worker thread** (`psd-worker.js`) — runs `ag-psd` + `jimp` in parallel to keep the UI responsive.
-- **Renderer** (`renderer/`) — vanilla HTML/CSS/JS. **No framework, no bundler.** Thumbnails load lazily via `IntersectionObserver`.
+Packages:
 
-Persistent state lives in `app.getPath('userData')`:
-- `config.json` — root folder picked on first run
-- `thumb-cache/<sha1>.jpg` — derived, regenerable; key includes a `CACHE_VERSION` constant in `main.js`
+- **`@saci/core`** — pure domain logic and port interfaces. No I/O, clock, `fs`, or network. Holds the payload contract (`payload.ts`), the transform/policy domain (`transform.ts`, `policy.ts`), the three ports (`gateways.ts` — `JiraGateway`, `SheetGateway`, `DriveGateway`), and the export projection (`export.ts`). Never imports an adapter (R25).
+- **`@saci/adapter-jira`** — implements `JiraGateway` against the Jira REST API directly (`POST /rest/api/3/search/jql`, `nextPageToken` / `isLast` cursor pagination, Basic auth, raw global `fetch`). Depends on `core`.
+- **`@saci/adapter-sheets`** — parking lot. A package shell exists, but a Sheets projection is built only when a concrete consumer (e.g. Looker Studio) exists. Not on the active path.
+- **`@saci/cli`** — the composition root and the only package with a `bin` (`saci`). Wires adapters into `core`. Composition functions live in `run-fetch.ts` / `run-export.ts`; `cli.ts` is the entry point.
 
-Build: `electron-builder`. No transpilation step. Node 18+ required.
+The Python `automation/` codebase is the **seed reference** of v2's core (its `lib_transform.py` was ported into `core` in Phase 2). It carries no behavior-preserving mandate — there are no production users — and `sync.py` / `lib_sheets.py` are legacy reference only; the sync diff engine is never ported.
 
-Detailed design notes (worker pool semantics, PSD binary parser, cache invalidation rules) live in `docs/GOTCHAS.md`.
+Build: each workspace compiles via `tsc -p .` into its own `dist/`; tests are `*.test.ts` colocated with source, run via `node:test` against compiled `dist/`. No transpilation shortcut, no bundler.
+
+Detailed domain notes and known traps live in `docs/GOTCHAS.md`; product roadmap and phase state live in `docs/ROADMAP.md` and `MENTOR_BRIEF.md` §2.
 
 ## Hard Rules
 

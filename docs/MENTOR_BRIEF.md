@@ -73,12 +73,15 @@
 - **Target platforms:** Windows + macOS + Linux. v2 ships as CLI
   first (cross-platform by default); desktop UI reconnects on top of
   the CLI within ~3-4 months.
-- **Active focus (Phase 1 — monorepo bootstrap):**
-  1. TS monorepo stand-up: package layout, `tsconfig.json`s, build
-     chain, `node:test`, `--version` working on `cli`.
-  2. **No domain logic in Phase 1** — strict scope to prevent creep.
-     Domain work lands in Phase 2.
-  3. Doc refreshes (MENTOR_BRIEF §2, ROADMAP) ahead of code work.
+- **Active focus (Phase 3 — production state and CLI surface):**
+  1. Wire `runFetch` + `runExport` into argv dispatch in `@saci/cli`
+     (`cli.ts`) — the manual on-ramp that turns the shipped, test-only
+     composition functions into real `saci fetch` / `saci export`
+     commands.
+  2. Phase 3 state design — the app owns production state over time
+     (local now); the `derivePath` hierarchy rule is the open design
+     question.
+  3. No remote/shared state yet — that is Phase 4.
 - **Active architectural decisions (refresh as they evolve):**
   - **Two operating modes, same core (recorded 2026-05-15, refined
     2026-05-28):**
