@@ -50,6 +50,14 @@
   `packages/core/src/export.ts`. Export is a fact table (one row per issue, zero
   aggregation); aggregation and history belong to the BI layer and to Phase 3
   state.
+- **CLI on-ramp shipped 2026-06-19 (brief 026):** the test-only `runFetch`
+  (022) / `runExport` (023) composition functions are now wired into real
+  `saci fetch --jql … [--out …]` and `saci export --payload … --config …
+  --profile …` commands, via a pure `parseArgs`-based argv parser/router
+  (`packages/cli/src/argv.ts`) behind the `cli.ts` shell. Credentials come from
+  env (`SACI_JIRA_*`); `mainJql` from `--jql`; exit codes 0/2/1; one minimal
+  result line per command. This closes the 023 D9 deferral and active-focus
+  item #1 below. Rich human-facing display remains a separate Phase 3 item.
 - **Phase transition (recorded 2026-05-15, still in force):**
   - **Saci-Electron-v1** (the existing pure-JS codebase) is in
     **freeze** — critical bugs only, no new features.
@@ -74,10 +82,11 @@
   first (cross-platform by default); desktop UI reconnects on top of
   the CLI within ~3-4 months.
 - **Active focus (Phase 3 — production state and CLI surface):**
-  1. Wire `runFetch` + `runExport` into argv dispatch in `@saci/cli`
-     (`cli.ts`) — the manual on-ramp that turns the shipped, test-only
-     composition functions into real `saci fetch` / `saci export`
-     commands.
+  1. CLI command surface — the argv on-ramp (`saci fetch` / `saci export`)
+     shipped in brief 026 (2026-06-19, dated bullet above). Remaining
+     CLI-surface work: a **human-facing display layer** (the on-ramp prints
+     one minimal line per command), and **input-side per-project FieldMapping
+     config** for `fetch` (currently `DEFAULT_FIELD_MAPPING` only; 023 D5).
   2. Phase 3 state design — the app owns production state over time
      (local now); the `derivePath` hierarchy rule is the open design
      question.
