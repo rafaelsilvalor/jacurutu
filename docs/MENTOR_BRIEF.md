@@ -41,6 +41,15 @@
   mentor session inverted the priority. Production is primary;
   coordination is a derived aggregation. The two-modes design is
   preserved — what changed is which mode drives the architecture.
+- **Pivot recorded 2026-06-12 (brief 023):** the **application owns production
+  state** (local now, remote later). A spreadsheet is demoted from a
+  state-holding surface to one optional one-way projection target among others
+  (flat files, BI platforms). With no production users of the Python
+  `automation/`, `sync.py` / `lib_sheets.py` are legacy reference only — the sync
+  diff engine is never ported; only the issue → row projection survives, as
+  `packages/core/src/export.ts`. Export is a fact table (one row per issue, zero
+  aggregation); aggregation and history belong to the BI layer and to Phase 3
+  state.
 - **Phase transition (recorded 2026-05-15, still in force):**
   - **Saci-Electron-v1** (the existing pure-JS codebase) is in
     **freeze** — critical bugs only, no new features.
@@ -49,8 +58,10 @@
     **Hexagonal (Ports & Adapters)** architecture. Planned packages:
     `core` (domain + ports), `adapter-jira`, `adapter-drive`,
     `adapter-sheets`, `cli`. `adapter-drive` was promoted to first
-    class on 2026-05-28 alongside the repositioning; `adapter-sheets`
-    stays in the list but serves the secondary aggregation surface.
+    class on 2026-05-28 alongside the repositioning. `adapter-sheets`
+    is demoted to the parking lot by the 2026-06-12 pivot: it is one
+    one-way projection target, built only when a concrete consumer
+    (e.g. Looker Studio) exists.
   - The Python `automation/` codebase remains the **seed** of v2's
     `core` for the coordination side (`lib_transform.py` = pure
     domain; `fetch.py` = Jira adapter; `lib_sheets.py` = Sheets
