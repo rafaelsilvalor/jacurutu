@@ -12,6 +12,7 @@ import { JiraGateway } from "@saci/adapter-jira";
 import { parseArgv, type ParsedCommand } from "./argv.js";
 import { runFetch, type MakeGateway } from "./run-fetch.js";
 import { runExport } from "./run-export.js";
+import { renderFetch, renderExport } from "./display.js";
 
 /** Credential env vars read by the fetch composition root (D-a3). */
 const ENV_BASE_URL = "SACI_JIRA_BASE_URL";
@@ -56,14 +57,12 @@ async function runCommand(command: ParsedCommand): Promise<void> {
     case "fetch": {
       const makeGateway = makeGatewayFactory(command.jql);
       const payload = await runFetch(makeGateway, command.out);
-      process.stdout.write(`wrote ${payload.issues.length} issues to ${command.out}\n`);
+      process.stdout.write(renderFetch(payload, command.out));
       return;
     }
     case "export": {
       const result = await runExport(command.payload, command.config, command.profile);
-      process.stdout.write(
-        `wrote ${result.rowCount} rows to ${result.outputPath} (${result.format})\n`,
-      );
+      process.stdout.write(renderExport(result));
       return;
     }
     // version/usage are handled synchronously in main() before this runs.
