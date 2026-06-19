@@ -258,7 +258,7 @@ The main session then:
 2. Receives planner's final message (brief authored, branch, commit SHA).
 3. Invokes `@brief-validator` with the brief path and branch.
 4. Receives the validator's verdict report.
-5. If `Verdict: APPROVED` — invokes `@executor` with the same brief path and branch.
+5. If `Verdict: APPROVED` — surfaces the brief, the validator's verdict report, and the brief commit's diff, then halts at the mentor gate (see "The mentor gate" below). The executor is invoked only after you give an explicit go.
 6. If `Verdict: REJECTED` — surfaces the report to you. See "Verdict handling" below.
 
 **Caminho B invocation (in the Claude Code main session):**
@@ -283,6 +283,18 @@ You then choose one of three responses:
 3. **Override the validator.** Use when you know the FAIL is correct under unusual circumstances the validator can't see (e.g. a brief that intentionally violates a convention to introduce its replacement — the cluster bootstrap case). Skip the validator and invoke `@executor` directly. Document the override in the brief's "Plan required justification" or a dedicated decision block; the mentor session recap should also capture the override.
 
 > **Lesson #12 — REJECTED is a decision point, not a failure state.** The validator's job is to flag mechanical drift; your job is to decide whether the drift is the bug or the convention is the bug. Three responses, one chosen per case, none default. Auto-loop back to planner was rejected at cluster design (D4) precisely because the user-judgment step protects against silent validator errors.
+
+### The mentor gate (APPROVED → executor)
+
+A `Verdict: APPROVED` does not auto-advance to the executor. The orchestrator halts and surfaces three things to you: the brief, the validator's verdict report, and the brief commit's diff. You review and give an explicit go before the executor is invoked.
+
+This is a semantic checkpoint, not a tool prompt. The orchestrator must not treat Claude Code's per-command permission prompts as the go, and must not proceed on silence — the same Pause semantics the executor obeys during a run apply here at the orchestration layer.
+
+The gate is yours, not the validator's. The validator audits the brief mechanically against the brief-template conventions; the gate is where you judge whether the brief is the right thing to build — scope, grounding, and whether a closed decision drifted in translation between the delegation and the brief. A brief can be mechanically clean and still wrong; the gate is the catch the validator structurally cannot be.
+
+If you reject at the gate, route through the same three responses as a `REJECTED` verdict (return to chat, fix on branch, or override). The gate and the verdict share one rejection protocol.
+
+> **Lesson #14 — The gate is the human's, not the validator's.** APPROVED is the validator clearing mechanical drift; it is not a green light to the executor. Evidenced across sessions 019, 020, 021, 023, and 026: a human review window between validator and executor caught scope and translation slips that a mechanically-clean brief still carried. Auto-advancing past that window is the failure mode this gate closes — the cost of the gate is one review per task; the cost of skipping it is an executor run against the wrong brief.
 
 ### When NOT to use the pipeline
 
