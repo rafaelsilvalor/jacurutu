@@ -8,10 +8,13 @@ import { parseArgv, DEFAULT_OUT } from "./argv.js";
 
 test("fetch with --jql parses jql and defaults out to DEFAULT_OUT", () => {
   const result = parseArgv(["fetch", "--jql", "project = MCA"]);
+  // No mapping flags: fieldConfig/project are undefined (default-mapping path).
   assert.deepStrictEqual(result, {
     kind: "fetch",
     jql: "project = MCA",
     out: DEFAULT_OUT,
+    fieldConfig: undefined,
+    project: undefined,
   });
 });
 
@@ -21,7 +24,38 @@ test("fetch with --jql and --out overrides the default out", () => {
     kind: "fetch",
     jql: "project = MCA",
     out: "custom.json",
+    fieldConfig: undefined,
+    project: undefined,
   });
+});
+
+test("fetch with both --field-config and --project carries the override flags", () => {
+  const result = parseArgv([
+    "fetch",
+    "--jql",
+    "project = MCA",
+    "--field-config",
+    "fields.json",
+    "--project",
+    "MC",
+  ]);
+  assert.deepStrictEqual(result, {
+    kind: "fetch",
+    jql: "project = MCA",
+    out: DEFAULT_OUT,
+    fieldConfig: "fields.json",
+    project: "MC",
+  });
+});
+
+test("fetch with only --field-config falls back to usage (exit 2)", () => {
+  const result = parseArgv(["fetch", "--jql", "project = MCA", "--field-config", "fields.json"]);
+  assert.strictEqual(result.kind, "usage");
+});
+
+test("fetch with only --project falls back to usage (exit 2)", () => {
+  const result = parseArgv(["fetch", "--jql", "project = MCA", "--project", "MC"]);
+  assert.strictEqual(result.kind, "usage");
 });
 
 test("export with all three flags parses payload, config, profile", () => {
