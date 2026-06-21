@@ -99,6 +99,8 @@ export class JiraGateway implements JiraGatewayPort {
    * `Issue[]`; drops and warnings are logged, never serialized.
    */
   async fetchIssues(): Promise<Issue[]> {
+    await this.validateFieldMapping();
+
     const designsRaw = await this.http.searchJql(
       this.mainJql,
       deriveDesignFields(this.fieldMapping),
@@ -112,6 +114,29 @@ export class JiraGateway implements JiraGatewayPort {
     const kept = this.applyParentTemplateFilter(designs, parentsByKey);
 
     return this.mapIssues(kept, sistersByParent, parentsByKey);
+  }
+
+  /**
+   * Fail loud (R4 / D7) when a configured mapping id does not exist in the Jira
+   * field catalog. Fetches the global catalog once via `getFields()`, then
+   * asserts every active-mapping id — all `entregaCandidates` plus `vertical` —
+   * is present, throwing with the field MEANING + id so a typo never silently
+   * degrades to a sibling field. Mandatory natives are not validated: they are
+   * native fields, not configurable ids. This is a global existence check, not
+   * a per-project applicability check (D7's documented limitation).
+   */
+  private async validateFieldMapping(): Promise<void> {
+    const knownIds = new Set((await this.http.getFields()).map((field) => field.id));
+    for (const id of this.fieldMapping.entregaCandidates) {
+      if (!knownIds.has(id)) {
+        throw new Error(`Configured entrega field "${id}" is not present in the Jira field catalog`);
+      }
+    }
+    if (!knownIds.has(this.fieldMapping.vertical)) {
+      throw new Error(
+        `Configured vertical field "${this.fieldMapping.vertical}" is not present in the Jira field catalog`,
+      );
+    }
   }
 
   /**
