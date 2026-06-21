@@ -7,9 +7,10 @@
 
 import pkg from "../package.json" with { type: "json" };
 
-import { JiraGateway } from "@saci/adapter-jira";
+import { JiraGateway, type ResolvedFieldMapping } from "@saci/adapter-jira";
 
 import { parseArgv, type ParsedCommand } from "./argv.js";
+import { loadFieldMapping } from "./field-config.js";
 import { runFetch, type MakeGateway } from "./run-fetch.js";
 import { runExport } from "./run-export.js";
 import { renderFetch, renderExport } from "./display.js";
@@ -28,10 +29,10 @@ const EXIT_USAGE = 2;
  * Resolve the three Jira credentials from the environment. A missing or empty
  * value is an environment precondition failure, not an argv-shape error, so the
  * caller reports it to stderr and exits EXIT_RUNTIME (D-a4 boundary clause).
- * fieldMapping is intentionally omitted from the gateway config so the adapter's
- * DEFAULT_FIELD_MAPPING applies — per-project FieldMapping is Phase 3 (023 D5).
+ * `fieldMapping` is passed only when an override was loaded (029 D6); when
+ * omitted the adapter's DEFAULT_FIELD_MAPPING applies — the unconfigured path.
  */
-function makeGatewayFactory(jql: string): MakeGateway {
+function makeGatewayFactory(jql: string, fieldMapping?: ResolvedFieldMapping): MakeGateway {
   const baseUrl = process.env[ENV_BASE_URL];
   const email = process.env[ENV_EMAIL];
   const apiToken = process.env[ENV_API_TOKEN];
@@ -43,7 +44,15 @@ function makeGatewayFactory(jql: string): MakeGateway {
   }
 
   return (dropLog, warningLog) =>
-    new JiraGateway({ baseUrl, email, apiToken, mainJql: jql, dropLog, warningLog });
+    new JiraGateway({
+      baseUrl,
+      email,
+      apiToken,
+      mainJql: jql,
+      ...(fieldMapping ? { fieldMapping } : {}),
+      dropLog,
+      warningLog,
+    });
 }
 
 /**
@@ -55,7 +64,13 @@ function makeGatewayFactory(jql: string): MakeGateway {
 async function runCommand(command: ParsedCommand): Promise<void> {
   switch (command.kind) {
     case "fetch": {
-      const makeGateway = makeGatewayFactory(command.jql);
+      // Override mode (029 D8): both flags present -> load the per-project
+      // mapping and thread it through; otherwise the default mapping applies.
+      const mapping =
+        command.fieldConfig && command.project
+          ? await loadFieldMapping(command.fieldConfig, command.project)
+          : undefined;
+      const makeGateway = makeGatewayFactory(command.jql, mapping);
       const payload = await runFetch(makeGateway, command.out);
       process.stdout.write(renderFetch(payload, command.out));
       return;
