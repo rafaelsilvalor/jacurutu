@@ -7,8 +7,7 @@ import { buildIssueEntry, type IssueWarningLog } from "./mapper.js";
 // this module). The tests pass arbitrary ids to confirm the mapping logic, not
 // the real Jira ids.
 const MAPPING = {
-  entregaPrimary: "entregaPrimaryField",
-  entregaFallback: "entregaFallbackField",
+  entregaCandidates: ["entregaFirstField", "entregaSecondField"],
   vertical: "verticalField",
 };
 
@@ -95,16 +94,16 @@ test("vertical_raw reads the injected vertical field, defaulting to empty", () =
   assert.strictEqual(absent?.vertical_raw, "");
 });
 
-// --- entrega_iso bare nullable + fallback field -----------------------------
+// --- entrega_iso bare nullable + candidate-order resolution -----------------
 
-test("entrega_iso is null when neither field is present (bare nullable)", () => {
+test("entrega_iso is null when no candidate is present (bare nullable)", () => {
   const result = buildIssueEntry({ key: "MCA-1" }, NO_SISTERS, NO_PARENTS, MAPPING);
   assert.strictEqual(result?.entrega_iso, null);
 });
 
-test("entrega_iso reads the primary field when present", () => {
+test("entrega_iso reads the first candidate when present", () => {
   const result = buildIssueEntry(
-    { key: "MCA-1", fields: { entregaPrimaryField: "2026-06-10T00:00:00.000-0300" } },
+    { key: "MCA-1", fields: { entregaFirstField: "2026-06-10T00:00:00.000-0300" } },
     NO_SISTERS,
     NO_PARENTS,
     MAPPING,
@@ -112,9 +111,9 @@ test("entrega_iso reads the primary field when present", () => {
   assert.strictEqual(result?.entrega_iso, "2026-06-10T00:00:00.000-0300");
 });
 
-test("entrega_iso falls back to the secondary field when primary is absent", () => {
+test("entrega_iso reads a later candidate when the first is absent", () => {
   const result = buildIssueEntry(
-    { key: "MCA-1", fields: { entregaFallbackField: "2026-06-11T00:00:00.000-0300" } },
+    { key: "MCA-1", fields: { entregaSecondField: "2026-06-11T00:00:00.000-0300" } },
     NO_SISTERS,
     NO_PARENTS,
     MAPPING,

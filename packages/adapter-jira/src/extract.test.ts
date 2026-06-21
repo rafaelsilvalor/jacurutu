@@ -15,6 +15,7 @@ import {
 // real mapping.
 const PRIMARY = "primaryField";
 const FALLBACK = "fallbackField";
+const CANDIDATES = [PRIMARY, FALLBACK];
 const VERTICAL = "verticalField";
 
 const DRIVE_URL = "https://drive.google.com/file/d/abc123/view";
@@ -189,24 +190,34 @@ test("empty or unsupported comment field yields no URLs", () => {
 
 // --- safeGetEntrega ---------------------------------------------------------
 
-test("safeGetEntrega reads the primary field when present", () => {
+test("safeGetEntrega returns the first candidate when present", () => {
   const fields = { [PRIMARY]: "2026-06-01T10:00:00.000-0300" };
-  assert.deepStrictEqual(safeGetEntrega(fields, PRIMARY, FALLBACK), [
+  assert.deepStrictEqual(safeGetEntrega(fields, CANDIDATES), [
     "2026-06-01T10:00:00.000-0300",
     PRIMARY,
   ]);
 });
 
-test("safeGetEntrega falls back to the secondary field", () => {
+test("safeGetEntrega returns a later candidate when the first is absent", () => {
   const fields = { [FALLBACK]: "2026-07-15T09:30:00.000-0300" };
-  assert.deepStrictEqual(safeGetEntrega(fields, PRIMARY, FALLBACK), [
+  assert.deepStrictEqual(safeGetEntrega(fields, CANDIDATES), [
     "2026-07-15T09:30:00.000-0300",
     FALLBACK,
   ]);
 });
 
-test("safeGetEntrega returns [null, null] when neither field is present", () => {
-  assert.deepStrictEqual(safeGetEntrega({}, PRIMARY, FALLBACK), [null, null]);
+test("safeGetEntrega returns [null, null] when no candidate is present", () => {
+  assert.deepStrictEqual(safeGetEntrega({}, CANDIDATES), [null, null]);
+});
+
+test("safeGetEntrega honors a single-element candidate list (no fallback)", () => {
+  const present = { [PRIMARY]: "2026-06-01T10:00:00.000-0300" };
+  assert.deepStrictEqual(safeGetEntrega(present, [PRIMARY]), [
+    "2026-06-01T10:00:00.000-0300",
+    PRIMARY,
+  ]);
+  // A value under a non-listed field is not picked up — the single candidate is absent.
+  assert.deepStrictEqual(safeGetEntrega({ [FALLBACK]: "x" }, [PRIMARY]), [null, null]);
 });
 
 // --- safeGetVertical --------------------------------------------------------

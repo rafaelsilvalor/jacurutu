@@ -6,40 +6,56 @@
 // this default for user config without reopening core (R25) or touching the
 // extraction/navigation code.
 //
-// The named `FieldMapping` type stays DEFERRED (A3/R19 — one adapter, one case).
-// `DefaultFieldMapping` below is a value with an inferred shape that structurally
-// satisfies the mapper's inline `FieldMappingConfig` parameter; it is not a
-// public exported type.
+// The default mapping and the resolved mapping share ONE shape:
+// `{ entregaCandidates: readonly string[]; vertical: string }` (D1/D3). The
+// per-project OVERRIDE config on disk is a different, single-`entrega` shape;
+// the composition root normalizes it into this resolved shape (D3). The named
+// `FieldMapping` type stays DEFERRED (A3/R19 — one adapter, one case).
 
 /**
- * Default field-meaning -> Jira custom-field id mapping. Mirrors the seed's
- * `safe_get_entrega` (primary `customfield_10031`, fallback `customfield_11080`)
- * and `safe_get_vertical` (`customfield_10065`). Injected into the mapper at
- * gateway construction; never read directly by extract.ts/mapper.ts.
+ * The single resolved field mapping consumed by the mapper and extract (D3).
+ * `entregaCandidates` is an ordered candidate list resolved first-non-null;
+ * `vertical` is a single custom-field id. The default below has this shape, and
+ * an override `{ entrega, vertical }` is normalized to a 1-element candidate
+ * list at the composition root.
+ */
+export interface ResolvedFieldMapping {
+  entregaCandidates: readonly string[];
+  vertical: string;
+}
+
+/**
+ * Default field-meaning -> Jira custom-field id mapping (the D1 unconfigured
+ * path). The ordered `entregaCandidates` reproduce the seed's
+ * `safe_get_entrega` primary `customfield_10031` -> fallback `customfield_11080`
+ * as first-non-null; `vertical` mirrors `safe_get_vertical` (`customfield_10065`).
+ * Injected into the mapper at gateway construction; never read directly by
+ * extract.ts/mapper.ts.
  */
 export const DEFAULT_FIELD_MAPPING = {
-  entregaPrimary: "customfield_10031",
-  entregaFallback: "customfield_11080",
+  entregaCandidates: ["customfield_10031", "customfield_11080"],
   vertical: "customfield_10065",
 } as const;
 
 /**
- * Default `fields` list requested from the main design search. Verbatim from the
- * seed's `JIRA_FIELDS` (R7 — named policy constant). The trailing
- * `customfield_11035` / `customfield_10067` are requested by the seed though not
- * consumed by the mapper; carried over to preserve the wire request shape.
+ * Native Jira fields the design search always needs regardless of mapping (R7 —
+ * named policy constant): `summary` for the summary + Template filter, `status`
+ * for the status filter, `parent` for parent key / grouping / Template, and
+ * `updated` for `jira_updated_at`. Mapped custom-field ids are unioned on top by
+ * `deriveDesignFields` (D5).
  */
-export const DEFAULT_DESIGN_FIELDS: readonly string[] = [
-  "summary",
-  "status",
-  "parent",
-  "updated",
-  "customfield_10031",
-  "customfield_10065",
-  "customfield_11080",
-  "customfield_11035",
-  "customfield_10067",
-];
+export const MANDATORY_DESIGN_FIELDS = ["summary", "status", "parent", "updated"] as const;
+
+/**
+ * Derive the `fields` list requested from the main design search (D5):
+ * `MANDATORY_DESIGN_FIELDS ∪ entregaCandidates ∪ [vertical]`, deduplicated and
+ * in that order. This intentionally drops the dead `customfield_11035` /
+ * `customfield_10067` that the seed requested but the mapper never consumed —
+ * narrowing the wire request without changing the produced payload.
+ */
+export function deriveDesignFields(mapping: ResolvedFieldMapping): string[] {
+  return [...new Set([...MANDATORY_DESIGN_FIELDS, ...mapping.entregaCandidates, mapping.vertical])];
+}
 
 /** `fields` list for the sister (COPYWRITER) search. Verbatim from the seed. */
 export const SISTER_FIELDS: readonly string[] = [
