@@ -14,6 +14,7 @@
 import type { Issue } from "@saci/core";
 
 import { safeGetEntrega, safeGetVertical } from "./extract.js";
+import type { ResolvedFieldMapping } from "./field-mapping.js";
 import { resolveCopy } from "./navigation.js";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -39,23 +40,6 @@ const defaultWarningLog: IssueWarningLog = (key, field, cause) => {
   console.warn(`[adapter-jira] issue ${key}: ${field} warning: ${cause}`);
 };
 
-/**
- * The injected field mapping — the D1 configurability seam. Each property names
- * the Jira custom-field id for one payload field meaning. The id strings are
- * supplied at construction (Edit 5), never written here, so this module carries
- * no customfield_* literal. The named `FieldMapping` type stays DEFERRED
- * (A3/R19 — one adapter, one case): this is an inline parameter shape, not a
- * public exported type.
- */
-interface FieldMappingConfig {
-  /** Primary custom-field id for the delivery datetime (seed: safe_get_entrega primary). */
-  entregaPrimary: string;
-  /** Fallback custom-field id for the delivery datetime (seed: safe_get_entrega fallback). */
-  entregaFallback: string;
-  /** Custom-field id for the vertical tag (seed: safe_get_vertical). */
-  vertical: string;
-}
-
 function errorCause(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -74,7 +58,7 @@ export function buildIssueEntry(
   issue: unknown,
   sistersByParent: ReadonlyMap<string, readonly JiraIssue[]>,
   parentsByKey: ReadonlyMap<string, JiraIssue>,
-  fieldMapping: FieldMappingConfig,
+  fieldMapping: ResolvedFieldMapping,
   warningLog: IssueWarningLog = defaultWarningLog,
 ): Issue | null {
   const issueRecord = isRecord(issue) ? issue : {};
@@ -108,7 +92,7 @@ export function buildIssueEntry(
   let entregaIso: string | null;
   try {
     // The seed discards the source-field id (`_src`); only the value is kept.
-    [entregaIso] = safeGetEntrega(fields, fieldMapping.entregaPrimary, fieldMapping.entregaFallback);
+    [entregaIso] = safeGetEntrega(fields, fieldMapping.entregaCandidates);
   } catch (error) {
     entregaIso = null;
     warningLog(key, "entrega_iso", errorCause(error));

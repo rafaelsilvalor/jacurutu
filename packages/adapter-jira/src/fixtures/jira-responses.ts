@@ -61,8 +61,9 @@ export const FB_PARENT_KEY = "MCA-6000";
 // --- Main design search (the mainJql) --------------------------------------
 //
 // Six design issues, one per EARS branch. The fields requested mirror
-// DEFAULT_DESIGN_FIELDS; the real customfield_* ids carry the entrega/vertical
-// values. The `status`/`Template` drops below are exercised by the dedicated
+// the derived design field list (deriveDesignFields); the real customfield_* ids
+// carry the entrega/vertical values. The `status`/`Template` drops below are
+// exercised by the dedicated
 // issues (DROP_BACKLOG / TEMPLATE in parent summary).
 
 export const MAIN_SEARCH_RESPONSE: RecordedSearchResponse = {

@@ -6,9 +6,11 @@ export { JiraGateway } from "./gateway.js";
 export type { JiraGatewayConfig, IssueDropLog } from "./gateway.js";
 export type { JiraHttpConfig, FetchLike } from "./http.js";
 export type { IssueWarningLog } from "./mapper.js";
+export type { ResolvedFieldMapping } from "./field-mapping.js";
 export {
   DEFAULT_FIELD_MAPPING,
-  DEFAULT_DESIGN_FIELDS,
+  MANDATORY_DESIGN_FIELDS,
+  deriveDesignFields,
   COPYWRITER_ISSUETYPE,
   TEMPLATE_MARKER,
   FILTERED_STATUSES,

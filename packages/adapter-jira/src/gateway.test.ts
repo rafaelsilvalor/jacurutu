@@ -18,14 +18,43 @@ import {
   type RecordedSearchResponse,
 } from "./fixtures/jira-responses.js";
 
+// The field-catalog GET (D7) precedes every search. The fakes detect it by the
+// request URL suffix and serve a catalog that contains the default mapping's
+// ids, so fail-loud validation passes on the happy path.
+const FIELD_CATALOG_SUFFIX = "/rest/api/3/field";
+const DEFAULT_CATALOG = [
+  { id: "customfield_10031" },
+  { id: "customfield_11080" },
+  { id: "customfield_10065" },
+];
+
+function catalogResponse(payload: unknown): {
+  ok: boolean;
+  status: number;
+  text(): Promise<string>;
+  json(): Promise<unknown>;
+} {
+  return {
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify(payload),
+    json: async () => payload,
+  };
+}
+
 // Fixture-backed transport: dispatch by the JQL in the request body, so the
 // gateway's three searches (main / sister / parent) each receive their recorded
 // page. ZERO network — this FetchLike never touches the wire (R23, D4). It also
-// records the requested JQLs so the searches can be asserted.
-function fixtureFetch(): { fetchImpl: FetchLike; jqls: string[] } {
+// records the requested JQLs so the searches can be asserted. The field-catalog
+// GET is served first (D7) by URL match, before any body is parsed.
+function fixtureFetch(): { fetchImpl: FetchLike; jqls: string[]; mainFields: string[] } {
   const jqls: string[] = [];
-  const fetchImpl: FetchLike = async (_input, init) => {
-    const body = JSON.parse(init.body) as { jql: string };
+  const capture = { mainFields: [] as string[] };
+  const fetchImpl: FetchLike = async (input, init) => {
+    if (input.endsWith(FIELD_CATALOG_SUFFIX)) {
+      return catalogResponse(DEFAULT_CATALOG);
+    }
+    const body = JSON.parse(init.body ?? "{}") as { jql: string; fields: string[] };
     jqls.push(body.jql);
     let response: RecordedSearchResponse;
     if (body.jql.includes("issuetype = COPYWRITER")) {
@@ -33,6 +62,7 @@ function fixtureFetch(): { fetchImpl: FetchLike; jqls: string[] } {
     } else if (body.jql.startsWith("key IN")) {
       response = PARENT_SEARCH_RESPONSE;
     } else {
+      capture.mainFields = body.fields;
       response = MAIN_SEARCH_RESPONSE;
     }
     return {
@@ -42,7 +72,13 @@ function fixtureFetch(): { fetchImpl: FetchLike; jqls: string[] } {
       json: async () => response,
     };
   };
-  return { fetchImpl, jqls };
+  return {
+    fetchImpl,
+    jqls,
+    get mainFields() {
+      return capture.mainFields;
+    },
+  };
 }
 
 // Records every drop and warning so the LOGGED-not-serialized contract (D3, R4)
@@ -160,6 +196,49 @@ test("reads entrega_iso from the customfield_11080 fallback field", async () => 
   assert.strictEqual(issue.entrega_iso, "2026-06-09T00:00:00.000-0300");
 });
 
+// WHEN no field mapping override is supplied, the gateway shall request exactly
+// the derived design fields — MANDATORY ∪ entregaCandidates ∪ [vertical], deduped
+// — and NOT the dead customfield_11035 / customfield_10067 the seed once sent.
+test("requests the derived design field set, not the dead seed fields", async () => {
+  const { gateway, transport } = buildGateway();
+  await gateway.fetchIssues();
+  assert.deepStrictEqual(transport.mainFields, [
+    "summary",
+    "status",
+    "parent",
+    "updated",
+    "customfield_10031",
+    "customfield_11080",
+    "customfield_10065",
+  ]);
+  assert.ok(!transport.mainFields.includes("customfield_11035"), "dead field 11035 is not requested");
+  assert.ok(!transport.mainFields.includes("customfield_10067"), "dead field 10067 is not requested");
+});
+
+// WHEN a configured mapping id is absent from the Jira field catalog, the
+// gateway shall fail loud BEFORE the main search (R4 / D7), naming the field.
+test("throws when a mapping id is missing from the field catalog", async () => {
+  const sinks = recordingSinks();
+  // Catalog is missing customfield_10031 (a default entrega candidate).
+  const fetchImpl: FetchLike = async (input) => {
+    if (input.endsWith(FIELD_CATALOG_SUFFIX)) {
+      return catalogResponse([{ id: "customfield_11080" }, { id: "customfield_10065" }]);
+    }
+    throw new Error("search must not run when validation fails");
+  };
+  const gateway = new JiraGateway({
+    baseUrl: "https://example.atlassian.net",
+    email: "bot@example.com",
+    apiToken: "token",
+    mainJql: MAIN_JQL,
+    fetchImpl,
+    dropLog: sinks.dropLog,
+    warningLog: sinks.warningLog,
+  });
+
+  await assert.rejects(() => gateway.fetchIssues(), /entrega field "customfield_10031"/);
+});
+
 // WHILE a per-issue extraction fails (here: a missing parent), the gateway shall
 // KEEP the issue with fallback values and LOG the warning (no warnings array).
 test("keeps a partial-failure issue with fallback values and logs the warning", async () => {
@@ -239,8 +318,11 @@ test("fetchIssues returns the kept Issue[] in payload-v2.0 shape", async () => {
 // terminate-on-isLast guarantees can be asserted (no infinite loop).
 function paginatingFetch(): { fetchImpl: FetchLike; mainCalls: number } {
   const counter = { mainCalls: 0 };
-  const fetchImpl: FetchLike = async (_input, init) => {
-    const body = JSON.parse(init.body) as { jql: string; nextPageToken?: string };
+  const fetchImpl: FetchLike = async (input, init) => {
+    if (input.endsWith(FIELD_CATALOG_SUFFIX)) {
+      return catalogResponse(DEFAULT_CATALOG);
+    }
+    const body = JSON.parse(init.body ?? "{}") as { jql: string; nextPageToken?: string };
     let response: RecordedSearchResponse;
     if (body.jql.includes("issuetype = COPYWRITER")) {
       response = SISTER_SEARCH_RESPONSE;

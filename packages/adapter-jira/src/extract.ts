@@ -165,23 +165,21 @@ export function extractUrlsFromComments(commentsField: unknown): string[] {
 }
 
 /**
- * Read the delivery datetime from a primary custom field, falling back to a
- * secondary one. Returns the value and which field id it came from, or
- * `[null, null]` when neither is present (seed: safe_get_entrega). Field ids
- * are injected (D1) — they are not hardcoded here.
+ * Read the delivery datetime from an ordered list of candidate custom fields.
+ * Iterates `candidates` in order and returns the first truthy value together
+ * with the field id it came from, or `[null, null]` when none is present
+ * (seed: safe_get_entrega). Field ids are injected (D1) — they are not
+ * hardcoded here; the candidate order encodes primary-then-fallback intent.
  */
 export function safeGetEntrega(
   fields: Record<string, unknown>,
-  primaryFieldId: string,
-  fallbackFieldId: string,
+  candidates: readonly string[],
 ): [string | null, string | null] {
-  const primary = fields[primaryFieldId];
-  if (primary) {
-    return [asString(primary), primaryFieldId];
-  }
-  const fallback = fields[fallbackFieldId];
-  if (fallback) {
-    return [asString(fallback), fallbackFieldId];
+  for (const srcId of candidates) {
+    const value = fields[srcId];
+    if (value) {
+      return [asString(value), srcId];
+    }
   }
   return [null, null];
 }

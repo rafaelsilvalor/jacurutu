@@ -11,7 +11,7 @@ export const DEFAULT_OUT = "payload.json";
 
 /** Usage text owned by the parser (it owns argv defaults and the usage string). */
 export const USAGE = `Usage:
-  saci fetch --jql <string> [--out <path>]
+  saci fetch --jql <string> [--out <path>] [--field-config <path> --project <KEY>]
   saci export --payload <path> --config <path> --profile <name>
   saci --version`;
 
@@ -22,7 +22,7 @@ export const USAGE = `Usage:
  */
 export type ParsedCommand =
   | { kind: "version" }
-  | { kind: "fetch"; jql: string; out: string }
+  | { kind: "fetch"; jql: string; out: string; fieldConfig?: string; project?: string }
   | { kind: "export"; payload: string; config: string; profile: string }
   | { kind: "usage"; message: string };
 
@@ -35,6 +35,8 @@ export type ParsedCommand =
 const CLI_OPTIONS = {
   jql: { type: "string" },
   out: { type: "string" },
+  "field-config": { type: "string" },
+  project: { type: "string" },
   payload: { type: "string" },
   config: { type: "string" },
   profile: { type: "string" },
@@ -45,6 +47,8 @@ const CLI_OPTIONS = {
 type CliValues = {
   jql?: string;
   out?: string;
+  "field-config"?: string;
+  project?: string;
   payload?: string;
   config?: string;
   profile?: string;
@@ -65,7 +69,17 @@ function routeCommand(values: CliValues, positionals: string[]): ParsedCommand {
       if (values.jql === undefined) {
         return { kind: "usage", message: `Missing required flag --jql for fetch.\n\n${USAGE}` };
       }
-      return { kind: "fetch", jql: values.jql, out: values.out ?? DEFAULT_OUT };
+      const fieldConfig = values["field-config"];
+      const project = values.project;
+      // Both-or-neither (D8): override mode needs both flags. Exactly one is a
+      // usage error (exit 2); neither preserves today's default-mapping behavior.
+      if ((fieldConfig === undefined) !== (project === undefined)) {
+        return {
+          kind: "usage",
+          message: `--field-config and --project must be provided together for fetch.\n\n${USAGE}`,
+        };
+      }
+      return { kind: "fetch", jql: values.jql, out: values.out ?? DEFAULT_OUT, fieldConfig, project };
     }
     case "export": {
       if (
