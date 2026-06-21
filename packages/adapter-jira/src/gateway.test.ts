@@ -26,7 +26,7 @@ function fixtureFetch(): { fetchImpl: FetchLike; jqls: string[]; mainFields: str
   const jqls: string[] = [];
   const capture = { mainFields: [] as string[] };
   const fetchImpl: FetchLike = async (_input, init) => {
-    const body = JSON.parse(init.body) as { jql: string; fields: string[] };
+    const body = JSON.parse(init.body ?? "{}") as { jql: string; fields: string[] };
     jqls.push(body.jql);
     let response: RecordedSearchResponse;
     if (body.jql.includes("issuetype = COPYWRITER")) {
@@ -267,7 +267,7 @@ test("fetchIssues returns the kept Issue[] in payload-v2.0 shape", async () => {
 function paginatingFetch(): { fetchImpl: FetchLike; mainCalls: number } {
   const counter = { mainCalls: 0 };
   const fetchImpl: FetchLike = async (_input, init) => {
-    const body = JSON.parse(init.body) as { jql: string; nextPageToken?: string };
+    const body = JSON.parse(init.body ?? "{}") as { jql: string; nextPageToken?: string };
     let response: RecordedSearchResponse;
     if (body.jql.includes("issuetype = COPYWRITER")) {
       response = SISTER_SEARCH_RESPONSE;
