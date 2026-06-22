@@ -58,6 +58,16 @@
   env (`SACI_JIRA_*`); `mainJql` from `--jql`; exit codes 0/2/1; one minimal
   result line per command. This closes the 023 D9 deferral and active-focus
   item #1 below. Rich human-facing display remains a separate Phase 3 item.
+- **Per-project FieldMapping shipped 2026-06-21 (brief 029):** `saci fetch`
+  accepts `--field-config <path> --project <KEY>` to override the global
+  `DEFAULT_FIELD_MAPPING` per project; the mapping also derives the narrow
+  fetched field list, and configured ids are validated fail-loud against the
+  Jira field catalog (R4). This is **Axis A** of the configurable-mapping work
+  and closes active-focus item #1's FieldMapping clause (023 D5). Forward
+  items: **Axis B** (status-value normalization on `statusCategory`), **Axis C**
+  (dates from text-embedded summary/description), the `saci config project add`
+  discovery generator, and per-project/`createmeta` screen-applicability
+  validation (029 checks global field existence only).
 - **Phase transition (recorded 2026-05-15, still in force):**
   - **Saci-Electron-v1** (the existing pure-JS codebase) is in
     **freeze** — critical bugs only, no new features.
@@ -82,11 +92,12 @@
   first (cross-platform by default); desktop UI reconnects on top of
   the CLI within ~3-4 months.
 - **Active focus (Phase 3 — production state and CLI surface):**
-  1. CLI command surface — the argv on-ramp (`saci fetch` / `saci export`)
-     shipped in brief 026 (2026-06-19, dated bullet above). Remaining
-     CLI-surface work: a **human-facing display layer** (the on-ramp prints
-     one minimal line per command), and **input-side per-project FieldMapping
-     config** for `fetch` (currently `DEFAULT_FIELD_MAPPING` only; 023 D5).
+  1. CLI command surface — the argv on-ramp (brief 026), the human-facing
+     display layer (brief 028), and input-side per-project FieldMapping
+     (brief 029) have all shipped (dated bullets above). Remaining
+     input-resolution work is forward, not active focus: Axis B (status
+     normalization), Axis C (text-derived dates), and the
+     `saci config project add` generator.
   2. Phase 3 state design — the app owns production state over time
      (local now); the `derivePath` hierarchy rule is the open design
      question.
