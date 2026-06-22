@@ -139,6 +139,11 @@ from its Drive manifest. This is the core of the product after the
   open editor + write manifest), `ship <key>` (upload local folder to
   Drive, update manifest), `load <drive-url>` (reconstitute a task on
   this machine from its Drive manifest), `status` (one-task overview).
+- `[prod]` Per-project `fetch` input resolution (remaining axes) — **Axis B**
+  (status-value normalization anchored on `statusCategory`; status names vary
+  per project), **Axis C** (delivery dates derived from text-embedded
+  summary/description where no structured field exists), and
+  `saci config project add <KEY>` (field-discovery onboarding generator).
 - `[prod]` 3-level template match: (1) deterministic — strong explicit
   signals pick a template with no confirmation; (2) suggestion-with-
   confirmation — medium signals propose a template, designer confirms
