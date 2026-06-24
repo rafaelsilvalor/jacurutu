@@ -2,6 +2,37 @@
 
 > **Living document.** Pair with `MENTOR_BRIEF.md` §2 (active architectural decisions) and `CLAUDE.md` (technical rules). Update after every milestone or pivot — when this file disagrees with MENTOR_BRIEF §2, the more recent one wins and the other must be reconciled in the same PR.
 
+## Product map at a glance
+
+The **production loop is the core**: pull a Jira task → scaffold its folder (template applied, opened in the editor) → work → close → upload the result to Drive. Read/data (the Jira fetch) is the **fuel** that feeds the loop; BI/export is the **periphery** that drains it into fact tables for downstream dashboards. The loop is what makes Saci a production assistant rather than a reporting tool — everything else exists to serve it.
+
+### Layers & status
+
+| Layer | Role | Status |
+|---|---|---|
+| Read / data (Jira fetch) | Fuel | **Built** — `saci fetch` (026/028/029); per-project input resolution is **Axis A only** (entrega + vertical field ids). Axis B/C and `config project add` not built. |
+| Curated template management | Loop | **Planned** — only `appliedTemplate` / `templateUsed` type fields exist; no catalog, match, or apply code. |
+| Workflow actions — start / close / drive upload | Loop | **Planned** — no commands; `DriveGateway` is a port interface with TODOs, no `adapter-drive`. |
+| BI export | Periphery | **Built** — `saci export` CSV/JSON fact table (023). Sheets projection parked (`adapter-sheets` is a placeholder). |
+
+(Status cells reflect the v2 source as of this writing, verified against the command surface and adapter implementations — not the prose elsewhere in this doc.)
+
+### Where we are: alpha = building the loop
+
+What **runs today** is the two ends, not the middle: read (`fetch`) and BI fact-table export. The **production loop itself is greenfield** — no scaffold, no template management, no start/close, no Drive round-trip exists yet. So **alpha is the build-out of the loop** (workflow actions + template management + the Drive adapter), not a validation pass over something already standing.
+
+One distinction the map keeps straight: the loop's own task-state is **local** (`WorkspaceEvent`: start / ship / load / handoff) and is a loop concern. It is *not* the same as Jira **status normalization** (Axis B), which lives on the read/BI side. Conflating them would misplace work. The sequencing of the greenfield loop — which action lands first — is the next scoping decision and is deliberately **not fixed here**.
+
+### Pointer index
+
+This section is the one-screen orientation; the detail lives where it already does.
+
+- **Phases, pending decisions, identity shifts** — this ROADMAP, below.
+- **Per-task specs / briefs** — `docs/tasks/<NNN>-<slug>/`.
+- **Session recaps (mentor + executor)** — `docs/sessions/`.
+- **Doctrine** — `CLAUDE.md` (rules), `MENTOR_BRIEF.md` (mentoring), `docs/GOTCHAS.md` (traps).
+- **Active focus / current architectural decisions** — `MENTOR_BRIEF.md` §2.
+
 ## Identity shifts
 
 ### 2026-05-10 — Asset browser → workflow orchestrator
@@ -312,6 +343,9 @@ Estimates and the M5.x milestone breakdown from the v1 plan are not migrated —
 - Resolved pending decisions → strike through with date and a one-line resolution (`~~Decision text~~ — *resolved 2026-XX-XX: <outcome>*`). Do not delete; they form the history.
 - Identity-level shifts get a dated subsection in `## Identity shifts`; do not silently rewrite earlier ones.
 - Phase-level shifts (a phase being superseded by another, like the v1 → v2 pivot) move the old phases to `## Legacy / superseded` with a one-line rationale per phase; do not delete them.
+- The **Product map at a glance** section is single-source — it points, it does not restate. Phase/decision/identity content lives in the body below and in the pointed-to docs; never duplicate it into the map.
+- Refresh the map at the **recap / cache-swap ritual**, alongside the per-milestone status update — not as a separate cadence.
+- A layer or status only **graduates onto the map** under the rule of three: a concern earns a map row when it is real and load-bearing, not on first mention.
 
 ## References
 
