@@ -61,3 +61,15 @@ export type {
   WorkspaceEvent,
   WorkspaceEventType,
 } from "./workspace.js";
+
+export {
+  derivePath,
+  AVULSAS_BUCKET,
+  SLUG_MAX_LEN,
+  MONTH_FORMAT,
+  MONTH_SLICE_LEN,
+  UNDATED_MONTH,
+  UNKNOWN_VERTICAL,
+} from "./derive-path.js";
+
+export type { DerivePathInput } from "./derive-path.js";
