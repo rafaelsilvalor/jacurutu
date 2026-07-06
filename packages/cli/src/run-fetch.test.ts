@@ -38,6 +38,11 @@ function fakeMakeGateway(): (dropLog: IssueDropLog, warningLog: IssueWarningLog)
       warningLog("MCA-42", "vertical_raw", "vertical missing");
       return [sampleIssue("MCA-42")];
     },
+    // Port ripple (P6): the fetch run never calls this, but the fake must
+    // satisfy the widened JiraGateway. Explicit throw, not a silent stub (R4).
+    async fetchIssueByKey(): Promise<Issue> {
+      throw new Error("fetchIssueByKey is not exercised by the fetch run");
+    },
   });
 }
 

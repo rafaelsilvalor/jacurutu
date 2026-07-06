@@ -311,6 +311,103 @@ test("fetchIssues returns the kept Issue[] in payload-v2.0 shape", async () => {
   assert.strictEqual(transport.jqls.filter((j) => j.startsWith("key IN")).length, 1);
 });
 
+// --- fetchIssueByKey (the `start` command's single-key lookup, P3) ----------
+//
+// Distinct transport: the lookup JQL is `key = <KEY>`, which does NOT match the
+// parent `key IN (...)` branch, so it falls through to the design-search slot.
+// The design issues served for that slot are injected per test so zero / one /
+// many can each be exercised. Sister/parent enrichment reuses the recorded
+// responses. No field-catalog GET fires here: fetchIssueByKey skips
+// validateFieldMapping (the catalog branch stays for parity, harmlessly unused).
+function keyLookupFetch(designIssues: Record<string, unknown>[]): {
+  fetchImpl: FetchLike;
+  jqls: string[];
+} {
+  const jqls: string[] = [];
+  const fetchImpl: FetchLike = async (input, init) => {
+    if (input.endsWith(FIELD_CATALOG_SUFFIX)) {
+      return catalogResponse(DEFAULT_CATALOG);
+    }
+    const body = JSON.parse(init.body ?? "{}") as { jql: string };
+    jqls.push(body.jql);
+    let response: RecordedSearchResponse;
+    if (body.jql.includes("issuetype = COPYWRITER")) {
+      response = SISTER_SEARCH_RESPONSE;
+    } else if (body.jql.startsWith("key IN")) {
+      response = PARENT_SEARCH_RESPONSE;
+    } else {
+      response = { isLast: true, issues: designIssues };
+    }
+    return {
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify(response),
+      json: async () => response,
+    };
+  };
+  return { fetchImpl, jqls };
+}
+
+function buildKeyGateway(designIssues: Record<string, unknown>[]) {
+  const transport = keyLookupFetch(designIssues);
+  const sinks = recordingSinks();
+  const gateway = new JiraGateway({
+    baseUrl: "https://example.atlassian.net",
+    email: "bot@example.com",
+    apiToken: "token",
+    mainJql: MAIN_JQL,
+    fetchImpl: transport.fetchImpl,
+    dropLog: sinks.dropLog,
+    warningLog: sinks.warningLog,
+  });
+  return { gateway, transport, sinks };
+}
+
+/** Pull one recorded design issue from the main-search fixture by its key. */
+function designByKey(key: string): Record<string, unknown> {
+  const found = MAIN_SEARCH_RESPONSE.issues.find((issue) => issue.key === key);
+  if (!found) {
+    throw new Error(`fixture design ${key} not found`);
+  }
+  return found;
+}
+
+// WHEN exactly one issue matches `key = <KEY>`, fetchIssueByKey shall return the
+// mapped Issue with the per-issue enrichment applied (sister copy resolution).
+test("fetchIssueByKey returns the single mapped issue with sister enrichment", async () => {
+  const { gateway, transport } = buildKeyGateway([designByKey("MCA-1001")]);
+  const issue = await gateway.fetchIssueByKey("MCA-1001");
+  assert.strictEqual(issue.key, "MCA-1001");
+  assert.strictEqual(issue.vertical_raw, "[EC] Concursos");
+  assert.strictEqual(issue.copy_source, "sister");
+  assert.strictEqual(issue.copy_url, SISTER_DRIVE_URL);
+  // The lookup used the single-key JQL, not the design mainJql.
+  assert.ok(transport.jqls.includes("key = MCA-1001"), "issued the key = <KEY> search");
+});
+
+// WHEN no issue matches, fetchIssueByKey shall reject with the key named (D2).
+test("fetchIssueByKey rejects on zero results, naming the key", async () => {
+  const { gateway } = buildKeyGateway([]);
+  await assert.rejects(() => gateway.fetchIssueByKey("MCA-9999"), /MCA-9999/);
+});
+
+// WHEN more than one issue matches, fetchIssueByKey shall reject with the key
+// named (D2 — never silently pick the first of an ambiguous result).
+test("fetchIssueByKey rejects on more than one result, naming the key", async () => {
+  const { gateway } = buildKeyGateway([designByKey("MCA-1001"), designByKey("MCA-2001")]);
+  await assert.rejects(() => gateway.fetchIssueByKey("MCA-1001"), /MCA-1001/);
+});
+
+// WHEN a named key resolves an issue the design filters would DROP (here: a
+// Backlog status), fetchIssueByKey shall still return it — P3: the filters shape
+// the design search, not a user-named single-key lookup.
+test("fetchIssueByKey does not apply the design filters (P3)", async () => {
+  const { gateway } = buildKeyGateway([designByKey("MCA-5001")]);
+  const issue = await gateway.fetchIssueByKey("MCA-5001");
+  assert.strictEqual(issue.key, "MCA-5001");
+  assert.strictEqual(issue.status_jira, "Backlog");
+});
+
 // Paginating transport double: the MAIN search spans two pages. Page 1 (no
 // nextPageToken in the request) carries issue A and a cursor; page 2 (request
 // echoes that cursor) carries issue B and isLast. Sister/parent searches stay
