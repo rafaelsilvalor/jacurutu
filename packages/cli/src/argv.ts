@@ -13,6 +13,7 @@ export const DEFAULT_OUT = "payload.json";
 export const USAGE = `Usage:
   saci fetch --jql <string> [--out <path>] [--field-config <path> --project <KEY>]
   saci export --payload <path> --config <path> --profile <name>
+  saci start <KEY> --workspace-root <path> [--templates-root <path>] [--blank]
   saci --version`;
 
 /**
@@ -24,6 +25,7 @@ export type ParsedCommand =
   | { kind: "version" }
   | { kind: "fetch"; jql: string; out: string; fieldConfig?: string; project?: string }
   | { kind: "export"; payload: string; config: string; profile: string }
+  | { kind: "start"; key: string; workspaceRoot: string; templatesRoot?: string; blank: boolean }
   | { kind: "usage"; message: string };
 
 /**
@@ -40,6 +42,9 @@ const CLI_OPTIONS = {
   payload: { type: "string" },
   config: { type: "string" },
   profile: { type: "string" },
+  "workspace-root": { type: "string" },
+  "templates-root": { type: "string" },
+  blank: { type: "boolean" },
   version: { type: "boolean", short: "v" },
 } as const;
 
@@ -52,6 +57,9 @@ type CliValues = {
   payload?: string;
   config?: string;
   profile?: string;
+  "workspace-root"?: string;
+  "templates-root"?: string;
+  blank?: boolean;
   version?: boolean;
 };
 
@@ -97,6 +105,30 @@ function routeCommand(values: CliValues, positionals: string[]): ParsedCommand {
         payload: values.payload,
         config: values.config,
         profile: values.profile,
+      };
+    }
+    case "start": {
+      // The <KEY> positional is required; the composition root fetches it live.
+      const key = positionals[1];
+      if (key === undefined) {
+        return { kind: "usage", message: `Missing required <KEY> for start.\n\n${USAGE}` };
+      }
+      const workspaceRoot = values["workspace-root"];
+      if (workspaceRoot === undefined) {
+        return {
+          kind: "usage",
+          message: `Missing required flag --workspace-root for start.\n\n${USAGE}`,
+        };
+      }
+      // templatesRoot forwarded unresolved: the P1 default (a sibling of the
+      // resolved workspace root) needs path.resolve and belongs in cli.ts, not
+      // this pure parser.
+      return {
+        kind: "start",
+        key,
+        workspaceRoot,
+        templatesRoot: values["templates-root"],
+        blank: values.blank ?? false,
       };
     }
     default: {

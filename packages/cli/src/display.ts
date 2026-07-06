@@ -8,6 +8,7 @@
 
 import type { ExportColumnId, Payload } from "@saci/core";
 import type { ExportRunResult } from "./run-export.js";
+import type { StartRunResult } from "./run-start.js";
 
 /**
  * The human-relevant fetch columns, declared as a list (D2). Each `id` is a
@@ -105,6 +106,23 @@ export function renderFetch(payload: Payload, outputPath: string): string {
  */
 export function renderExport(result: ExportRunResult): string {
   return `wrote ${result.rowCount} rows to ${result.outputPath} (${result.format})${TRAILING_NEWLINE}`;
+}
+
+/**
+ * Render the `start` confirmation from the StartRunResult runStart returns. Paths
+ * only — the created folder and the editable dir (D3: no "open" affordance). A
+ * non-null `copiedFile` names the applied template; a null one is the --blank
+ * path, stated explicitly rather than shown as a missing line.
+ */
+export function renderStart(result: StartRunResult): string {
+  const lines = [
+    `Created ${result.folderPath}`,
+    `Editables in ${result.editablePath}`,
+  ];
+  lines.push(
+    result.copiedFile ? `Template applied → ${result.copiedFile}` : "No template applied (--blank).",
+  );
+  return `${lines.join("\n")}${TRAILING_NEWLINE}`;
 }
 
 export { FETCH_COLUMNS, EMPTY_CELL, EMPTY_STATE };

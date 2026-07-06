@@ -13,7 +13,8 @@ import { parseArgv, type ParsedCommand } from "./argv.js";
 import { loadFieldMapping } from "./field-config.js";
 import { runFetch, type MakeGateway } from "./run-fetch.js";
 import { runExport } from "./run-export.js";
-import { renderFetch, renderExport } from "./display.js";
+import { runStart } from "./run-start.js";
+import { renderFetch, renderExport, renderStart } from "./display.js";
 
 /** Credential env vars read by the fetch composition root (D-a3). */
 const ENV_BASE_URL = "SACI_JIRA_BASE_URL";
@@ -78,6 +79,20 @@ async function runCommand(command: ParsedCommand): Promise<void> {
     case "export": {
       const result = await runExport(command.payload, command.config, command.profile);
       process.stdout.write(renderExport(result));
+      return;
+    }
+    case "start": {
+      // P5: fetchIssueByKey builds its own `key = <KEY>` JQL, so the gateway's
+      // mainJql is unused on the start path — construct it empty.
+      const makeGateway = makeGatewayFactory("");
+      const result = await runStart(
+        makeGateway,
+        command.key,
+        command.workspaceRoot,
+        command.templatesRoot,
+        command.blank,
+      );
+      process.stdout.write(renderStart(result));
       return;
     }
     // version/usage are handled synchronously in main() before this runs.

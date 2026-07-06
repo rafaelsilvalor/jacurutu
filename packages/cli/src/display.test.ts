@@ -3,8 +3,9 @@ import assert from "node:assert";
 
 import type { Issue, Payload } from "@saci/core";
 
-import { renderFetch, renderExport, EMPTY_CELL, EMPTY_STATE } from "./display.js";
+import { renderFetch, renderExport, renderStart, EMPTY_CELL, EMPTY_STATE } from "./display.js";
 import type { ExportRunResult } from "./run-export.js";
+import type { StartRunResult } from "./run-start.js";
 
 // All cases drive the PUBLIC surface (renderFetch / renderExport). The module
 // is pure (D3): no env, fs, network, or clock, so these run with no I/O.
@@ -109,4 +110,32 @@ test("export confirmation states rowCount 0 explicitly", () => {
     rowCount: 0,
   };
   assert.strictEqual(renderExport(result), "wrote 0 rows to out/looker.json (json)\n");
+});
+
+test("start with a template names folder, editable dir, and the applied template", () => {
+  const result: StartRunResult = {
+    folderPath: "/work/AVULSAS/EC/2026-06/MCA-101_banner",
+    editablePath: "/work/AVULSAS/EC/2026-06/MCA-101_banner/editaveis",
+    copiedFile: "/work/AVULSAS/EC/2026-06/MCA-101_banner/editaveis/MCA-101_banner.psd",
+  };
+  const out = renderStart(result);
+  assert.ok(out.endsWith("\n"));
+  const lines = out.trimEnd().split("\n");
+  assert.strictEqual(lines[0], "Created /work/AVULSAS/EC/2026-06/MCA-101_banner");
+  assert.strictEqual(lines[1], "Editables in /work/AVULSAS/EC/2026-06/MCA-101_banner/editaveis");
+  assert.strictEqual(
+    lines[2],
+    "Template applied → /work/AVULSAS/EC/2026-06/MCA-101_banner/editaveis/MCA-101_banner.psd",
+  );
+});
+
+test("start on the --blank path states no template was applied", () => {
+  const result: StartRunResult = {
+    folderPath: "/work/AVULSAS/EC/2026-06/MCA-101_banner",
+    editablePath: "/work/AVULSAS/EC/2026-06/MCA-101_banner/editaveis",
+    copiedFile: null,
+  };
+  const out = renderStart(result);
+  assert.ok(out.endsWith("\n"));
+  assert.strictEqual(out.trimEnd().split("\n").pop(), "No template applied (--blank).");
 });
