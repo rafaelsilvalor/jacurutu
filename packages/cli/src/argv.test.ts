@@ -76,6 +76,53 @@ test("export with all three flags parses payload, config, profile", () => {
   });
 });
 
+test("start with <KEY> and --workspace-root parses key, root, and defaults", () => {
+  const result = parseArgv(["start", "MCA-101", "--workspace-root", "/work"]);
+  // No --templates-root: forwarded undefined (P1 default resolved in cli.ts).
+  // No --blank: defaults to false.
+  assert.deepStrictEqual(result, {
+    kind: "start",
+    key: "MCA-101",
+    workspaceRoot: "/work",
+    templatesRoot: undefined,
+    blank: false,
+  });
+});
+
+test("start with --blank sets blank true", () => {
+  const result = parseArgv(["start", "MCA-101", "--workspace-root", "/work", "--blank"]);
+  assert.strictEqual(result.kind, "start");
+  assert.strictEqual((result as { blank: boolean }).blank, true);
+});
+
+test("start with --templates-root forwards it unresolved", () => {
+  const result = parseArgv([
+    "start",
+    "MCA-101",
+    "--workspace-root",
+    "/work",
+    "--templates-root",
+    "/tpl",
+  ]);
+  assert.deepStrictEqual(result, {
+    kind: "start",
+    key: "MCA-101",
+    workspaceRoot: "/work",
+    templatesRoot: "/tpl",
+    blank: false,
+  });
+});
+
+test("start missing <KEY> falls back to usage", () => {
+  const result = parseArgv(["start", "--workspace-root", "/work"]);
+  assert.strictEqual(result.kind, "usage");
+});
+
+test("start missing --workspace-root falls back to usage", () => {
+  const result = parseArgv(["start", "MCA-101"]);
+  assert.strictEqual(result.kind, "usage");
+});
+
 test("fetch missing required --jql falls back to usage", () => {
   const result = parseArgv(["fetch"]);
   assert.strictEqual(result.kind, "usage");

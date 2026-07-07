@@ -13,6 +13,14 @@ import type { Issue } from "./payload.js";
 export interface JiraGateway {
   /** Fetch the current design issues as payload-v2.0 `Issue` records. */
   fetchIssues(): Promise<Issue[]>;
+
+  /**
+   * Fetch a single design issue by its Jira key. Fail-loud (R4): zero results
+   * or more than one both throw an error naming `key` — never returns
+   * `Issue | null`. The `start` command relies on this to refuse to scaffold a
+   * task it cannot uniquely resolve.
+   */
+  fetchIssueByKey(key: string): Promise<Issue>;
 }
 
 /**

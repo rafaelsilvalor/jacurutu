@@ -117,6 +117,38 @@ export class JiraGateway implements JiraGatewayPort {
   }
 
   /**
+   * Fetch a single design issue by its Jira key — the `start` command's D2 live
+   * lookup. Fail-loud (R4 / D2): a `key = <KEY>` search that returns zero or
+   * more than one result throws naming the key and the count; it never returns
+   * a partial or ambiguous match. Reuses the per-issue enrichment pipeline
+   * (`uniqueParentKeys` -> `fetchSisters`/`fetchParents` -> `buildIssueEntry`),
+   * but deliberately skips `applyOwnFilters` / `applyParentTemplateFilter` (P3:
+   * a user-named key means the design-search selection already happened, so the
+   * status/Template filters that shape the search result set do not apply) and
+   * `validateFieldMapping` (the start path uses the default mapping — keep the
+   * single-key lookup lean; catalog validation is a configured-mapping concern).
+   */
+  async fetchIssueByKey(key: string): Promise<Issue> {
+    const raw = await this.http.searchJql(
+      `key = ${key}`,
+      deriveDesignFields(this.fieldMapping),
+      this.maxResults,
+    );
+    if (raw.length !== 1) {
+      throw new Error(`fetchIssueByKey(${key}): expected exactly one issue, got ${raw.length}`);
+    }
+    const [design] = raw as JiraIssue[];
+    const parentKeys = this.uniqueParentKeys([design]);
+    const sistersByParent = await this.fetchSisters(parentKeys);
+    const parentsByKey = await this.fetchParents(parentKeys);
+    const entry = buildIssueEntry(design, sistersByParent, parentsByKey, this.fieldMapping, this.warningLog);
+    if (!entry) {
+      throw new Error(`fetchIssueByKey(${key}): resolved issue has no key`);
+    }
+    return entry;
+  }
+
+  /**
    * Fail loud (R4 / D7) when a configured mapping id does not exist in the Jira
    * field catalog. Fetches the global catalog once via `getFields()`, then
    * asserts every active-mapping id — all `entregaCandidates` plus `vertical` —
