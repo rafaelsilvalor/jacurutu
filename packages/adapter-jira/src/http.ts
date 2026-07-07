@@ -122,6 +122,7 @@ export class JiraHttpClient {
           Accept: "application/json",
           "Content-Type": "application/json",
           Authorization: this.authHeader,
+          Connection: "close",
         },
         body: JSON.stringify(body),
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -164,6 +165,7 @@ export class JiraHttpClient {
       headers: {
         Accept: "application/json",
         Authorization: this.authHeader,
+        Connection: "close",
       },
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
