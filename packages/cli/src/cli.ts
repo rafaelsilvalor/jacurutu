@@ -118,11 +118,11 @@ async function main(): Promise<void> {
 
   try {
     await runCommand(command);
-    process.exit(EXIT_OK);
+    process.exitCode = EXIT_OK;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     process.stderr.write(`${message}\n`);
-    process.exit(EXIT_RUNTIME);
+    process.exitCode = EXIT_RUNTIME;
   }
 }
 
