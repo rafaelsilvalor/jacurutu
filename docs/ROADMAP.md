@@ -130,12 +130,13 @@ Phases are ordered by dependency, not by date. Items are tagged `[coord]`, `[pro
 TypeScript as the `core` package — pure domain functions, no I/O.
 Ports (interfaces) for the Jira and Sheets adapters are defined as TS
 interfaces, even though the adapters themselves come later.
-Additionally, the central production-mode types — `Workspace` (the
-per-task abstraction tying Jira key, local folder, applied template,
-state, Drive path, and manifest) and `TaskManifest` (the portable JSON
-unit that lives in the Drive folder of a task) — are designed as TS
-interfaces in `core`. Implementation (serialization, persistence,
-command wiring) is Phase 3.
+Additionally, the central production-mode type — `TaskManifest` (the
+portable JSON unit that lives in the Drive folder of a task) — is
+designed as a TS interface in `core`. Implementation (serialization,
+persistence, command wiring) is Phase 3. (A separate `Workspace` type
+was originally planned here; it was dropped in the brief-031 design —
+its 2026-05-28 shape predated the 2026-06-12 app-owns-state pivot and
+had zero consumers.)
 
 **Strict scope:** `core` package only. No adapter implementations. No
 CLI commands using the domain yet. Type design is allowed; runtime
@@ -146,9 +147,10 @@ currently split between `lib_transform.py` and the shape-independent
 policy inside `fetch.py`; Jira-shape-coupled functions remain in the
 adapter — has a TS equivalent in `core` with `node:test` coverage;
 `JiraGateway`, `SheetGateway`, and a Drive gateway port are defined as
-TS interfaces; `payload.json` v2.0 represented as TS types; `Workspace`
-and `TaskManifest` defined as TS interfaces with documented field
-contracts.
+TS interfaces; `payload.json` v2.0 represented as TS types;
+`TaskManifest` defined as a TS interface with documented field
+contracts (shipped in brief 031; the planned `Workspace` type was
+dropped — see Goal note).
 
 ### Phase 3 — Individual production assistant (product core) `[prod]`
 
@@ -181,10 +183,18 @@ from its Drive manifest. This is the core of the product after the
   or picks another; (3) manual — designer picks from the list. MVP
   covers levels 1 and 3; level 2 lands when heuristics mature. Bypass
   available via `saci start <key> --template <name>`.
-- `[prod]` Pure Drive-path derivation in `core`: given a Jira issue,
-  `derivePath(issue) → string` returns a deterministic path under the
-  Drive hierarchy (vertical / campaign / date / name). The current
-  hierarchy is tacit; Phase 3 formalizes it as code.
+- `[prod]` Pure Drive-path derivation in `core` (shipped in brief 030):
+  `derivePath(input: DerivePathInput) → readonly string[]` returns
+  deterministic folder segments under the Drive hierarchy —
+  `AVULSAS / <vertical> / <YYYY-MM> / <KEY>_slug` — with the month taken
+  from the delivery date (falling back to the Jira updated timestamp,
+  then the `undated` sentinel). `campaign` lives on `DerivePathInput`,
+  not on `Issue` (null in alpha; campaign resolution is parked). The
+  hierarchy is no longer tacit; it is formalized in
+  `packages/core/src/derive-path.ts`. derivePath derives from the
+  semester downward; the semester segment is the responsibility of the
+  pointed-at root (the local workspace root today, the Drive root at
+  `ship` time), which lives inside the current semester folder.
 - `[prod]` Manifest read / write: the `TaskManifest` type from Phase 2
   becomes a real file written to the task's Drive folder on `start`
   and updated by `ship` / `load`. Designer-to-designer handoff

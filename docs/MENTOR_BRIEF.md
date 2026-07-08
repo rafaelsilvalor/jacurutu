@@ -148,9 +148,10 @@
     (`record`→`document`, `ignore`→`add`, `clean`→`remove`,
     `reduce`→`refactor`).
 - **Active product direction (refreshed 2026-05-28):**
-  - **Phase 2 designs `Workspace` and `TaskManifest`** as TS
-    interfaces in `core`, in addition to porting `lib_transform.py`.
-    Pure types only; serialization and persistence are Phase 3.
+  - **Phase 2 designs `TaskManifest`** as a TS interface in `core`
+    (the planned `Workspace` type was dropped in brief 031), in
+    addition to porting `lib_transform.py`. Pure types only;
+    serialization and persistence are Phase 3.
   - **Phase 3 is the product core** — local storage, primary command
     set (`fetch`, `list`, `start`, `ship`, `load`, `status`),
     3-level template match, pure Drive-path derivation, manifest
