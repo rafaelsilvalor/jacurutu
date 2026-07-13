@@ -47,6 +47,13 @@ export interface DerivePathInput {
   readonly entrega_iso: string | null;
   /** Jira `updated` timestamp; month fallback when `entrega_iso` is absent (FINDING 2). */
   readonly jira_updated_at: string;
+  /**
+   * Task start timestamp (the manifest's `start` history entry); third month
+   * source, tried after `jira_updated_at` and before `UNDATED_MONTH` (brief
+   * 035, D6). Optional: absent or unparseable falls through to the sentinel,
+   * so Jira-born callers need not supply it.
+   */
+  readonly started_at?: string | null;
   /** Campaign grouping; `null` across alpha → the `AVULSAS_BUCKET` (D3 / D5). */
   readonly campaign: string | null;
 }
@@ -66,16 +73,21 @@ export function derivePath(input: DerivePathInput): readonly string[] {
   // vertical — D4 scopes sanitization to the leaf, and re-detecting brackets
   // here would duplicate transform.ts, anti-A3).
   const vertical = parseVertical(input.vertical_raw) || UNKNOWN_VERTICAL;
-  const month = deriveMonth(input.entrega_iso, input.jira_updated_at);
+  const month = deriveMonth(input.entrega_iso, input.jira_updated_at, input.started_at ?? null);
   const leaf = deriveLeaf(input.key, input.summary);
   return [grouping, vertical, month, leaf];
 }
 
 /**
- * Month segment as `YYYY-MM`. Tries the delivery date first, then the fallback
- * timestamp; both unparseable yields the `UNDATED_MONTH` sentinel (FINDING 2).
+ * Month segment as `YYYY-MM`. Tries the delivery date first, then the Jira
+ * fallback timestamp, then the task start timestamp (D6); all unparseable
+ * yields the `UNDATED_MONTH` sentinel (FINDING 2).
  */
-function deriveMonth(entregaIso: string | null, fallbackIso: string): string {
+function deriveMonth(
+  entregaIso: string | null,
+  fallbackIso: string,
+  startedAt: string | null,
+): string {
   const primary = monthFromIso(entregaIso);
   if (primary) {
     return primary;
@@ -83,6 +95,10 @@ function deriveMonth(entregaIso: string | null, fallbackIso: string): string {
   const fallback = monthFromIso(fallbackIso);
   if (fallback) {
     return fallback;
+  }
+  const started = monthFromIso(startedAt);
+  if (started) {
+    return started;
   }
   return UNDATED_MONTH;
 }

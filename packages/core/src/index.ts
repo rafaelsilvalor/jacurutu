@@ -55,9 +55,15 @@ export type {
   ColumnSelection,
 } from "./export.js";
 
-export { parseManifest, serializeManifest, TASK_MANIFEST_SCHEMA_VERSION } from "./workspace.js";
+export {
+  displayKey,
+  HISTORY_EVENTS,
+  parseManifest,
+  serializeManifest,
+  TASK_MANIFEST_SCHEMA_VERSION,
+} from "./workspace.js";
 
-export type { TaskManifest } from "./workspace.js";
+export type { HistoryEntry, HistoryEvent, TaskManifest } from "./workspace.js";
 
 export {
   derivePath,

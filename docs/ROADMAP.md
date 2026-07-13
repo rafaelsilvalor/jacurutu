@@ -188,13 +188,14 @@ from its Drive manifest. This is the core of the product after the
   deterministic folder segments under the Drive hierarchy —
   `AVULSAS / <vertical> / <YYYY-MM> / <KEY>_slug` — with the month taken
   from the delivery date (falling back to the Jira updated timestamp,
-  then the `undated` sentinel). `campaign` lives on `DerivePathInput`,
-  not on `Issue` (null in alpha; campaign resolution is parked). The
-  hierarchy is no longer tacit; it is formalized in
-  `packages/core/src/derive-path.ts`. derivePath derives from the
-  semester downward; the semester segment is the responsibility of the
-  pointed-at root (the local workspace root today, the Drive root at
-  `ship` time), which lives inside the current semester folder.
+  then the task's start timestamp, then the `undated` sentinel).
+  `campaign` lives on `DerivePathInput`, not on `Issue` (null in alpha;
+  campaign resolution is parked). The hierarchy is no longer tacit; it
+  is formalized in `packages/core/src/derive-path.ts`. derivePath
+  derives from the semester downward; the semester segment is the
+  responsibility of the pointed-at root (the local workspace root
+  today, the Drive root at `ship` time), which lives inside the current
+  semester folder.
 - `[prod]` Manifest read / write: the `TaskManifest` type from Phase 2
   becomes a real file written to the task's Drive folder on `start`
   and updated by `ship` / `load`. Designer-to-designer handoff

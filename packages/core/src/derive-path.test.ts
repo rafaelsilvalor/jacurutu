@@ -76,6 +76,42 @@ test("degenerate date: both sources unparseable → UNDATED_MONTH", () => {
   assert.strictEqual(segments[2], UNDATED_MONTH);
 });
 
+test("D6: entrega null + unparseable jira_updated_at → month from started_at", () => {
+  const segments = derivePath(
+    makeInput({
+      entrega_iso: null,
+      jira_updated_at: "garbage",
+      started_at: "2026-07-04T12:00:00.000Z",
+    }),
+  );
+  assert.strictEqual(segments[2], "2026-07");
+});
+
+test("D6: all three month sources absent/unparseable → UNDATED_MONTH", () => {
+  const segments = derivePath(
+    makeInput({ entrega_iso: null, jira_updated_at: "", started_at: null }),
+  );
+  assert.strictEqual(segments[2], UNDATED_MONTH);
+  const alsoUnparseable = derivePath(
+    makeInput({ entrega_iso: "not-a-date", jira_updated_at: "garbage", started_at: "nope" }),
+  );
+  assert.strictEqual(alsoUnparseable[2], UNDATED_MONTH);
+});
+
+test("D6: started_at omitted entirely → output identical to today's behavior", () => {
+  // makeInput never sets started_at, so this input predates the field.
+  const input = makeInput();
+  assert.ok(!("started_at" in input));
+  assert.deepStrictEqual(derivePath(input), [
+    "AVULSAS",
+    "EC",
+    "2026-06",
+    "MCA-101_kv-aulao",
+  ]);
+  const fallbackInput = makeInput({ entrega_iso: null });
+  assert.strictEqual(derivePath(fallbackInput)[2], "2026-05");
+});
+
 test("slug: diacritics stripped, non-[a-z0-9-] replaced, repeats collapsed, ends trimmed", () => {
   const segments = derivePath(
     makeInput({ key: "MCA-7", summary: "  Ação: KV — Aulão!!  (final)  " }),
