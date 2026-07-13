@@ -92,14 +92,14 @@ test("start scaffolds dirs, copies the template, and writes a valid manifest", a
       JSON.parse(readFileSync(path.join(leafFolder, ".saci.json"), "utf8")),
     );
     assert.deepStrictEqual(manifest, {
-      schemaVersion: 1,
+      schemaVersion: 2,
       jiraKey: "MCA-101",
+      localKey: null,
       vertical: "EC",
       slug: "banner-principal",
       template: "banner", // source basename without extension
       drivePath: SEGMENTS,
-      startedAt: "2026-07-04T12:00:00.000Z",
-      shippedAt: null,
+      history: [{ event: "start", actor: null, at: "2026-07-04T12:00:00.000Z" }],
     });
   } finally {
     rmSync(base, { recursive: true, force: true });
@@ -131,7 +131,9 @@ test("start --blank skips the copy but writes the same dirs and a blank-template
     );
     assert.strictEqual(manifest.template, "blank");
     assert.strictEqual(manifest.slug, "banner-principal");
-    assert.strictEqual(manifest.shippedAt, null);
+    assert.deepStrictEqual(manifest.history, [
+      { event: "start", actor: null, at: "2026-07-04T12:00:00.000Z" },
+    ]);
   } finally {
     rmSync(base, { recursive: true, force: true });
   }

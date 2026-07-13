@@ -1,12 +1,13 @@
 // Composition root for the `start` run (brief 032): pull one Jira task by key,
 // derive its workspace folder, scaffold the D-A structure, apply a template
-// (unless --blank), and write the v0 `.saci.json` manifest. Local-only — Drive
+// (unless --blank), and write the v2 `.saci.json` manifest. Local-only — Drive
 // round-trip is `ship`'s job (D1). All fs/network lives here; path derivation
 // and manifest assembly stay pure in @saci/core (R25).
 //
 // The gateway is injected as a FACTORY (`makeGateway`, shared with run-fetch) so
 // this function carries no credentials and is unit-testable with a fake. The
-// clock is a single injectable `now` so `startedAt` is deterministic in tests.
+// clock is a single injectable `now` so the `start` history entry is
+// deterministic in tests.
 //
 // Fail-loud, no partial scaffold (D2/D5, constraint 4): every validation that
 // can fail — the live fetch, the collision check, and (when not --blank) the
@@ -146,10 +147,12 @@ async function copyTemplate(source: string, editablePath: string, leaf: string):
 }
 
 /**
- * Assemble the v0 manifest (brief 031 schema). Pure — no I/O (R25). The leaf is
- * `<KEY>_<slug>` or `<KEY>` alone (derivePath empty-slug case), so the slug is a
- * deterministic slice; `template` is the source basename sans extension, or the
- * blank sentinel on --blank.
+ * Assemble the v2 manifest (brief 035, D7): Jira-born, so `jiraKey` is set,
+ * `localKey` is null, and history opens with a single `start` entry
+ * (`actor: null` until identity config exists). Pure — no I/O (R25). The leaf
+ * is `<KEY>_<slug>` or `<KEY>` alone (derivePath empty-slug case), so the slug
+ * is a deterministic slice; `template` is the source basename sans extension,
+ * or the blank sentinel on --blank.
  */
 function buildManifest(
   issue: Issue,
@@ -165,12 +168,12 @@ function buildManifest(
   return {
     schemaVersion: TASK_MANIFEST_SCHEMA_VERSION,
     jiraKey: issue.key,
+    localKey: null,
     vertical: segments[1],
     slug,
     template,
     drivePath: segments,
-    startedAt: now.toISOString(),
-    shippedAt: null,
+    history: [{ event: "start", actor: null, at: now.toISOString() }],
   };
 }
 
