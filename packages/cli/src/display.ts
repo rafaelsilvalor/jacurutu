@@ -112,13 +112,18 @@ export function renderExport(result: ExportRunResult): string {
  * Render the `start` confirmation from the StartRunResult runStart returns. Paths
  * only — the created folder and the editable dir (D3: no "open" affordance). A
  * non-null `copiedFile` names the applied template; a null one is the --blank
- * path, stated explicitly rather than shown as a missing line.
+ * path, stated explicitly rather than shown as a missing line. A non-null
+ * `localKey` prepends a `Local key:` line (brief 036, D12) so the minted key is
+ * explicit in the output, not only readable out of the folder name.
  */
 export function renderStart(result: StartRunResult): string {
   const lines = [
     `Created ${result.folderPath}`,
     `Editables in ${result.editablePath}`,
   ];
+  if (result.localKey !== null) {
+    lines.unshift(`Local key: ${result.localKey}`);
+  }
   lines.push(
     result.copiedFile ? `Template applied → ${result.copiedFile}` : "No template applied (--blank).",
   );
