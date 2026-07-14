@@ -1,12 +1,20 @@
 import { test } from "node:test";
 import assert from "node:assert";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { parseManifest, type Issue } from "@saci/core";
 
-import { runStart } from "./run-start.js";
+import { runStart, runStartLocal, type StartLocalOptions } from "./run-start.js";
 import type { MakeGateway } from "./run-fetch.js";
 
 // The derived folder for the canned issue below: campaign is alpha-null →
@@ -159,6 +167,191 @@ test("start refuses to overwrite an existing leaf folder and writes nothing new 
     // Nothing new was written: no manifest, no copied editable.
     assert.ok(!existsSync(path.join(leafFolder, ".saci.json")));
     assert.ok(!existsSync(path.join(leafFolder, "editaveis", "MCA-101_banner-principal.psd")));
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+test("jira-born start returns localKey null (D12)", async () => {
+  const { base, workspaceRoot } = makeSandbox(["banner.psd"]);
+  try {
+    const result = await runStart(
+      fakeMakeGateway(sampleIssue()),
+      "MCA-101",
+      workspaceRoot,
+      undefined,
+      false,
+      FIXED_NOW,
+    );
+    assert.strictEqual(result.localKey, null);
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Local-born path (brief 036). The sandbox reuses makeSandbox's templates/EC
+// layout and adds an identity file seeded at nextSeq 1.
+
+/** Read the identity file's counter straight off the disk. */
+function nextSeqOnDisk(identityFilePath: string): number {
+  return (JSON.parse(readFileSync(identityFilePath, "utf8")) as { nextSeq: number }).nextSeq;
+}
+
+function makeLocalSandbox(templateFiles: string[]): {
+  base: string;
+  workspaceRoot: string;
+  identityFilePath: string;
+} {
+  const { base, workspaceRoot } = makeSandbox(templateFiles);
+  const identityFilePath = path.join(base, "identity.json");
+  writeFileSync(identityFilePath, `{\n  "prefix": "RAF",\n  "nextSeq": 1\n}\n`);
+  return { base, workspaceRoot, identityFilePath };
+}
+
+/** Baseline local options against a sandbox; tests override per case. */
+function localOptions(
+  workspaceRoot: string,
+  identityFilePath: string,
+  overrides: Partial<StartLocalOptions> = {},
+): StartLocalOptions {
+  return {
+    identityFilePath,
+    vertical: "EC",
+    title: "Banner principal",
+    workspaceRoot,
+    blank: false,
+    now: FIXED_NOW,
+    ...overrides,
+  };
+}
+
+test("start --local scaffolds offline, mints the key, and increments the counter (D6/D7)", async () => {
+  const { base, workspaceRoot, identityFilePath } = makeLocalSandbox(["banner.psd"]);
+  try {
+    const result = await runStartLocal(
+      localOptions(workspaceRoot, identityFilePath, { due: "2026-08-15" }),
+    );
+
+    // --due 2026-08-15 → month segment 2026-08 (D1); leaf keyed off the local key.
+    const segments = ["AVULSAS", "EC", "2026-08", "RAF-1_banner-principal"];
+    const leafFolder = path.join(workspaceRoot, ...segments);
+    assert.strictEqual(result.folderPath, leafFolder);
+    assert.strictEqual(result.localKey, "RAF-1");
+    assert.ok(existsSync(path.join(leafFolder, "editaveis", "assets")));
+    assert.strictEqual(
+      result.copiedFile,
+      path.join(leafFolder, "editaveis", "RAF-1_banner-principal.psd"),
+    );
+
+    const manifest = parseManifest(
+      JSON.parse(readFileSync(path.join(leafFolder, ".saci.json"), "utf8")),
+    );
+    assert.deepStrictEqual(manifest, {
+      schemaVersion: 2,
+      jiraKey: null,
+      localKey: "RAF-1",
+      vertical: "EC",
+      slug: "banner-principal",
+      template: "banner",
+      drivePath: segments,
+      history: [{ event: "start", actor: null, at: "2026-07-04T12:00:00.000Z" }],
+    });
+
+    // D7: the counter persisted as nextSeq + 1.
+    assert.strictEqual(nextSeqOnDisk(identityFilePath), 2);
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+test("start --local without --due files under the start-timestamp month (D9)", async () => {
+  const { base, workspaceRoot, identityFilePath } = makeLocalSandbox([]);
+  try {
+    // FIXED_NOW is 2026-07-04 → month 2026-07 via started_at (an unparseable
+    // --due never reaches this layer — rejected at the parser, amended D11).
+    const result = await runStartLocal(
+      localOptions(workspaceRoot, identityFilePath, { blank: true }),
+    );
+    assert.strictEqual(
+      result.folderPath,
+      path.join(workspaceRoot, "AVULSAS", "EC", "2026-07", "RAF-1_banner-principal"),
+    );
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+test("a validation failure before the persist point consumes no sequence number (P2)", async () => {
+  const { base, workspaceRoot, identityFilePath } = makeLocalSandbox(["banner.psd"]);
+  try {
+    // Pre-create the derived leaf folder: the collision check must fire.
+    const leafFolder = path.join(workspaceRoot, "AVULSAS", "EC", "2026-07", "RAF-1_banner-principal");
+    mkdirSync(leafFolder, { recursive: true });
+
+    await assert.rejects(
+      runStartLocal(localOptions(workspaceRoot, identityFilePath)),
+      /already exists/,
+    );
+
+    assert.strictEqual(nextSeqOnDisk(identityFilePath), 1);
+    assert.ok(!existsSync(path.join(leafFolder, ".saci.json")));
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+test("a counter-persist failure leaves the workspace untouched (P2 ordering)", async () => {
+  const { base, workspaceRoot, identityFilePath } = makeLocalSandbox(["banner.psd"]);
+  try {
+    // Read-only identity file: the P2 persist step itself fails, after every
+    // validation and before any workspace write — so nothing may exist under
+    // the workspace root afterwards.
+    chmodSync(identityFilePath, 0o444);
+
+    await assert.rejects(runStartLocal(localOptions(workspaceRoot, identityFilePath)));
+
+    assert.ok(!existsSync(path.join(workspaceRoot, "AVULSAS")));
+  } finally {
+    chmodSync(identityFilePath, 0o666);
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+test("a crash mid-scaffold burns the number; the next run mints the NEXT one (P2)", async () => {
+  const { base, workspaceRoot, identityFilePath } = makeLocalSandbox(["banner.psd"]);
+  try {
+    // toISOString is hit once for started_at (pre-validation) and once at
+    // manifest assembly (post-persist, after the dirs exist) — throwing on the
+    // second call simulates a crash mid-scaffold. Coupled to that call count
+    // on purpose: it pins the persist-before-mutate ordering.
+    class CrashingClock extends Date {
+      private calls = 0;
+      override toISOString(): string {
+        this.calls += 1;
+        if (this.calls > 1) {
+          throw new Error("simulated crash mid-scaffold");
+        }
+        return super.toISOString();
+      }
+    }
+
+    await assert.rejects(
+      runStartLocal(
+        localOptions(workspaceRoot, identityFilePath, {
+          now: new CrashingClock("2026-07-04T12:00:00Z"),
+        }),
+      ),
+      /simulated crash mid-scaffold/,
+    );
+
+    // The number burned (gap, accepted per 035-D2)…
+    assert.strictEqual(nextSeqOnDisk(identityFilePath), 2);
+
+    // …and a healthy re-run mints RAF-2 — never a reuse, no collision fired.
+    const result = await runStartLocal(localOptions(workspaceRoot, identityFilePath));
+    assert.strictEqual(result.localKey, "RAF-2");
+    assert.strictEqual(nextSeqOnDisk(identityFilePath), 3);
   } finally {
     rmSync(base, { recursive: true, force: true });
   }

@@ -117,6 +117,7 @@ test("start with a template names folder, editable dir, and the applied template
     folderPath: "/work/AVULSAS/EC/2026-06/MCA-101_banner",
     editablePath: "/work/AVULSAS/EC/2026-06/MCA-101_banner/editaveis",
     copiedFile: "/work/AVULSAS/EC/2026-06/MCA-101_banner/editaveis/MCA-101_banner.psd",
+    localKey: null,
   };
   const out = renderStart(result);
   assert.ok(out.endsWith("\n"));
@@ -134,6 +135,7 @@ test("start on the --blank path states no template was applied", () => {
     folderPath: "/work/AVULSAS/EC/2026-06/MCA-101_banner",
     editablePath: "/work/AVULSAS/EC/2026-06/MCA-101_banner/editaveis",
     copiedFile: null,
+    localKey: null,
   };
   const out = renderStart(result);
   assert.ok(out.endsWith("\n"));
