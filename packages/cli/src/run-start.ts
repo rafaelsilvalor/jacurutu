@@ -13,6 +13,12 @@
 // can fail — the live fetch, the collision check, and (when not --blank) the
 // template-source resolution — runs BEFORE any filesystem mutation. A failure
 // throws and nothing is written; cli.ts maps the throw to a non-zero exit.
+//
+// `runStartLocal` (brief 036) is the keyless sibling: it mints `<prefix>-<seq>`
+// from the identity file instead of fetching Jira — fully offline, no gateway —
+// and feeds the same validate/execute pipeline. The sequence counter persists
+// between the two stages (P2): after every validation, before the first
+// workspace write, so a crash burns a number (gap, accepted) but never reuses one.
 
 import { copyFile, mkdir, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -27,6 +33,7 @@ import {
 } from "@saci/core";
 import type { IssueDropLog, IssueWarningLog } from "@saci/adapter-jira";
 
+import { readIdentityState, writeIdentityState } from "./identity.js";
 import type { MakeGateway } from "./run-fetch.js";
 
 /** Default templates root leaf: a `templates/` sibling of the workspace root (P1). */
@@ -48,6 +55,22 @@ export interface StartRunResult {
   editablePath: string;
   /** Absolute path to the copied template, or `null` on the --blank path. */
   copiedFile: string | null;
+  /** The minted local key on the --local path (D12); `null` when Jira-born. */
+  localKey: string | null;
+}
+
+/** Options for `runStartLocal` (D13): one object — eight positionals would bury the call sites. */
+export interface StartLocalOptions {
+  /** Resolved identity-file path (cli.ts owns the P1 default/env resolution). */
+  identityFilePath: string;
+  vertical: string;
+  title: string;
+  /** ISO delivery date; already format-validated by the parser (amended D11). */
+  due?: string;
+  workspaceRoot: string;
+  templatesRoot?: string;
+  blank: boolean;
+  now?: Date;
 }
 
 /**
@@ -146,34 +169,105 @@ async function copyTemplate(source: string, editablePath: string, leaf: string):
   return target;
 }
 
+/** The jiraKey/localKey pair stamped into the manifest (D13); exactly one is non-null today. */
+interface ManifestKeys {
+  jiraKey: string | null;
+  localKey: string | null;
+}
+
+/** What `validateScaffold` resolved; `executeScaffold` consumes it verbatim. */
+interface ScaffoldPlan {
+  leafFolder: string;
+  editablePath: string;
+  templateSource: string | null;
+  leaf: string;
+}
+
 /**
- * Assemble the v2 manifest (brief 035, D7): Jira-born, so `jiraKey` is set,
- * `localKey` is null, and history opens with a single `start` entry
- * (`actor: null` until identity config exists). Pure — no I/O (R25). The leaf
- * is `<KEY>_<slug>` or `<KEY>` alone (derivePath empty-slug case), so the slug
- * is a deterministic slice; `template` is the source basename sans extension,
- * or the blank sentinel on --blank.
+ * Assemble the v2 manifest (brief 035 D7, parameterized in 036 D13). History
+ * opens with a single `start` entry (`actor: null` until identity config
+ * exists — the identity file carries a prefix, not an actor name). Pure — no
+ * I/O (R25). The leaf is `<displayKey>_<slug>` or `<displayKey>` alone
+ * (derivePath empty-slug case), so the slug is a deterministic slice;
+ * `template` is the source basename sans extension, or the blank sentinel.
  */
 function buildManifest(
-  issue: Issue,
+  keys: ManifestKeys,
+  displayKey: string,
   segments: readonly string[],
   leaf: string,
   templateSource: string | null,
   now: Date,
 ): TaskManifest {
-  const slug = leaf === issue.key ? "" : leaf.slice(issue.key.length + 1);
+  const slug = leaf === displayKey ? "" : leaf.slice(displayKey.length + 1);
   const template = templateSource
     ? path.basename(templateSource, path.extname(templateSource))
     : BLANK_TEMPLATE_ID;
   return {
     schemaVersion: TASK_MANIFEST_SCHEMA_VERSION,
-    jiraKey: issue.key,
-    localKey: null,
+    jiraKey: keys.jiraKey,
+    localKey: keys.localKey,
     vertical: segments[1],
     slug,
     template,
     drivePath: segments,
     history: [{ event: "start", actor: null, at: now.toISOString() }],
+  };
+}
+
+/**
+ * Shared pre-mutation stage (D13, constraint 5): resolve the target paths, run
+ * the collision check, and (unless --blank) resolve the template source. Every
+ * failure throws here, before anything is written. Split from executeScaffold
+ * so the local path can persist its sequence counter between the two (P2).
+ */
+async function validateScaffold(
+  segments: readonly string[],
+  workspaceRoot: string,
+  templatesRoot: string | undefined,
+  blank: boolean,
+): Promise<ScaffoldPlan> {
+  const vertical = segments[1];
+  const leaf = segments[3];
+  const absWorkspaceRoot = path.resolve(workspaceRoot);
+  const leafFolder = path.join(absWorkspaceRoot, ...segments);
+  const editablePath = path.join(leafFolder, EDITAVEIS_DIR);
+
+  if (await pathExists(leafFolder)) {
+    throw new Error(await buildCollisionReport(leafFolder));
+  }
+  const templateSource = blank
+    ? null
+    : await resolveTemplateSource(resolveTemplatesRoot(templatesRoot, absWorkspaceRoot), vertical);
+
+  return { leafFolder, editablePath, templateSource, leaf };
+}
+
+/**
+ * Shared mutation stage (D13): create the dirs, copy the template (unless
+ * blank), write the manifest. No validation lives here — validateScaffold
+ * already ran (constraint 5).
+ */
+async function executeScaffold(
+  plan: ScaffoldPlan,
+  keys: ManifestKeys,
+  displayKey: string,
+  segments: readonly string[],
+  now: Date,
+): Promise<StartRunResult> {
+  await scaffoldDirs(plan.leafFolder, plan.editablePath);
+  const copiedFile = plan.templateSource
+    ? await copyTemplate(plan.templateSource, plan.editablePath, plan.leaf)
+    : null;
+
+  const manifest = buildManifest(keys, displayKey, segments, plan.leaf, plan.templateSource, now);
+  await writeFile(path.join(plan.leafFolder, MANIFEST_FILENAME), serializeManifest(manifest), "utf8");
+
+  return {
+    folderPath: plan.leafFolder,
+    editablePath: plan.editablePath,
+    copiedFile,
+    localKey: keys.localKey,
   };
 }
 
@@ -194,27 +288,50 @@ export async function runStart(
   const issue = await gateway.fetchIssueByKey(key);
 
   const segments = derivePath(toDerivePathInput(issue));
-  const vertical = segments[1];
-  const leaf = segments[3];
+  const plan = await validateScaffold(segments, workspaceRoot, templatesRoot, blank);
+  return executeScaffold(plan, { jiraKey: issue.key, localKey: null }, issue.key, segments, now);
+}
 
-  const absWorkspaceRoot = path.resolve(workspaceRoot);
-  const leafFolder = path.join(absWorkspaceRoot, ...segments);
-  const editablePath = path.join(leafFolder, EDITAVEIS_DIR);
+/**
+ * Run `start --local` (brief 036): mint `<prefix>-<seq>` from the identity
+ * file and scaffold offline through the same pipeline — no gateway, no env, no
+ * network (constraint 4). P2 ordering: read identity → derive → validate →
+ * persist `nextSeq + 1` → mutate. A crash after the persist burns a sequence
+ * number (gap, accepted per 035-D2); a validation failure before it consumes
+ * nothing; numbers are never reused.
+ */
+export async function runStartLocal(options: StartLocalOptions): Promise<StartRunResult> {
+  const now = options.now ?? new Date();
+  const identity = await readIdentityState(options.identityFilePath);
+  const localKey = `${identity.prefix}-${identity.nextSeq}`;
 
-  // Validate everything that can fail BEFORE any mutation (constraint 4).
-  if (await pathExists(leafFolder)) {
-    throw new Error(await buildCollisionReport(leafFolder));
-  }
-  const templateSource = blank
-    ? null
-    : await resolveTemplateSource(resolveTemplatesRoot(templatesRoot, absWorkspaceRoot), vertical);
+  const segments = derivePath({
+    key: localKey,
+    summary: options.title,
+    vertical_raw: options.vertical,
+    entrega_iso: options.due ?? null,
+    // "" is an absence sentinel, not a value: DerivePathInput types
+    // jira_updated_at as a non-nullable string and core is out of scope in
+    // this brief (D9). An empty string yields no month, so absent --due falls
+    // through to the started_at month (the 035 third source).
+    jira_updated_at: "",
+    started_at: now.toISOString(),
+    campaign: null,
+  });
 
-  // Only now mutate the filesystem.
-  await scaffoldDirs(leafFolder, editablePath);
-  const copiedFile = templateSource ? await copyTemplate(templateSource, editablePath, leaf) : null;
+  const plan = await validateScaffold(
+    segments,
+    options.workspaceRoot,
+    options.templatesRoot,
+    options.blank,
+  );
 
-  const manifest = buildManifest(issue, segments, leaf, templateSource, now);
-  await writeFile(path.join(leafFolder, MANIFEST_FILENAME), serializeManifest(manifest), "utf8");
+  // P2: burn the number only after every validation passed, before the first
+  // workspace write.
+  await writeIdentityState(options.identityFilePath, {
+    prefix: identity.prefix,
+    nextSeq: identity.nextSeq + 1,
+  });
 
-  return { folderPath: leafFolder, editablePath, copiedFile };
+  return executeScaffold(plan, { jiraKey: null, localKey }, localKey, segments, now);
 }

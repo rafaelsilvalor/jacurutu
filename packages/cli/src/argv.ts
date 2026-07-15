@@ -6,6 +6,8 @@
 
 import { parseArgs } from "node:util";
 
+import { parseEntrega } from "@saci/core";
+
 /** Default `--out` path for `fetch` when the flag is omitted (D-a2). */
 export const DEFAULT_OUT = "payload.json";
 
@@ -14,6 +16,8 @@ export const USAGE = `Usage:
   saci fetch --jql <string> [--out <path>] [--field-config <path> --project <KEY>]
   saci export --payload <path> --config <path> --profile <name>
   saci start <KEY> --workspace-root <path> [--templates-root <path>] [--blank]
+  saci start --local --vertical <SIGLA> --title <text> --workspace-root <path>
+             [--due <ISO-date>] [--templates-root <path>] [--blank]
   saci --version`;
 
 /**
@@ -26,6 +30,15 @@ export type ParsedCommand =
   | { kind: "fetch"; jql: string; out: string; fieldConfig?: string; project?: string }
   | { kind: "export"; payload: string; config: string; profile: string }
   | { kind: "start"; key: string; workspaceRoot: string; templatesRoot?: string; blank: boolean }
+  | {
+      kind: "start-local";
+      vertical: string;
+      title: string;
+      due?: string;
+      workspaceRoot: string;
+      templatesRoot?: string;
+      blank: boolean;
+    }
   | { kind: "usage"; message: string };
 
 /**
@@ -45,6 +58,10 @@ const CLI_OPTIONS = {
   "workspace-root": { type: "string" },
   "templates-root": { type: "string" },
   blank: { type: "boolean" },
+  local: { type: "boolean" },
+  vertical: { type: "string" },
+  title: { type: "string" },
+  due: { type: "string" },
   version: { type: "boolean", short: "v" },
 } as const;
 
@@ -60,14 +77,104 @@ type CliValues = {
   "workspace-root"?: string;
   "templates-root"?: string;
   blank?: boolean;
+  local?: boolean;
+  vertical?: string;
+  title?: string;
+  due?: string;
   version?: boolean;
 };
 
 /**
+ * Route Jira-born `start`: the <KEY> positional is required; the composition
+ * root fetches it live. The key is uppercased here (brief 036, D3): pure typo
+ * hygiene, NOT format validation — the parser stays format-agnostic (v1
+ * precedent).
+ */
+function routeStart(values: CliValues, positionals: string[]): ParsedCommand {
+  const key = positionals[1];
+  if (key === undefined) {
+    return { kind: "usage", message: `Missing required <KEY> for start.\n\n${USAGE}` };
+  }
+  const workspaceRoot = values["workspace-root"];
+  if (workspaceRoot === undefined) {
+    return {
+      kind: "usage",
+      message: `Missing required flag --workspace-root for start.\n\n${USAGE}`,
+    };
+  }
+  // templatesRoot forwarded unresolved: the P1 default (a sibling of the
+  // resolved workspace root) needs path.resolve and belongs in cli.ts, not
+  // this pure parser.
+  return {
+    kind: "start",
+    key: key.toUpperCase(),
+    workspaceRoot,
+    templatesRoot: values["templates-root"],
+    blank: values.blank ?? false,
+  };
+}
+
+/**
+ * Route `start --local` (brief 036, D1/D8): no positional key (retroactive
+ * linking is the future `link` command's job), required non-blank --title and
+ * --vertical, and a --due that must parse as an ISO date when present
+ * (amended D11: fail-loud at the command boundary — a typo must never
+ * silently file the task under the wrong month). The check reuses core's pure
+ * `parseEntrega`, so a --due this parser accepts always yields a month
+ * segment in derivePath — validator and month chain coherent by construction.
+ */
+function routeStartLocal(values: CliValues, positionals: string[]): ParsedCommand {
+  if (positionals[1] !== undefined) {
+    return {
+      kind: "usage",
+      message: `A positional <KEY> cannot be combined with --local.\n\n${USAGE}`,
+    };
+  }
+  const title = values.title;
+  if (title === undefined || title.trim() === "") {
+    return {
+      kind: "usage",
+      message: `Missing required flag --title for start --local.\n\n${USAGE}`,
+    };
+  }
+  const vertical = values.vertical;
+  if (vertical === undefined || vertical.trim() === "") {
+    return {
+      kind: "usage",
+      message: `Missing required flag --vertical for start --local.\n\n${USAGE}`,
+    };
+  }
+  const workspaceRoot = values["workspace-root"];
+  if (workspaceRoot === undefined) {
+    return {
+      kind: "usage",
+      message: `Missing required flag --workspace-root for start --local.\n\n${USAGE}`,
+    };
+  }
+  const due = values.due;
+  if (due !== undefined && parseEntrega(due)[0] === null) {
+    return {
+      kind: "usage",
+      message: `Invalid --due value "${due}": expected an ISO date (YYYY-MM-DD).\n\n${USAGE}`,
+    };
+  }
+  return {
+    kind: "start-local",
+    vertical,
+    title,
+    due,
+    workspaceRoot,
+    templatesRoot: values["templates-root"],
+    blank: values.blank ?? false,
+  };
+}
+
+/**
  * Route a successful parse to a command result. `version` is handled by the
  * caller before this runs; here the command positional is switched: `fetch`
- * requires `--jql`, `export` requires all three flags, anything else (including
- * no command) falls back to `usage`.
+ * requires `--jql`, `export` requires all three flags, `start` splits on the
+ * declared-origin flag (D5), anything else (including no command) falls back
+ * to `usage`.
  */
 function routeCommand(values: CliValues, positionals: string[]): ParsedCommand {
   const command = positionals[0];
@@ -108,28 +215,8 @@ function routeCommand(values: CliValues, positionals: string[]): ParsedCommand {
       };
     }
     case "start": {
-      // The <KEY> positional is required; the composition root fetches it live.
-      const key = positionals[1];
-      if (key === undefined) {
-        return { kind: "usage", message: `Missing required <KEY> for start.\n\n${USAGE}` };
-      }
-      const workspaceRoot = values["workspace-root"];
-      if (workspaceRoot === undefined) {
-        return {
-          kind: "usage",
-          message: `Missing required flag --workspace-root for start.\n\n${USAGE}`,
-        };
-      }
-      // templatesRoot forwarded unresolved: the P1 default (a sibling of the
-      // resolved workspace root) needs path.resolve and belongs in cli.ts, not
-      // this pure parser.
-      return {
-        kind: "start",
-        key,
-        workspaceRoot,
-        templatesRoot: values["templates-root"],
-        blank: values.blank ?? false,
-      };
+      // Origin is declared by the flag, never inferred from key shape (D5).
+      return values.local ? routeStartLocal(values, positionals) : routeStart(values, positionals);
     }
     default: {
       const detail = command === undefined ? "No command given." : `Unknown command: "${command}".`;

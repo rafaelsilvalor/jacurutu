@@ -5,21 +5,27 @@
 // dispatch to the run* composition functions, print one result line, set exit
 // codes. The adapter is imported only here (R25: cli is the composition root).
 
+import os from "node:os";
+import path from "node:path";
+
 import pkg from "../package.json" with { type: "json" };
 
 import { JiraGateway, type ResolvedFieldMapping } from "@saci/adapter-jira";
 
 import { parseArgv, type ParsedCommand } from "./argv.js";
 import { loadFieldMapping } from "./field-config.js";
+import { IDENTITY_DIR_NAME, IDENTITY_FILENAME } from "./identity.js";
 import { runFetch, type MakeGateway } from "./run-fetch.js";
 import { runExport } from "./run-export.js";
-import { runStart } from "./run-start.js";
+import { runStart, runStartLocal, type StartLocalOptions } from "./run-start.js";
 import { renderFetch, renderExport, renderStart } from "./display.js";
 
 /** Credential env vars read by the fetch composition root (D-a3). */
 const ENV_BASE_URL = "SACI_JIRA_BASE_URL";
 const ENV_EMAIL = "SACI_JIRA_EMAIL";
 const ENV_API_TOKEN = "SACI_JIRA_API_TOKEN";
+/** Identity-file override env var (brief 036, P1); same env-not-flag precedent as D-a3. */
+const ENV_IDENTITY_FILE = "SACI_IDENTITY_FILE";
 
 /** Exit codes (D-a4): success / runtime-IO-network / usage. */
 const EXIT_OK = 0;
@@ -54,6 +60,35 @@ function makeGatewayFactory(jql: string, fieldMapping?: ResolvedFieldMapping): M
       dropLog,
       warningLog,
     });
+}
+
+/**
+ * Resolve the identity-file path (P1): a non-empty SACI_IDENTITY_FILE wins
+ * (absolute or cwd-relative, resolved here — env is a shell concern, never the
+ * parser's, D-a3 precedent); else the per-user default composed from the
+ * identity.ts constants (R1: os.homedir() + path.join, no hardcoded root).
+ */
+function resolveIdentityFilePath(): string {
+  const override = process.env[ENV_IDENTITY_FILE];
+  if (override) {
+    return path.resolve(override);
+  }
+  return path.join(os.homedir(), IDENTITY_DIR_NAME, IDENTITY_FILENAME);
+}
+
+/** Map the parsed start-local command to runStartLocal options (identity path resolved here). */
+function toStartLocalOptions(
+  command: Extract<ParsedCommand, { kind: "start-local" }>,
+): StartLocalOptions {
+  return {
+    identityFilePath: resolveIdentityFilePath(),
+    vertical: command.vertical,
+    title: command.title,
+    due: command.due,
+    workspaceRoot: command.workspaceRoot,
+    templatesRoot: command.templatesRoot,
+    blank: command.blank,
+  };
 }
 
 /**
@@ -92,6 +127,14 @@ async function runCommand(command: ParsedCommand): Promise<void> {
         command.templatesRoot,
         command.blank,
       );
+      process.stdout.write(renderStart(result));
+      return;
+    }
+    case "start-local": {
+      // Fully offline (brief 036, constraint 4): no gateway construction and
+      // no SACI_JIRA_* reads on this path — the identity file is the only
+      // state consulted.
+      const result = await runStartLocal(toStartLocalOptions(command));
       process.stdout.write(renderStart(result));
       return;
     }

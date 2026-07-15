@@ -118,6 +118,160 @@ test("start missing <KEY> falls back to usage", () => {
   assert.strictEqual(result.kind, "usage");
 });
 
+test("start uppercases a lowercase key before use (D3)", () => {
+  const result = parseArgv(["start", "mca-101", "--workspace-root", "/work"]);
+  assert.strictEqual(result.kind, "start");
+  assert.strictEqual((result as { key: string }).key, "MCA-101");
+});
+
+test("start --local with all flags parses the start-local variant", () => {
+  const result = parseArgv([
+    "start",
+    "--local",
+    "--vertical",
+    "EC",
+    "--title",
+    "Banner principal",
+    "--workspace-root",
+    "/work",
+    "--due",
+    "2026-08-15",
+    "--templates-root",
+    "/tpl",
+    "--blank",
+  ]);
+  assert.deepStrictEqual(result, {
+    kind: "start-local",
+    vertical: "EC",
+    title: "Banner principal",
+    due: "2026-08-15",
+    workspaceRoot: "/work",
+    templatesRoot: "/tpl",
+    blank: true,
+  });
+});
+
+test("start --local without optional flags defaults due/templatesRoot/blank", () => {
+  const result = parseArgv([
+    "start",
+    "--local",
+    "--vertical",
+    "EC",
+    "--title",
+    "Banner principal",
+    "--workspace-root",
+    "/work",
+  ]);
+  assert.deepStrictEqual(result, {
+    kind: "start-local",
+    vertical: "EC",
+    title: "Banner principal",
+    due: undefined,
+    workspaceRoot: "/work",
+    templatesRoot: undefined,
+    blank: false,
+  });
+});
+
+test("start --local with a positional <KEY> falls back to usage (D1)", () => {
+  const result = parseArgv([
+    "start",
+    "MCA-101",
+    "--local",
+    "--vertical",
+    "EC",
+    "--title",
+    "Banner",
+    "--workspace-root",
+    "/work",
+  ]);
+  assert.strictEqual(result.kind, "usage");
+  assert.match((result as { message: string }).message, /cannot be combined with --local/);
+});
+
+test("start --local missing --title falls back to usage naming the flag", () => {
+  const result = parseArgv(["start", "--local", "--vertical", "EC", "--workspace-root", "/work"]);
+  assert.strictEqual(result.kind, "usage");
+  assert.match((result as { message: string }).message, /--title/);
+});
+
+test("start --local with a whitespace-only --title falls back to usage", () => {
+  const result = parseArgv([
+    "start",
+    "--local",
+    "--vertical",
+    "EC",
+    "--title",
+    "   ",
+    "--workspace-root",
+    "/work",
+  ]);
+  assert.strictEqual(result.kind, "usage");
+  assert.match((result as { message: string }).message, /--title/);
+});
+
+test("start --local missing --vertical falls back to usage naming the flag", () => {
+  const result = parseArgv(["start", "--local", "--title", "Banner", "--workspace-root", "/work"]);
+  assert.strictEqual(result.kind, "usage");
+  assert.match((result as { message: string }).message, /--vertical/);
+});
+
+test("start --local with an empty --vertical falls back to usage (D1)", () => {
+  const result = parseArgv([
+    "start",
+    "--local",
+    "--vertical",
+    "",
+    "--title",
+    "Banner",
+    "--workspace-root",
+    "/work",
+  ]);
+  assert.strictEqual(result.kind, "usage");
+  assert.match((result as { message: string }).message, /--vertical/);
+});
+
+test("start --local missing --workspace-root falls back to usage", () => {
+  const result = parseArgv(["start", "--local", "--vertical", "EC", "--title", "Banner"]);
+  assert.strictEqual(result.kind, "usage");
+  assert.match((result as { message: string }).message, /--workspace-root/);
+});
+
+test("start --local with an invalid --due fails loud naming the flag (amended D11)", () => {
+  const result = parseArgv([
+    "start",
+    "--local",
+    "--vertical",
+    "EC",
+    "--title",
+    "Banner",
+    "--workspace-root",
+    "/work",
+    "--due",
+    "15/08/2026",
+  ]);
+  assert.strictEqual(result.kind, "usage");
+  assert.match((result as { message: string }).message, /Invalid --due value "15\/08\/2026"/);
+  assert.match((result as { message: string }).message, /ISO date \(YYYY-MM-DD\)/);
+});
+
+test("start --local with a non-calendar --due fails loud (amended D11)", () => {
+  const result = parseArgv([
+    "start",
+    "--local",
+    "--vertical",
+    "EC",
+    "--title",
+    "Banner",
+    "--workspace-root",
+    "/work",
+    "--due",
+    "2026-02-30",
+  ]);
+  assert.strictEqual(result.kind, "usage");
+  assert.match((result as { message: string }).message, /Invalid --due value/);
+});
+
 test("start missing --workspace-root falls back to usage", () => {
   const result = parseArgv(["start", "MCA-101"]);
   assert.strictEqual(result.kind, "usage");

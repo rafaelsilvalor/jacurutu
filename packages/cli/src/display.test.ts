@@ -117,6 +117,7 @@ test("start with a template names folder, editable dir, and the applied template
     folderPath: "/work/AVULSAS/EC/2026-06/MCA-101_banner",
     editablePath: "/work/AVULSAS/EC/2026-06/MCA-101_banner/editaveis",
     copiedFile: "/work/AVULSAS/EC/2026-06/MCA-101_banner/editaveis/MCA-101_banner.psd",
+    localKey: null,
   };
   const out = renderStart(result);
   assert.ok(out.endsWith("\n"));
@@ -129,11 +130,24 @@ test("start with a template names folder, editable dir, and the applied template
   );
 });
 
+test("start with a local key prepends the Local key line (D12)", () => {
+  const result: StartRunResult = {
+    folderPath: "/work/AVULSAS/EC/2026-07/RAF-1_banner",
+    editablePath: "/work/AVULSAS/EC/2026-07/RAF-1_banner/editaveis",
+    copiedFile: null,
+    localKey: "RAF-1",
+  };
+  const lines = renderStart(result).trimEnd().split("\n");
+  assert.strictEqual(lines[0], "Local key: RAF-1");
+  assert.strictEqual(lines[1], "Created /work/AVULSAS/EC/2026-07/RAF-1_banner");
+});
+
 test("start on the --blank path states no template was applied", () => {
   const result: StartRunResult = {
     folderPath: "/work/AVULSAS/EC/2026-06/MCA-101_banner",
     editablePath: "/work/AVULSAS/EC/2026-06/MCA-101_banner/editaveis",
     copiedFile: null,
+    localKey: null,
   };
   const out = renderStart(result);
   assert.ok(out.endsWith("\n"));
