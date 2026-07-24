@@ -2,7 +2,7 @@
 
 > **Provenance note.** The original artifact was authored at session close
 > but never reached the repository (delivered to the chat output area,
-> lost before commit). Reconstructed on 2026-07-15 from the session's
+> lost before commit). Reconstructed on 2026-07-23 from the session's
 > chat history; sections marked verbatim were recovered word-for-word.
 > Both 2026-07-14 recaps reference this file by name.
 
