@@ -199,6 +199,12 @@ Required. For each commit:
 4. Show the audit report in chat.
 5. Show `git status` and `git diff --stat`.
 6. Wait for explicit user approval before running `git commit`.
+7. After `git commit` succeeds, run `git log --format=%B -1` and paste its
+   output verbatim in chat — this is the **evidence-close** of the commit.
+   The Pause is closed only when the pasted output is confirmed by the
+   user against the approved message. An assertion that the commit was
+   made ("committed as approved") does not close the Pause; only the
+   pasted output does.
 
 Do not put the audit report in the commit message body — it is chat-only.
 
@@ -206,6 +212,30 @@ If any audit check returns FAIL, do not auto-correct. Report the FAIL and let
 the user decide whether to amend the subject, unstage files, or proceed
 knowing the cause. If Check 3 (imperative mood) returns STOP because the verb
 is unclassified, halt and wait for user instruction.
+
+### Evidence transport and Pause precondition
+
+Three mechanical rules govern every piece of evidence this file requires —
+evidence-closes (Pause 3 step 7), guard outputs, verification transcripts:
+
+- **Final-message rule.** Evidence goes in the turn's **final message
+  block**, never in an intermediate block between tool calls. Intermediate
+  blocks do not reliably reach the chat; evidence emitted there is lost in
+  transport and the Pause stays open. If tools must run after the evidence
+  is produced, re-paste the evidence at the end of the turn.
+- **Single-block packaging.** Every Pause presentation (marker,
+  artifact, status, diff --stat, proposed message, audit report) and
+  every evidence-close paste is emitted as ONE fenced code block, so
+  the owner can copy it whole, in one click, into the mentor chat.
+  Prose outside the block is allowed only before the marker or after
+  the block ends.
+- **No-debt precondition.** No new Pause opens while a prior
+  evidence-close is outstanding. If evidence debt exists, settle it first
+  — paste the missing output verbatim in a final message block and get it
+  confirmed — before emitting the next Pause marker or starting the next
+  Edit. Root cause and rationale: the 036 run
+  (`docs/sessions/2026-07-14-executor-036-keyless-start.md`, Process
+  notes).
 
 ## Hard rules
 

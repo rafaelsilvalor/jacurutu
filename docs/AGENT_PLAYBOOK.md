@@ -78,6 +78,8 @@ What you're checking: are there *only* the files you expected? Does the message 
 
 > **Lesson #6 — Pause 3 catches more bugs than Pause 1.** Plans look fine on paper. The diff is reality. Force yourself to actually open every file in the diff, not just `git diff --stat`. The five-minute review at Pause 3 is the highest-ROI activity in your entire workflow.
 
+> **Lesson #15 — A commit closes on evidence, not on assertion.** Four evidence-close lapses in the 036 run shared one root cause: evidence was pasted in intermediate blocks between tool calls, which do not reliably reach the chat — a transport failure, not protocol negligence. The executor protocol now codifies the Pause 3 evidence-close step (`git log --format=%B -1` pasted verbatim, confirmed against the approved message) plus three mechanical transport rules: the final-message rule, single-block packaging, and the no-debt precondition (no new Pause while an evidence-close is outstanding). The manual version of the precondition is what kept the 036 run recoverable — debt was settled before the run advanced. Numbering note: Lessons are numbered by discovery order, not position; #15 lives here because its subject is Pause 3.
+
 ### 2.2 Five signals the agent is drifting
 
 Drift is when the agent stops working on what you asked and starts working on something adjacent. Five recognizable patterns:
