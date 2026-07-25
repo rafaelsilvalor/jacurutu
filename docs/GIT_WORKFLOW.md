@@ -15,6 +15,8 @@
 
 **G-R5 — `git push` requires explicit user authorization.** Agents may commit freely; pushing is the user's call, every time. Mirrors `CLAUDE.md` R17.
 
+> **Note on the fused-model push policy (Orchestrator sessions, `docs/AGENT_PLAYBOOK.md` chapter 6):** push and PR opening are allowed under R17's letter — on explicit **per-branch** owner instruction only; never `main`, never `--force`. The Claude Code permission prompt is a second layer on top of that instruction, not a substitute for it: plain "Accept" / "Allow once" only. "Accept and auto mode" and "Always allow" are forbidden in Orchestrator sessions.
+
 **G-R6 — Never rewrite pushed history.** No `push --force` on `main`. No `rebase` on commits already pushed. Roll forward with `git revert` instead.
 
 **G-R7 — `main` is integrated only via pull request.** Direct push to `main` is blocked at the GitHub level (see "Branch Protection" below). Local push to `main` is also forbidden by convention.
@@ -69,6 +71,10 @@ experiment/lit-html-renderer
 ```
 
 One in-flight branch at a time when possible. If you need to context-switch, commit or stash first; long-lived parallel branches drift hard.
+
+### `claude/*` scaffolding branches
+
+The Claude Code desktop harness creates a per-worktree branch prefixed `claude/` for each session. These branches are **session scaffolding, not work branches**: they sit outside R11/G-R2 (the prefix is harness-imposed, not a Conventional Commit type), carry **zero commits**, are **never PR targets**, and are cleaned up post-session. The real work branch is R11/G-R2-conformant and is created **inside the session** from a verified base SHA, with explicit owner approval (see the G-R5 note above and `docs/AGENT_PLAYBOOK.md` chapter 6).
 
 ## Pull Request workflow
 
