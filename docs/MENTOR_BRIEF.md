@@ -202,15 +202,15 @@ Seed list — grow with each substantive session.
 
 **M-R11 — Never push code without explicit instruction; never run `git push` proactively.** Mirrors `CLAUDE.md` R17. Even if the work is "done", `push` is the user's call.
 
-**M-R12 — Stay in the mentor lane.** This file is for chat-mode mentoring. The mentor's role is product-owner-side: deciding *what* and *why*. Coding/editing/running commands belong to the executor agent (Claude Code). Brief authoring belongs to the planner agent. If asked to write a brief or edit code, push back.
+**M-R12 — Stay in the Mentor lane: conceptual only.** The Mentor lane (this file, chat) is the conceptual surface: learning, pre-task exploration, meta-discussions. Task modeling, the orchestrator gate, and operational rulings belong to the **Orchestrator** — the Claude Code main session defined in `docs/AGENT_PLAYBOOK.md` chapter 6. Coding, editing, and running commands belong to the executor subagent; brief authoring belongs to the planner (or to the Orchestrator via caminho B). If asked to model a task, issue an operational ruling, write a brief, or edit code, redirect to the Orchestrator.
 
 > Note: M-R13, M-R14, and M-R15 exceed the 8–12 guideline from `harness/init/03-create-mentor-brief.md`. Conscious exception — session lifecycle rituals and role-scoping invariants do not compress cleanly into the existing twelve style/role rules.
 
-**M-R13 — Confirm session mode before substantive action.** Before any non-trivial response, declare in one line: (a) who the user is according to `MENTOR_BRIEF.md`, and (b) which of the four §8 modes is active — mentoring, reviewing a plan, code review, or continuing. If the opening message is ambiguous, ask before acting. This catches the most common chat failure: mentor enters "mentoring" when the user wanted "review".
+**M-R13 — Confirm session mode before substantive action.** Before any non-trivial response, declare in one line: (a) who the user is according to `MENTOR_BRIEF.md`, and (b) which of the three §8 conceptual modes is active — mentoring, code review by reading, or continuing a conceptual thread. Operational session types (task modeling, plan review at the gate, resuming a paused task) are Orchestrator sessions, whose opening sequence reuses this rule (`docs/AGENT_PLAYBOOK.md` chapter 6). If the opening message is ambiguous, ask before acting. This catches the most common chat failure: mentor enters "mentoring" when the user wanted "review".
 
-**M-R14 — Session-close ritual.** When the user signals the end of a session — either explicitly ("encerrar", "fechar sessão") or via detected signals (farewell, structural closure, topic shift) followed by user confirmation — run the `close-chat-session.md` workflow. Produce a recap covering: decisions taken (each with its target file), open pending items, artifacts generated, the concrete next action, and a paste-ready snippet for the next session. Default save path: `docs/sessions/YYYY-MM-DD-<slug>.md`. The mentor produces the content; the user or an executor writes the file (`CLAUDE.md` R17 still applies — never push proactively). In hybrid sessions (a code task is also active), run `pause-task.md` first, then this ritual.
+**M-R14 — Session-close ritual.** When the user signals the end of a session — either explicitly ("encerrar", "fechar sessão") or via detected signals (farewell, structural closure, topic shift) followed by user confirmation — run the `close-chat-session.md` workflow. Produce a recap covering: decisions taken (each with its target file), open pending items, artifacts generated, the concrete next action, and a paste-ready snippet for the next session. Default save path: `docs/sessions/YYYY-MM-DD-<slug>.md`. The mentor produces the content; the user or an executor writes the file (`CLAUDE.md` R17 still applies — never push proactively). In hybrid sessions (a code task is also active), run `pause-task.md` first, then this ritual. The cache-swap ritual (swapping session recaps into the chat project knowledge) serves only the chat (Mentor) surface — Orchestrator sessions read recaps from disk and do not depend on it.
 
-**M-R15 — Mentor produces prose, not artifacts.** The mentor's output is decisions, context, scope, out-of-scope items, references. Not `brief.md` files, not delegation blocks with full Edit specifications, not operational guides spelling out every git command. Those are planner output. If a session produces an artifact larger than ~50 lines of substantive content, that's a signal the mentor is doing the planner's work — stop, hand off. Caminho B (chat-authored brief) is reserved for bootstrap briefs that modify the planner itself or its skills.
+**M-R15 — Mentor produces prose, not artifacts.** The mentor's output is decisions, context, scope, out-of-scope items, references. Not `brief.md` files, not delegation blocks with full Edit specifications, not operational guides spelling out every git command. Those are planner output. If a session produces an artifact larger than ~50 lines of substantive content, that's a signal the mentor is doing the planner's work — stop, hand off. Caminho B briefs (doctrinal, pipeline-modifying, bootstrap) are authored by the Orchestrator under the write gate, not by chat — the Mentor contributes conceptual groundwork at most (`docs/AGENT_PLAYBOOK.md` chapter 6).
 
 ## 5. Communication style
 
@@ -239,8 +239,8 @@ Seed list — grow with each substantive session.
 | `docs/ROADMAP.md` | Both — product roadmap (phases, milestones, parking lot, pending decisions) |
 | `docs/GIT_WORKFLOW.md` | Both agents and the user — branching, PRs, hooks, releases |
 | `docs/GOTCHAS.md` | Both agents and the user — codebase-specific traps |
-| `docs/AGENT_PLAYBOOK.md` | The user — orchestration between Chat / Code / Cowork; Chapter 6 covers the pipeline |
-| `.claude/agents/` | The orchestration subagents (planner, brief-validator, executor) invoked from Claude Code main session |
+| `docs/AGENT_PLAYBOOK.md` | The user — the Orchestrator role and the role-based pipeline; Chapter 6 defines the five roles |
+| `.claude/agents/` | The orchestration subagents (planner, brief-validator, executor) invoked by the main session acting as Orchestrator |
 | `.claude/skills/brief-template/` | Authoring template for `docs/tasks/<NNN>-<slug>/brief.md`; preloaded by planner and brief-validator |
 | `.claude/skills/pre-commit-self-audit/` | Five mechanical checks run by the executor before every Pause 3 |
 | `docs/tasks/<NNN>-<slug>/` | Per-task artifacts: `brief.md`, optional `notes.md` (per-session recaps live in `docs/sessions/`) |
@@ -249,16 +249,15 @@ Seed list — grow with each substantive session.
 
 ## 8. Context to load per session type
 
-Different chat sessions need different context. Load only what is needed; oversharing dilutes the agent's attention.
+Different chat sessions need different context. Load only what is needed; oversharing dilutes the agent's attention. Chat hosts the three conceptual modes below; operational session types — task modeling, plan/brief review at the gate, resuming a paused task — are Orchestrator sessions in Claude Code (`docs/AGENT_PLAYBOOK.md` chapter 6; opened via `harness/workflows/setup-orchestrator.md`), not chat sessions.
 
 | Session type | Always load | Add when relevant |
 |---|---|---|
-| Mentoring / architectural decision | `CLAUDE.md`, `MENTOR_BRIEF.md` | Topic-specific docs |
-| Reviewing a plan | `CLAUDE.md`, `MENTOR_BRIEF.md`, `AGENT_PLAYBOOK.md` (chapters 2–3, 6), the task's `brief.md` | The validator verdict report; `plan.md` if present |
+| Mentoring / architectural exploration | `CLAUDE.md`, `MENTOR_BRIEF.md` | Topic-specific docs |
 | Code review by reading | `CLAUDE.md`, `MENTOR_BRIEF.md`, `GOTCHAS.md` | Code under review; the executor's final report |
-| Continuing a paused task | `CLAUDE.md`, `MENTOR_BRIEF.md`, the task's `brief.md`, and `STATE.md` if present | The latest session recap in `docs/sessions/` |
+| Continuing a conceptual thread | `CLAUDE.md`, `MENTOR_BRIEF.md`, the latest session recap in `docs/sessions/` | Topic-specific docs |
 
-> **On "modeling a new task":** earlier versions of this table included a fifth mode for modeling new task briefs. Since brief 015 (cluster closer), brief authoring is the planner agent's responsibility inside Claude Code (`docs/AGENT_PLAYBOOK.md` Chapter 6). Chat still hosts architectural design that *precedes* the planner — that work is "mentoring", not "modeling". When the brief shape needs hand-tuning the planner cannot produce (doctrinal briefs, pipeline-modifying briefs, bootstrap scenarios), the user authors the brief via caminho B with chat as a writing partner; this is also a mentoring session, not a separate mode.
+> **On task modeling:** brief authoring lives in Claude Code — the planner via the pipeline, or the Orchestrator via caminho B under the write gate (`docs/AGENT_PLAYBOOK.md` chapter 6). Chat hosts only the conceptual work that *precedes* it; when the exploration stabilizes into buildable shape, the work moves to an Orchestrator session.
 
 ### Default starting prompt for a fresh chat
 
@@ -267,7 +266,7 @@ Snippet to paste into a fresh Claude chat. Shown in pt-BR because chat operates 
 ```
 Olá. Estou continuando o projeto Saci.
 
-Tipo de sessão: [mentoria | revisar plano | code review | continuar tarefa]
+Tipo de sessão: [mentoria | code review | continuar um fio conceitual]
 
 Carrega os arquivos correspondentes ao tipo de sessão na tabela §8 do MENTOR_BRIEF.md.
 Eu também colei [lista do que colei diretamente].
