@@ -18,6 +18,8 @@ Templates copiáveis pra cenários recorrentes de orquestração.
   claude.ai
 - **`setup-cowork.md`** — iniciar sessão de trabalho em Cowork
 - **`setup-code.md`** — iniciar sessão de código em Claude Code
+- **`setup-orchestrator.md`** — iniciar sessão Orchestrator (main
+  session do modelo fundido) em Claude Code, Plan mode
 
 ### Continuidade
 

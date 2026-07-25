@@ -190,6 +190,15 @@ staging for Pause 3.
 
 ### Pause 3 — Before every commit
 
+**Green boundary (precondition).** Before presenting every Pause 3, run the
+monorepo build (`npx tsc -b`) and the full test suite (`npm test`), and
+include both results in the Pause 3 single-block presentation. Commit only
+on green. This rule is unconditional — there is no docs-only exemption
+(precedent: the 038 Pause 3 ruling). Rationale: worktree sessions may not
+wire `core.hooksPath`, so the G-R8 pre-commit hook may never fire; this
+rule is the protocol-level guarantee — complementary to G-R8, not a
+substitute.
+
 Required. For each commit:
 
 1. Stage the files belonging to the current Edit: `git add <files>`.

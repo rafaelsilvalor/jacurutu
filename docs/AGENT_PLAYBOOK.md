@@ -229,18 +229,36 @@ This is **your** operating manual. It is not the agent's instruction set — tha
 
 Read this file end-to-end every 4–6 weeks until lessons #1–#10 are reflexes. After that, scan the lesson titles only — they will trigger the right behavior on their own.
 
-## Chapter 6 — The orchestration pipeline (planner → brief-validator → executor)
+## Chapter 6 — The roles and the orchestration pipeline (Orchestrator → planner → brief-validator → executor)
 
-The orchestration pipeline runs inside Claude Code. The main session is the orchestrator; three subagents handle the layers. Chat (claude.ai) stays out of this loop entirely — chat is the architectural surface (mentoring, design decisions, recaps).
+The pipeline runs inside Claude Code under a role-based separation: roles, not surfaces, define who does what. Chat (claude.ai) is the conceptual surface — it hosts the Mentor role and stays out of the operational loop entirely. This chapter defines the five roles, then describes how to drive the pipeline and what to do when it surfaces a problem. The role model was ratified in the fused-model design session (`docs/sessions/2026-07-25-mentor-fused-model-design.md`) and piloted end to end on task 038.
 
-This chapter describes how to drive the pipeline and what to do when it surfaces a problem.
+### The five roles
+
+| Role | Where | What it does |
+|---|---|---|
+| **Mentor** | Chat (claude.ai) — the conceptual surface | Learning, pre-task exploration, meta-discussions. No gate, no task modeling, no operational rulings. |
+| **Orchestrator** | Claude Code — the main session | Task modeling, decision closure with the owner, delegation to subagents, the orchestrator gate, the write gate, session close-out. |
+| **planner** | Claude Code — subagent | Authors briefs from delegation prompts. |
+| **brief-validator** | Claude Code — subagent | Audits briefs mechanically; emits APPROVED or REJECTED. |
+| **executor** | Claude Code — subagent | Runs approved briefs — Edits, Pauses, commits. |
+
+### The Orchestrator
+
+The Orchestrator is the main session, not a subagent. Subagents get fresh context per invocation and are non-dialogic; the Orchestrator is a long-form dialogic session with the owner, opened in Plan mode via a harness init prompt (`harness/workflows/setup-orchestrator.md`). Session shape:
+
+- Opens with the M-R13 identity + mode declaration (`docs/MENTOR_BRIEF.md`).
+- Runs one task per session and closes with a recap (see "Recap policy" below).
+- Never performs a subagent's work inline. If a subagent invocation fails, the session fails loud and reports; it does not absorb the work.
+
+Write policy: Plan mode is the session default. The Orchestrator writes ONLY under `docs/`, per artifact, via the write gate — show the full content → owner approves → write → read back from disk → confirm byte-match. Source code exists only behind `@executor`; the Orchestrator never writes it.
 
 ### When to use the pipeline vs. caminho B
 
 Two entry points coexist:
 
-- **Pipeline (default for new tasks):** the main session invokes the planner with a task description; planner writes the brief, validator audits it, executor runs it. Use when the task started from a chat-side architectural discussion or a clear single-paragraph delegation.
-- **Caminho B (fallback):** you author the brief manually (typically using the chat-mentor as a writing partner), pre-save it to `docs/tasks/<NNN>-<slug>/brief.md`, and invoke the executor directly. Use when the brief shape needs hand-tuning chat cannot guess (large structural edits, doctrinal briefs, bootstrap scenarios where the pipeline itself is being modified).
+- **Pipeline (default for new tasks):** the Orchestrator invokes the planner with a task description; planner writes the brief, validator audits it, executor runs it. Use when the task started from a conceptual-surface discussion (Mentor) or a clear single-paragraph delegation.
+- **Caminho B (fallback):** the brief is authored without the planner — under the fused model, the Orchestrator authors it via the write gate, with you closing decisions one at a time — pre-saved to `docs/tasks/<NNN>-<slug>/brief.md`, and the executor is invoked directly. Use when the brief shape needs hand-tuning a delegation prompt cannot carry (large structural edits, doctrinal briefs, bootstrap scenarios where the pipeline itself is being modified).
 
 The pipeline and caminho B are not mutually exclusive: caminho B is what you reach for when the pipeline would loop on its own creation, or when the task carries decisions that didn't fit a delegation prompt.
 
@@ -248,22 +266,22 @@ The pipeline and caminho B are not mutually exclusive: caminho B is what you rea
 
 ### Invocation patterns
 
-**Pipeline invocation (in the Claude Code main session):**
+**Pipeline invocation (in the Orchestrator session):**
 
 ```
 Open a new task: <task description in 1-2 paragraphs>.
 Invoke @planner.
 ```
 
-The main session then:
+The Orchestrator then:
 1. Invokes planner with the description.
 2. Receives planner's final message (brief authored, branch, commit SHA).
 3. Invokes `@brief-validator` with the brief path and branch.
 4. Receives the validator's verdict report.
-5. If `Verdict: APPROVED` — surfaces the brief, the validator's verdict report, and the brief commit's diff, then halts at the mentor gate (see "The mentor gate" below). The executor is invoked only after you give an explicit go.
+5. If `Verdict: APPROVED` — surfaces the brief, the validator's verdict report, and the brief commit's diff, then halts at the orchestrator gate (see "The orchestrator gate" below). The executor is invoked only after you give an explicit go.
 6. If `Verdict: REJECTED` — surfaces the report to you. See "Verdict handling" below.
 
-**Caminho B invocation (in the Claude Code main session):**
+**Caminho B invocation (in the Orchestrator session):**
 
 ```
 Execute brief at docs/tasks/<NNN>-<slug>/brief.md on branch <branch>.
@@ -274,48 +292,82 @@ You skip planner and validator. The executor runs the brief as-is.
 
 ### Verdict handling
 
-When the validator emits `Verdict: APPROVED`, the main session proceeds to executor invocation. You see the report but no action is required from you.
+When the validator emits `Verdict: APPROVED`, the Orchestrator surfaces the result and halts at the orchestrator gate (below).
 
-When the validator emits `Verdict: REJECTED`, the main session surfaces the report and waits. The report names each failed check, the violated rule with a GitHub deep-link, the observed vs. expected text, and the line in the brief where the failure was detected.
+When the validator emits `Verdict: REJECTED`, the Orchestrator surfaces the report and waits. The report names each failed check, the violated rule with a GitHub deep-link, the observed vs. expected text, and the line in the brief where the failure was detected.
 
 You then choose one of three responses:
 
-1. **Return to chat (claude.ai) to redesign.** The cleanest path when the FAIL reveals an architectural gap — the brief asks for something the validator's checks correctly flag as out of convention. Take the validator report to the mentor; the mentor and you redesign the brief; pre-save the new brief via caminho B; re-invoke validator and executor.
+1. **Redesign with the Orchestrator.** The cleanest path when the FAIL reveals a design gap — the brief asks for something the validator's checks correctly flag as out of convention. Re-open the affected decisions in the Orchestrator session (conceptual exploration, if any, goes to the Mentor on the conceptual surface); the Orchestrator authors the corrected brief via caminho B; re-invoke validator and executor.
 2. **Fix directly on the branch.** Use when the FAIL is a small mechanical slip the planner introduced (subject overflow, missing section header, branch type mismatch). Edit the brief on disk; re-invoke `@brief-validator` to re-audit. If APPROVED, proceed to executor.
 3. **Override the validator.** Use when you know the FAIL is correct under unusual circumstances the validator can't see (e.g. a brief that intentionally violates a convention to introduce its replacement — the cluster bootstrap case). Skip the validator and invoke `@executor` directly. Document the override in the brief's "Plan required justification" or a dedicated decision block; the mentor session recap should also capture the override.
 
 > **Lesson #12 — REJECTED is a decision point, not a failure state.** The validator's job is to flag mechanical drift; your job is to decide whether the drift is the bug or the convention is the bug. Three responses, one chosen per case, none default. Auto-loop back to planner was rejected at cluster design (D4) precisely because the user-judgment step protects against silent validator errors.
 
-### The mentor gate (APPROVED → executor)
+### The orchestrator gate (APPROVED → executor)
 
-A `Verdict: APPROVED` does not auto-advance to the executor. The orchestrator halts and surfaces three things to you: the brief, the validator's verdict report, and the brief commit's diff. You review and give an explicit go before the executor is invoked.
+A `Verdict: APPROVED` does not auto-advance to the executor. The Orchestrator halts at the orchestrator gate and surfaces three things to you: the brief, the validator's verdict report, and the brief commit's diff. You review and give an explicit go before the executor is invoked.
 
-This is a semantic checkpoint, not a tool prompt. The orchestrator must not treat Claude Code's per-command permission prompts as the go, and must not proceed on silence — the same Pause semantics the executor obeys during a run apply here at the orchestration layer.
+This is a semantic checkpoint, not a tool prompt. The Orchestrator must not treat Claude Code's per-command permission prompts as the go, and must not proceed on silence — the same Pause semantics the executor obeys during a run apply here at the orchestration layer.
 
 The gate is yours, not the validator's. The validator audits the brief mechanically against the brief-template conventions; the gate is where you judge whether the brief is the right thing to build — scope, grounding, and whether a closed decision drifted in translation between the delegation and the brief. A brief can be mechanically clean and still wrong; the gate is the catch the validator structurally cannot be.
 
-If you reject at the gate, route through the same three responses as a `REJECTED` verdict (return to chat, fix on branch, or override). The gate and the verdict share one rejection protocol.
+If you reject at the orchestrator gate, route through the same three responses as a `REJECTED` verdict (redesign with the Orchestrator, fix on branch, or override). The gate and the verdict share one rejection protocol.
 
 > **Lesson #14 — The gate is the human's, not the validator's.** APPROVED is the validator clearing mechanical drift; it is not a green light to the executor. Evidenced across sessions 019, 020, 021, 023, and 026: a human review window between validator and executor caught scope and translation slips that a mechanically-clean brief still carried. Auto-advancing past that window is the failure mode this gate closes — the cost of the gate is one review per task; the cost of skipping it is an executor run against the wrong brief.
+
+### Subagent Pause transport (operating knowledge)
+
+This is operating knowledge, not a numbered rule: subagents cannot wait interactively for chat input, so Pause semantics ride a different transport. A Pause under subagent transport is a STOP-and-return — the executor stops, returns with the whole Pause presentation as one fenced block, and the run resumes only when your approval is relayed back as a continuation message. Zero Pauses may be crossed without an explicit relayed go; the semantics are identical to an interactive Pause, only the transport is swapped.
+
+Mid-run owner rulings become files: instead of relaying a ruling as a chat paste, the Orchestrator writes it to `docs/tasks/<NNN>-<slug>/notes.md` (write gate applies). Byte-exact by construction, and a durable record for free.
+
+### Recap policy (three recaps)
+
+Three roles produce session recaps; two produce none:
+
+- **Mentor** (chat sessions): transport unchanged — the recap travels on its own `docs/` branch + PR.
+- **Orchestrator**: decisions, gate outcome, deviations, queue state, next-session snippet. No execution log.
+- **executor**: pure execution log — Edits, Pauses, evidence, commits. No context re-narration.
+- **planner** and **brief-validator**: no recaps. The committed brief and the recorded verdict are their record.
+
+Transport: Orchestrator and executor recaps ride the session PR. Standard sequence: brief → code (executor, Pauses) → recaps (`docs(sessions):` commit on the same branch) → push + PR on owner instruction → owner squash-merge. Consequence: a recap cannot cite its own PR's merge SHA; the NEXT session confirms the merge via P4 / `git log` in its "Consumes" line. The separate docs PR for task sessions is retired, and the `[CONFIRMAR: docs PR]` pendency class dies with it.
+
+### Blindness rules
+
+The agent cannot see the permission layer, and you have low native visibility into session/subagent boundaries. Three rules compensate:
+
+- **Post-write read-back is mandatory.** An owner-approved write returns to the agent as a plain success, indistinguishable from an ungated one — a write is verified only by reading the file back from disk and confirming the content.
+- **Every subagent invocation is announced**: one line before (who is being invoked, for what) and one line after (what came back).
+- **Authority over gating claims is owner-only.** The agent never asserts that a permission prompt did or did not appear; only your observation counts.
+
+### Git operations under the fused model
+
+R17 restated for Orchestrator sessions — the letter of the rule holds; the fused model adds precision:
+
+- Writing a file is not committing it. Each is its own approved step.
+- Branch creation requires explicit owner approval from a verified base SHA.
+- Push and PR opening are allowed only on explicit per-branch owner instruction — never `main`, never `--force`.
+- Permission prompts are a second layer, not a substitute for instruction: plain "Accept" / "Allow once" only. "Accept and auto mode" and "Always allow" are forbidden in Orchestrator sessions — each silently dismantles the prompt layer.
 
 ### When NOT to use the pipeline
 
 - **The task modifies the pipeline itself.** Cluster 013-015 is the canonical example: a brief that creates the validator can't be audited by the validator; a brief that redesigns AGENT_PLAYBOOK's pipeline chapter can't be planned by the agent reading the old chapter. Use caminho B for these.
 - **The task is Category S.** A one-line chat message in the executor session is enough. No brief, no pipeline.
-- **The task is exploratory.** Discovery work where the shape of the output is unclear belongs in chat first (mentoring mode); only after the shape stabilizes does it become a brief.
+- **The task is exploratory.** Discovery work where the shape of the output is unclear belongs on the conceptual surface first (Mentor, in chat); only after the shape stabilizes does it come back to an Orchestrator session as a brief.
 - **Multiple architectural decisions remain open.** The planner produces briefs from delegations, not from incomplete designs. If the delegation prompt would need to say "and decide between X and Y", the work isn't ready for the pipeline yet.
 
-> **Lesson #13 — The pipeline runs on closed decisions.** Open decisions belong in chat. The planner faithfully encodes what you delegate; if the delegation has gaps, the brief has gaps; if the brief has gaps, the executor will either STOP or invent. None of those are good outcomes.
+> **Lesson #13 — The pipeline runs on closed decisions.** Open decisions close before delegation — in the Orchestrator's decision modeling with you, or on the conceptual surface (Mentor) while still exploratory. The planner faithfully encodes what you delegate; if the delegation has gaps, the brief has gaps; if the brief has gaps, the executor will either STOP or invent. None of those are good outcomes.
 
 ### Troubleshooting
 
 | Symptom | Diagnosis | Response |
 |---|---|---|
-| Planner STOPs with "ambiguous input" | Delegation prompt lacked clear Goal | Return to chat; rewrite the delegation into 1-2 imperative sentences |
+| Planner STOPs with "ambiguous input" | Delegation prompt lacked clear Goal | Rework the delegation in the Orchestrator session; rewrite it into 1-2 imperative sentences |
 | Planner STOPs with "NNN resolution conflict" | P4 three-source check disagreed | Manually resolve the slot number; pass it explicitly in the next delegation |
 | Validator REJECTED with FAILs you disagree with | Convention vs. intentional deviation tension | Use override path (option 3 above); document the override |
 | Validator REJECTED with FAILs you didn't anticipate | Planner output drifted from brief-template SKILL | Fix on branch (option 2); re-validate |
-| Executor STOPs at Pause 2 with "file outside scope" | Brief's scope didn't predict a required side-effect | Return to chat; revise scope; re-execute |
+| Executor STOPs at Pause 2 with "file outside scope" | Brief's scope didn't predict a required side-effect | Revise the scope in the Orchestrator session; re-execute |
 | Executor reports pre-commit-self-audit FAIL | Mechanical slip in commit subject or staging | Fix the subject or restage; re-run the audit; commit |
 
 ## Related documents
