@@ -15,9 +15,9 @@ export const DEFAULT_OUT = "payload.json";
 export const USAGE = `Usage:
   saci fetch --jql <string> [--out <path>] [--field-config <path> --project <KEY>]
   saci export --payload <path> --config <path> --profile <name>
-  saci start <KEY> --workspace-root <path> [--templates-root <path>] [--blank]
+  saci start <KEY> --workspace-root <path> [--templates-root <path>] [--blank] [--open]
   saci start --local --vertical <SIGLA> --title <text> --workspace-root <path>
-             [--due <ISO-date>] [--templates-root <path>] [--blank]
+             [--due <ISO-date>] [--templates-root <path>] [--blank] [--open]
   saci --version`;
 
 /**
@@ -29,7 +29,14 @@ export type ParsedCommand =
   | { kind: "version" }
   | { kind: "fetch"; jql: string; out: string; fieldConfig?: string; project?: string }
   | { kind: "export"; payload: string; config: string; profile: string }
-  | { kind: "start"; key: string; workspaceRoot: string; templatesRoot?: string; blank: boolean }
+  | {
+      kind: "start";
+      key: string;
+      workspaceRoot: string;
+      templatesRoot?: string;
+      blank: boolean;
+      open: boolean;
+    }
   | {
       kind: "start-local";
       vertical: string;
@@ -38,6 +45,7 @@ export type ParsedCommand =
       workspaceRoot: string;
       templatesRoot?: string;
       blank: boolean;
+      open: boolean;
     }
   | { kind: "usage"; message: string };
 
@@ -58,6 +66,7 @@ const CLI_OPTIONS = {
   "workspace-root": { type: "string" },
   "templates-root": { type: "string" },
   blank: { type: "boolean" },
+  open: { type: "boolean" },
   local: { type: "boolean" },
   vertical: { type: "string" },
   title: { type: "string" },
@@ -77,6 +86,7 @@ type CliValues = {
   "workspace-root"?: string;
   "templates-root"?: string;
   blank?: boolean;
+  open?: boolean;
   local?: boolean;
   vertical?: string;
   title?: string;
@@ -111,6 +121,7 @@ function routeStart(values: CliValues, positionals: string[]): ParsedCommand {
     workspaceRoot,
     templatesRoot: values["templates-root"],
     blank: values.blank ?? false,
+    open: values.open ?? false,
   };
 }
 
@@ -166,6 +177,7 @@ function routeStartLocal(values: CliValues, positionals: string[]): ParsedComman
     workspaceRoot,
     templatesRoot: values["templates-root"],
     blank: values.blank ?? false,
+    open: values.open ?? false,
   };
 }
 

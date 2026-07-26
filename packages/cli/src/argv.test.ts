@@ -79,13 +79,14 @@ test("export with all three flags parses payload, config, profile", () => {
 test("start with <KEY> and --workspace-root parses key, root, and defaults", () => {
   const result = parseArgv(["start", "MCA-101", "--workspace-root", "/work"]);
   // No --templates-root: forwarded undefined (P1 default resolved in cli.ts).
-  // No --blank: defaults to false.
+  // No --blank / --open: default to false (040 D2: opt-in, byte-identical default).
   assert.deepStrictEqual(result, {
     kind: "start",
     key: "MCA-101",
     workspaceRoot: "/work",
     templatesRoot: undefined,
     blank: false,
+    open: false,
   });
 });
 
@@ -110,7 +111,14 @@ test("start with --templates-root forwards it unresolved", () => {
     workspaceRoot: "/work",
     templatesRoot: "/tpl",
     blank: false,
+    open: false,
   });
+});
+
+test("start with --open sets open true (040 D2)", () => {
+  const result = parseArgv(["start", "MCA-101", "--workspace-root", "/work", "--open"]);
+  assert.strictEqual(result.kind, "start");
+  assert.strictEqual((result as { open: boolean }).open, true);
 });
 
 test("start missing <KEY> falls back to usage", () => {
@@ -148,7 +156,24 @@ test("start --local with all flags parses the start-local variant", () => {
     workspaceRoot: "/work",
     templatesRoot: "/tpl",
     blank: true,
+    open: false,
   });
+});
+
+test("start --local with --open sets open true (040 D2)", () => {
+  const result = parseArgv([
+    "start",
+    "--local",
+    "--vertical",
+    "EC",
+    "--title",
+    "Banner principal",
+    "--workspace-root",
+    "/work",
+    "--open",
+  ]);
+  assert.strictEqual(result.kind, "start-local");
+  assert.strictEqual((result as { open: boolean }).open, true);
 });
 
 test("start --local without optional flags defaults due/templatesRoot/blank", () => {
@@ -170,6 +195,7 @@ test("start --local without optional flags defaults due/templatesRoot/blank", ()
     workspaceRoot: "/work",
     templatesRoot: undefined,
     blank: false,
+    open: false,
   });
 });
 

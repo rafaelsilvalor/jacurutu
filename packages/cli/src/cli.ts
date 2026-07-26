@@ -15,6 +15,7 @@ import { JiraGateway, type ResolvedFieldMapping } from "@saci/adapter-jira";
 import { parseArgv, type ParsedCommand } from "./argv.js";
 import { loadFieldMapping } from "./field-config.js";
 import { IDENTITY_DIR_NAME, IDENTITY_FILENAME } from "./identity.js";
+import { openPath } from "./open-path.js";
 import { runFetch, type MakeGateway } from "./run-fetch.js";
 import { runExport } from "./run-export.js";
 import { runStart, runStartLocal, type StartLocalOptions } from "./run-start.js";
@@ -128,6 +129,12 @@ async function runCommand(command: ParsedCommand): Promise<void> {
         command.blank,
       );
       process.stdout.write(renderStart(result));
+      if (command.open) {
+        // D3: template path opens the copied editable; --blank opens editaveis/.
+        // Only reached after a fully successful scaffold — a throw above
+        // bypasses this into main()'s catch (D5).
+        openPath(result.copiedFile ?? result.editablePath);
+      }
       return;
     }
     case "start-local": {
@@ -136,6 +143,10 @@ async function runCommand(command: ParsedCommand): Promise<void> {
       // state consulted.
       const result = await runStartLocal(toStartLocalOptions(command));
       process.stdout.write(renderStart(result));
+      if (command.open) {
+        // D3, same success-only gate as the Jira-born route above.
+        openPath(result.copiedFile ?? result.editablePath);
+      }
       return;
     }
     // version/usage are handled synchronously in main() before this runs.
