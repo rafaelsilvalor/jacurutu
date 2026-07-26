@@ -2,13 +2,15 @@
 // No I/O, no clock, no network, no Jira field-id literal (R25, D1).
 // Consumes already-resolved semantic fields (D5), never the raw Jira shape.
 
-import { normalizeText, parseVertical, parseEntrega } from "./transform.js";
+import { sanitizeSlug } from "./file-name.js";
+import { parseVertical, parseEntrega } from "./transform.js";
+
+// SLUG_MAX_LEN moved to file-name.ts with the sanitizer (042 D6); re-exported
+// here so this module's public surface is unchanged for existing importers.
+export { SLUG_MAX_LEN } from "./file-name.js";
 
 /** Grouping bucket when a task has no campaign (alpha: always this). */
 export const AVULSAS_BUCKET = "AVULSAS";
-
-/** Leaf slug length cap (sanitized summary). */
-export const SLUG_MAX_LEN = 60;
 
 /** Month segment format: year-month, time discarded. */
 export const MONTH_FORMAT = "YYYY-MM";
@@ -122,23 +124,4 @@ function monthFromIso(iso: string | null): string | null {
 function deriveLeaf(key: string, summary: string): string {
   const slug = sanitizeSlug(summary);
   return slug ? `${key}_${slug}` : key;
-}
-
-/**
- * Sanitize a summary into a slug (D4): lowercase, strip diacritics, replace any
- * char outside `[a-z0-9-]` with a hyphen, collapse repeats, trim ends, cap length.
- */
-function sanitizeSlug(summary: string): string {
-  // Reuse core's normalizeText (lowercase + diacritic strip) rather than
-  // re-implementing D4 steps 1-2 here (anti-A3). It uses NFKD, a superset of
-  // D4's NFD: both drop the combining marks D4 targets, so the choice is a
-  // deliberate reuse, not a divergence.
-  let slug = normalizeText(summary);
-  slug = slug.replace(/[^a-z0-9-]+/g, "-");
-  slug = slug.replace(/-+/g, "-");
-  slug = slug.replace(/^-+|-+$/g, "");
-  if (slug.length > SLUG_MAX_LEN) {
-    slug = slug.slice(0, SLUG_MAX_LEN).replace(/-+$/g, "");
-  }
-  return slug;
 }
