@@ -282,9 +282,20 @@ audits in one pass.
 
 ## Size guidance
 
-- **Category M task:** 80-150 lines of brief.
-- **Category L task:** 200-400 lines of brief.
+The ranges below measure **task substance**: the lines a brief adds beyond
+the template's fixed scaffolding. Scaffolding means the sections a brief
+carries near-verbatim from this template — the "Edit 1 — Verify brief on
+disk" block, the Automated/Structural/Git/Process checks, "Pause points",
+"Plan required justification", "Reference documents (read before starting)",
+and "Expected output (end of session)". Together these amount to a
+**scaffolding allowance of ~100 lines** on top of the substance range.
+Behavior checks and the Commit sequence are substance, not scaffolding.
 
-If the brief exceeds 400 lines, the task is likely XL in disguise — break it
-into smaller briefs. If under 80 lines, the task is likely Category S — no
-brief needed; a chat message is enough.
+- **Category M task:** 80-150 lines of substance (~250 total with full
+  scaffolding).
+- **Category L task:** 200-400 lines of substance (~500 total with full
+  scaffolding).
+
+If substance exceeds 400 lines (~500 total), the task is likely XL in
+disguise — break it into smaller briefs. If substance is under 80 lines, the
+task is likely Category S — no brief needed; a chat message is enough.
