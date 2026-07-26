@@ -24,6 +24,7 @@ import { copyFile, mkdir, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
+  buildEditableStem,
   derivePath,
   serializeManifest,
   TASK_MANIFEST_SCHEMA_VERSION,
@@ -69,6 +70,8 @@ export interface StartLocalOptions {
   due?: string;
   workspaceRoot: string;
   templatesRoot?: string;
+  /** Optional variation label for the editable file name (042 D3); sanitized in core. */
+  variation?: string;
   blank: boolean;
   now?: Date;
 }
@@ -162,9 +165,9 @@ async function scaffoldDirs(leafFolder: string, editablePath: string): Promise<v
   await mkdir(path.join(editablePath, ASSETS_DIR), { recursive: true });
 }
 
-/** P2: copy the template into `editaveis/`, renamed to the leaf stem + the source's extension. */
-async function copyTemplate(source: string, editablePath: string, leaf: string): Promise<string> {
-  const target = path.join(editablePath, `${leaf}${path.extname(source)}`);
+/** Copy the template into `editaveis/`, renamed to the editable stem (042 D2) + the source's extension. */
+async function copyTemplate(source: string, editablePath: string, stem: string): Promise<string> {
+  const target = path.join(editablePath, `${stem}${path.extname(source)}`);
   await copyFile(source, target);
   return target;
 }
@@ -253,11 +256,12 @@ async function executeScaffold(
   keys: ManifestKeys,
   displayKey: string,
   segments: readonly string[],
+  editableStem: string,
   now: Date,
 ): Promise<StartRunResult> {
   await scaffoldDirs(plan.leafFolder, plan.editablePath);
   const copiedFile = plan.templateSource
-    ? await copyTemplate(plan.templateSource, plan.editablePath, plan.leaf)
+    ? await copyTemplate(plan.templateSource, plan.editablePath, editableStem)
     : null;
 
   const manifest = buildManifest(keys, displayKey, segments, plan.leaf, plan.templateSource, now);
@@ -282,6 +286,7 @@ export async function runStart(
   workspaceRoot: string,
   templatesRoot: string | undefined,
   blank: boolean,
+  variation: string | undefined,
   now: Date = new Date(),
 ): Promise<StartRunResult> {
   const gateway = makeGateway(dropLogSink, warningLogSink);
@@ -289,7 +294,15 @@ export async function runStart(
 
   const segments = derivePath(toDerivePathInput(issue));
   const plan = await validateScaffold(segments, workspaceRoot, templatesRoot, blank);
-  return executeScaffold(plan, { jiraKey: issue.key, localKey: null }, issue.key, segments, now);
+  // 042 D2: the copied editable is named from semantic fields, not the leaf
+  // stem — the folder and the file intentionally differ (D5).
+  const stem = buildEditableStem({
+    vertical: segments[1],
+    key: issue.key,
+    summary: issue.summary,
+    variation,
+  });
+  return executeScaffold(plan, { jiraKey: issue.key, localKey: null }, issue.key, segments, stem, now);
 }
 
 /**
@@ -333,5 +346,12 @@ export async function runStartLocal(options: StartLocalOptions): Promise<StartRu
     nextSeq: identity.nextSeq + 1,
   });
 
-  return executeScaffold(plan, { jiraKey: null, localKey }, localKey, segments, now);
+  // 042 D2: same semantic naming as the Jira-born route, keyed off the minted key.
+  const stem = buildEditableStem({
+    vertical: segments[1],
+    key: localKey,
+    summary: options.title,
+    variation: options.variation,
+  });
+  return executeScaffold(plan, { jiraKey: null, localKey }, localKey, segments, stem, now);
 }

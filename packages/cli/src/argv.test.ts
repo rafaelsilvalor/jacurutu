@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert";
 
-import { parseArgv, DEFAULT_OUT } from "./argv.js";
+import { parseArgv, DEFAULT_OUT, USAGE } from "./argv.js";
 
 // All cases drive the PUBLIC surface (`parseArgv`) per D-a6. No I/O: argv is a
 // plain string[] and the parser is pure, so these run with no env/fs/network.
@@ -85,6 +85,7 @@ test("start with <KEY> and --workspace-root parses key, root, and defaults", () 
     key: "MCA-101",
     workspaceRoot: "/work",
     templatesRoot: undefined,
+    variation: undefined,
     blank: false,
     open: false,
   });
@@ -110,9 +111,24 @@ test("start with --templates-root forwards it unresolved", () => {
     key: "MCA-101",
     workspaceRoot: "/work",
     templatesRoot: "/tpl",
+    variation: undefined,
     blank: false,
     open: false,
   });
+});
+
+test("start with --variation carries the raw value (042 D3)", () => {
+  const result = parseArgv([
+    "start",
+    "MCA-101",
+    "--workspace-root",
+    "/work",
+    "--variation",
+    "Carrossel",
+  ]);
+  assert.strictEqual(result.kind, "start");
+  // Raw, not sanitized: the parser is format-agnostic; core sanitizes.
+  assert.strictEqual((result as { variation?: string }).variation, "Carrossel");
 });
 
 test("start with --open sets open true (040 D2)", () => {
@@ -155,9 +171,27 @@ test("start --local with all flags parses the start-local variant", () => {
     due: "2026-08-15",
     workspaceRoot: "/work",
     templatesRoot: "/tpl",
+    variation: undefined,
     blank: true,
     open: false,
   });
+});
+
+test("start --local with --variation carries the raw value (042 D3)", () => {
+  const result = parseArgv([
+    "start",
+    "--local",
+    "--vertical",
+    "EC",
+    "--title",
+    "Banner principal",
+    "--workspace-root",
+    "/work",
+    "--variation",
+    "Stories",
+  ]);
+  assert.strictEqual(result.kind, "start-local");
+  assert.strictEqual((result as { variation?: string }).variation, "Stories");
 });
 
 test("start --local with --open sets open true (040 D2)", () => {
@@ -194,9 +228,15 @@ test("start --local without optional flags defaults due/templatesRoot/blank", ()
     due: undefined,
     workspaceRoot: "/work",
     templatesRoot: undefined,
+    variation: undefined,
     blank: false,
     open: false,
   });
+});
+
+test("USAGE shows [--variation <text>] on both start lines (042 D3)", () => {
+  const occurrences = USAGE.match(/\[--variation <text>\]/g) ?? [];
+  assert.strictEqual(occurrences.length, 2);
 });
 
 test("start --local with a positional <KEY> falls back to usage (D1)", () => {

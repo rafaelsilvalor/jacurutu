@@ -79,19 +79,22 @@ test("start scaffolds dirs, copies the template, and writes a valid manifest", a
       workspaceRoot,
       undefined, // P1 default: templates/ sibling of the resolved workspace root
       false,
+      undefined, // no --variation: no variacao segment, no trailing underscore
       FIXED_NOW,
     );
 
     const leafFolder = path.join(workspaceRoot, ...SEGMENTS);
     assert.strictEqual(result.folderPath, leafFolder);
 
-    // D-A: leaf, editaveis/, editaveis/assets/ all created.
+    // D-A: leaf, editaveis/, editaveis/assets/ all created. The leaf FOLDER
+    // keeps the uppercase-key stem (042 D5) — only the FILE name changes.
     assert.ok(existsSync(leafFolder));
     assert.ok(existsSync(path.join(leafFolder, "editaveis")));
     assert.ok(existsSync(path.join(leafFolder, "editaveis", "assets")));
 
-    // P2: the editable is renamed to the leaf stem + the source's extension.
-    const expectedCopy = path.join(leafFolder, "editaveis", "MCA-101_banner-principal.psd");
+    // 042 D2: the editable is vertical_key_descricao (lowercase) + the
+    // source's extension — not the leaf stem.
+    const expectedCopy = path.join(leafFolder, "editaveis", "ec_mca-101_banner-principal.psd");
     assert.strictEqual(result.copiedFile, expectedCopy);
     assert.ok(existsSync(expectedCopy));
 
@@ -114,6 +117,27 @@ test("start scaffolds dirs, copies the template, and writes a valid manifest", a
   }
 });
 
+test("start with --variation appends the sanitized variacao segment (042 D2/D3)", async () => {
+  const { base, workspaceRoot } = makeSandbox(["banner.psd"]);
+  try {
+    const result = await runStart(
+      fakeMakeGateway(sampleIssue()),
+      "MCA-101",
+      workspaceRoot,
+      undefined,
+      false,
+      "Carrossel",
+      FIXED_NOW,
+    );
+    assert.strictEqual(
+      result.copiedFile,
+      path.join(workspaceRoot, ...SEGMENTS, "editaveis", "ec_mca-101_banner-principal_carrossel.psd"),
+    );
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
 test("start --blank skips the copy but writes the same dirs and a blank-template manifest", async () => {
   // No template files seeded: --blank must not consult the templates root.
   const { base, workspaceRoot } = makeSandbox([]);
@@ -124,6 +148,7 @@ test("start --blank skips the copy but writes the same dirs and a blank-template
       workspaceRoot,
       undefined,
       true,
+      "Carrossel", // 042 D3: no file is copied on --blank, so --variation is accepted and ignored
       FIXED_NOW,
     );
 
@@ -132,7 +157,7 @@ test("start --blank skips the copy but writes the same dirs and a blank-template
     assert.ok(existsSync(path.join(leafFolder, "editaveis", "assets")));
 
     // editaveis/ carries no editable on the blank path.
-    assert.ok(!existsSync(path.join(leafFolder, "editaveis", "MCA-101_banner-principal.psd")));
+    assert.ok(!existsSync(path.join(leafFolder, "editaveis", "ec_mca-101_banner-principal_carrossel.psd")));
 
     const manifest = parseManifest(
       JSON.parse(readFileSync(path.join(leafFolder, ".saci.json"), "utf8")),
@@ -155,7 +180,15 @@ test("start refuses to overwrite an existing leaf folder and writes nothing new 
     mkdirSync(path.join(leafFolder, "editaveis"), { recursive: true });
 
     await assert.rejects(
-      runStart(fakeMakeGateway(sampleIssue()), "MCA-101", workspaceRoot, undefined, false, FIXED_NOW),
+      runStart(
+        fakeMakeGateway(sampleIssue()),
+        "MCA-101",
+        workspaceRoot,
+        undefined,
+        false,
+        undefined,
+        FIXED_NOW,
+      ),
       (error: Error) => {
         assert.match(error.message, /already exists/);
         assert.match(error.message, /editaveis\/: present/);
@@ -166,7 +199,7 @@ test("start refuses to overwrite an existing leaf folder and writes nothing new 
 
     // Nothing new was written: no manifest, no copied editable.
     assert.ok(!existsSync(path.join(leafFolder, ".saci.json")));
-    assert.ok(!existsSync(path.join(leafFolder, "editaveis", "MCA-101_banner-principal.psd")));
+    assert.ok(!existsSync(path.join(leafFolder, "editaveis", "ec_mca-101_banner-principal.psd")));
   } finally {
     rmSync(base, { recursive: true, force: true });
   }
@@ -181,6 +214,7 @@ test("jira-born start returns localKey null (D12)", async () => {
       workspaceRoot,
       undefined,
       false,
+      undefined,
       FIXED_NOW,
     );
     assert.strictEqual(result.localKey, null);
@@ -239,9 +273,10 @@ test("start --local scaffolds offline, mints the key, and increments the counter
     assert.strictEqual(result.folderPath, leafFolder);
     assert.strictEqual(result.localKey, "RAF-1");
     assert.ok(existsSync(path.join(leafFolder, "editaveis", "assets")));
+    // 042 D2: lowercase local key in the file; the leaf folder keeps RAF-1 (D5).
     assert.strictEqual(
       result.copiedFile,
-      path.join(leafFolder, "editaveis", "RAF-1_banner-principal.psd"),
+      path.join(leafFolder, "editaveis", "ec_raf-1_banner-principal.psd"),
     );
 
     const manifest = parseManifest(
@@ -260,6 +295,29 @@ test("start --local scaffolds offline, mints the key, and increments the counter
 
     // D7: the counter persisted as nextSeq + 1.
     assert.strictEqual(nextSeqOnDisk(identityFilePath), 2);
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+test("start --local with --variation appends the sanitized variacao segment (042 D2/D3)", async () => {
+  const { base, workspaceRoot, identityFilePath } = makeLocalSandbox(["banner.psd"]);
+  try {
+    const result = await runStartLocal(
+      localOptions(workspaceRoot, identityFilePath, { variation: "Stories" }),
+    );
+    assert.strictEqual(
+      result.copiedFile,
+      path.join(
+        workspaceRoot,
+        "AVULSAS",
+        "EC",
+        "2026-07",
+        "RAF-1_banner-principal",
+        "editaveis",
+        "ec_raf-1_banner-principal_stories.psd",
+      ),
+    );
   } finally {
     rmSync(base, { recursive: true, force: true });
   }
@@ -362,7 +420,15 @@ test("start fails loud on a bad template source and scaffolds nothing (P4)", asy
   const { base, workspaceRoot } = makeSandbox(["a.psd", "b.psd"]);
   try {
     await assert.rejects(
-      runStart(fakeMakeGateway(sampleIssue()), "MCA-101", workspaceRoot, undefined, false, FIXED_NOW),
+      runStart(
+        fakeMakeGateway(sampleIssue()),
+        "MCA-101",
+        workspaceRoot,
+        undefined,
+        false,
+        undefined,
+        FIXED_NOW,
+      ),
       (error: Error) => {
         assert.match(error.message, /Expected exactly one template file/);
         assert.match(error.message, /found 2/);

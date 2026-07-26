@@ -88,6 +88,7 @@ function toStartLocalOptions(
     due: command.due,
     workspaceRoot: command.workspaceRoot,
     templatesRoot: command.templatesRoot,
+    variation: command.variation,
     blank: command.blank,
   };
 }
@@ -127,6 +128,7 @@ async function runCommand(command: ParsedCommand): Promise<void> {
         command.workspaceRoot,
         command.templatesRoot,
         command.blank,
+        command.variation,
       );
       process.stdout.write(renderStart(result));
       if (command.open) {
