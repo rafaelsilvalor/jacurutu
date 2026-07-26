@@ -68,7 +68,6 @@ export type { HistoryEntry, HistoryEvent, TaskManifest } from "./workspace.js";
 export {
   derivePath,
   AVULSAS_BUCKET,
-  SLUG_MAX_LEN,
   MONTH_FORMAT,
   MONTH_SLICE_LEN,
   UNDATED_MONTH,
@@ -76,3 +75,7 @@ export {
 } from "./derive-path.js";
 
 export type { DerivePathInput } from "./derive-path.js";
+
+export { buildEditableStem, sanitizeSlug, SLUG_MAX_LEN } from "./file-name.js";
+
+export type { EditableStemInput } from "./file-name.js";

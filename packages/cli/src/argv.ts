@@ -15,9 +15,11 @@ export const DEFAULT_OUT = "payload.json";
 export const USAGE = `Usage:
   saci fetch --jql <string> [--out <path>] [--field-config <path> --project <KEY>]
   saci export --payload <path> --config <path> --profile <name>
-  saci start <KEY> --workspace-root <path> [--templates-root <path>] [--blank] [--open]
+  saci start <KEY> --workspace-root <path> [--templates-root <path>]
+             [--variation <text>] [--blank] [--open]
   saci start --local --vertical <SIGLA> --title <text> --workspace-root <path>
-             [--due <ISO-date>] [--templates-root <path>] [--blank] [--open]
+             [--due <ISO-date>] [--templates-root <path>] [--variation <text>]
+             [--blank] [--open]
   saci --version`;
 
 /**
@@ -34,6 +36,7 @@ export type ParsedCommand =
       key: string;
       workspaceRoot: string;
       templatesRoot?: string;
+      variation?: string;
       blank: boolean;
       open: boolean;
     }
@@ -44,6 +47,7 @@ export type ParsedCommand =
       due?: string;
       workspaceRoot: string;
       templatesRoot?: string;
+      variation?: string;
       blank: boolean;
       open: boolean;
     }
@@ -71,6 +75,7 @@ const CLI_OPTIONS = {
   vertical: { type: "string" },
   title: { type: "string" },
   due: { type: "string" },
+  variation: { type: "string" },
   version: { type: "boolean", short: "v" },
 } as const;
 
@@ -91,6 +96,7 @@ type CliValues = {
   vertical?: string;
   title?: string;
   due?: string;
+  variation?: string;
   version?: boolean;
 };
 
@@ -120,6 +126,9 @@ function routeStart(values: CliValues, positionals: string[]): ParsedCommand {
     key: key.toUpperCase(),
     workspaceRoot,
     templatesRoot: values["templates-root"],
+    // Forwarded raw (042 D3): sanitization happens in core's builder, and the
+    // parser stays format-agnostic — no validation of the value.
+    variation: values.variation,
     blank: values.blank ?? false,
     open: values.open ?? false,
   };
@@ -176,6 +185,8 @@ function routeStartLocal(values: CliValues, positionals: string[]): ParsedComman
     due,
     workspaceRoot,
     templatesRoot: values["templates-root"],
+    // Same raw forwarding as the Jira-born route (042 D3).
+    variation: values.variation,
     blank: values.blank ?? false,
     open: values.open ?? false,
   };
