@@ -198,6 +198,18 @@ If folder sizes grow into thousands of files and the hitch becomes user-visible,
 
 ---
 
+### G-NODE-2 — Worktree sessions silently resolve `@saci/*` imports to the main checkout
+
+**Symptom:** In a Claude Code session worktree (created under `.claude/worktrees/`), `npm run build` fails with `TS2305` on a symbol that exists in the worktree's own source — e.g. `Module '"@saci/core"' has no exported member 'buildEditableStem'` — even though the worktree's `core` package compiles cleanly. Worse, when no new symbol is involved, build and tests pass while silently exercising stale code.
+
+**Cause:** A fresh session worktree starts with an empty or absent `node_modules`. Node's module resolution walks up the directory tree, so `@saci/*` imports resolve to the main checkout's `node_modules` workspace symlinks — which point at the main checkout's `packages/*`, not the worktree's. `npm run build` and `npm test` in the worktree therefore compile and test against the main checkout's (potentially pre-change) `dist`. The root cause is Node resolution behavior, but the trap bites agent worktree sessions specifically — that is where fresh worktrees with empty `node_modules` appear routinely.
+
+**Workaround:** Run `npm install` at the worktree root to materialize workspace symlinks against the worktree's own `packages/*`. Guard: after the install, `git status --short` must show no tracked-file changes (especially `package-lock.json`); if it does, STOP and report — no lockfile drift may land. Then re-run `npm run build` and the full `npm test` suite.
+
+**Evidence:** Ruling 1 (2026-07-26) in `docs/tasks/042-template-naming-sanitization/notes.md`; discovered during task 042, which landed as PR #100 (merge commit `dc854d9` on `main`).
+
+---
+
 ## Maintenance
 
 Visit this file every 1–2 weeks during active development. Group related entries when the catalog grows past ~25 items. Promote frequent recurrences to `CLAUDE.md` rules so the next agent prevents them upfront instead of reacting.
