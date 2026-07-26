@@ -46,8 +46,15 @@ function makeGatewayFactory(jql: string, fieldMapping?: ResolvedFieldMapping): M
   const apiToken = process.env[ENV_API_TOKEN];
 
   if (!baseUrl || !email || !apiToken) {
+    // Name only the absent vars: the blanket three-var message masked a
+    // SACI_JIRA_TOKEN vs SACI_JIRA_API_TOKEN typo (session 033).
+    const missing = [
+      ...(baseUrl ? [] : [ENV_BASE_URL]),
+      ...(email ? [] : [ENV_EMAIL]),
+      ...(apiToken ? [] : [ENV_API_TOKEN]),
+    ];
     throw new Error(
-      `Missing required env: ${ENV_BASE_URL}, ${ENV_EMAIL}, ${ENV_API_TOKEN} must all be set.`,
+      `Missing required env: ${missing.join(", ")} ${missing.length === 1 ? "is" : "are"} not set.`,
     );
   }
 
