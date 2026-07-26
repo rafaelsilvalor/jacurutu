@@ -15,10 +15,15 @@ const CLI_PATH = path.join(import.meta.dirname, "cli.js");
 const EXIT_RUNTIME = 1;
 const EXIT_USAGE = 2;
 
-/** Spawn the CLI with SACI_* scrubbed and the identity file pointed at the sandbox. */
+/**
+ * Spawn the CLI with SACI_* scrubbed and the identity file pointed at the
+ * sandbox. `extraEnv` is applied after the scrub, so a test can re-introduce
+ * selected SACI_JIRA_* values and control exactly which ones are absent.
+ */
 function runCli(
   args: string[],
   identityFilePath: string,
+  extraEnv?: Record<string, string>,
 ): { status: number | null; stdout: string; stderr: string } {
   const env: NodeJS.ProcessEnv = {};
   for (const [key, value] of Object.entries(process.env)) {
@@ -27,6 +32,7 @@ function runCli(
     }
   }
   env.SACI_IDENTITY_FILE = identityFilePath;
+  Object.assign(env, extraEnv);
   const result = spawnSync(process.execPath, [CLI_PATH, ...args], { env, encoding: "utf8" });
   return { status: result.status, stdout: result.stdout, stderr: result.stderr };
 }
@@ -117,4 +123,32 @@ test("start with a positional <KEY> plus --local exits 2 with usage", () => {
   } finally {
     rmSync(base, { recursive: true, force: true });
   }
+});
+
+// Missing-credential discrimination (brief 044, D1/D3): the env check throws
+// before any gateway is constructed, so `fetch` reaches neither the network nor
+// the identity file — a throwaway path suffices. Absence is asserted on FULL
+// var names only: the three share the SACI_JIRA_ prefix.
+const UNUSED_IDENTITY_FILE = path.join(tmpdir(), "saci-cli-e2e-unused-identity.json");
+
+test("fetch with no Jira credentials set names all three env vars", () => {
+  const { status, stderr } = runCli(["fetch", "--jql", "project = X"], UNUSED_IDENTITY_FILE);
+
+  assert.strictEqual(status, EXIT_RUNTIME);
+  assert.match(stderr, /Missing required env:/);
+  assert.match(stderr, /SACI_JIRA_BASE_URL/);
+  assert.match(stderr, /SACI_JIRA_EMAIL/);
+  assert.match(stderr, /SACI_JIRA_API_TOKEN/);
+});
+
+test("fetch with only the Jira email absent names that var alone", () => {
+  const { status, stderr } = runCli(["fetch", "--jql", "project = X"], UNUSED_IDENTITY_FILE, {
+    SACI_JIRA_BASE_URL: "https://example.atlassian.net",
+    SACI_JIRA_API_TOKEN: "dummy-token",
+  });
+
+  assert.strictEqual(status, EXIT_RUNTIME);
+  assert.match(stderr, /SACI_JIRA_EMAIL/);
+  assert.ok(!stderr.includes("SACI_JIRA_BASE_URL"), `unexpected base-url name: ${stderr}`);
+  assert.ok(!stderr.includes("SACI_JIRA_API_TOKEN"), `unexpected api-token name: ${stderr}`);
 });
