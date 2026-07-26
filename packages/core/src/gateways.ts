@@ -4,6 +4,7 @@
 // the future adapters, not here.
 
 import type { Issue } from "./payload.js";
+import type { TaskManifest } from "./workspace.js";
 
 /**
  * Port for reading the current design issues. An adapter maps the raw Jira
@@ -39,8 +40,9 @@ export interface SheetGateway {
 /**
  * Port for the Drive-backed asset store. No Python precursor — the seed does not
  * touch Drive. Minimal surface: one ship-implied operation and one load-implied
- * operation. The concrete payload shapes depend on the Phase 3 Workspace /
- * manifest design and are intentionally left open here.
+ * operation. The upload contract still depends on the Phase 3 Workspace
+ * production-state semantics and is intentionally left open; the manifest
+ * shape is fixed by `TaskManifest` (schemaVersion 2, `./workspace.js`).
  */
 export interface DriveGateway {
   // TODO(2026-06-06): finalize folder-upload contract once Phase 3 Workspace
@@ -48,8 +50,10 @@ export interface DriveGateway {
   /** Upload a local task folder to Drive; returns the resulting Drive path. */
   uploadFolder(localFolderPath: string): Promise<string>;
 
-  // TODO(2026-06-06): finalize manifest shape once Phase 3 TaskManifest is fixed
-  // (load operation).
-  /** Read the task manifest stored at a Drive path. */
-  readManifest(drivePath: string): Promise<unknown>;
+  /**
+   * Read the task manifest stored at a Drive path. Implementation contract:
+   * adapters validate the raw Drive bytes via `parseManifest` (fail-loud,
+   * R4) before returning — the port never surfaces an unvalidated object.
+   */
+  readManifest(drivePath: string): Promise<TaskManifest>;
 }
