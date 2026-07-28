@@ -1,6 +1,7 @@
 # Google Drive automation via OAuth — Estratégia environment
 
 Status: exploration — possibilities only, NOT a commitment or spec
+Promotion: promoted to brief 046 — 2026-07-27
 Origin: Python-era `automation/` guide (owner-supplied); absorbed in the
 mentor session 2026-07-27 (`ship` semantics exploration)
 Roadmap link: pending decision #11 (Google Drive JS library); feeds the
@@ -194,3 +195,5 @@ equivalents live in the ship decision set (mentor recap 2026-07-27):
   v2 addenda added (scope combination candidate, refresh-token longevity
   question, Sheets-scope door, superseded next steps). First occupant of
   `docs/explorations/`.
+- 2026-07-27 — Promoted to brief 046 (adapter-drive spike); promotion status
+  line added.
