@@ -12,7 +12,7 @@ The **production loop is the core**: pull a Jira task → scaffold its folder (t
 |---|---|---|
 | Read / data (Jira fetch) | Fuel | **Built** — `saci fetch` (026/028/029); per-project input resolution is **Axis A only** (entrega + vertical field ids). Axis B/C and `config project add` not built. |
 | Curated template management | Loop | **Planned** — only `appliedTemplate` / `templateUsed` type fields exist; no catalog, match, or apply code. |
-| Workflow actions — start / close / drive upload | Loop | **Planned** — no commands; `DriveGateway` is a port interface with TODOs, no `adapter-drive`. |
+| Workflow actions — start / close / drive upload | Loop | **In progress** — `saci start --local` shipped (036, smoke-confirmed 2026-07-26); `close` / `ship` not built; `DriveGateway` is a port interface with TODOs, no `adapter-drive`. |
 | BI export | Periphery | **Built** — `saci export` CSV/JSON fact table (023). Sheets projection parked (`adapter-sheets` is a placeholder). |
 
 (Status cells reflect the v2 source as of this writing, verified against the command surface and adapter implementations — not the prose elsewhere in this doc.)
@@ -328,10 +328,12 @@ Open questions that will gate or shape upcoming phases.
 10. **Sheets aggregation granularity.** Per-event push, daily
     rollup, or point-in-time snapshot. Decided during Phase 4
     modeling when real usage data from Phase 3 informs the choice.
-11. **Google Drive JS library.** Equivalent for Drive read / write
+11. ~~**Google Drive JS library.** Equivalent for Drive read / write
     (templates, manifests, ship uploads). Not yet researched.
     Required before Phase 3 `adapter-drive` work; not blocking
-    Phase 2.
+    Phase 2.~~ — *resolved 2026-07-27: googleapis + google-auth-library
+    with scopes drive.file + drive.metadata.readonly (brief 046, see
+    `docs/tasks/046-spike-adapter-drive/notes.md`)*
 
 ## Legacy / superseded — Saci-Electron-v1 phases
 
