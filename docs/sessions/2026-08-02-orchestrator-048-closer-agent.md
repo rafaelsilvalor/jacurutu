@@ -161,13 +161,20 @@ exhaustive up front instead of arriving as three mid-run rulings.
 
 ## Pending items (queue)
 
-1. **This session's PR** (task 048 + both recaps): push + PR on explicit owner
-   instruction; owner squash-merges. Merge SHA confirmed post-merge — by the
-   closer's Phase B now, per D5.
-2. **First real closer invocation.** The agent exists and has never run. Its
-   **declared gap**: the calibration diff produced two findings, so the
-   five-finding ceiling and its collapsed-overflow block are specified but
-   unexercised. The first real overflow is the test.
+1. ~~**This session's PR**~~ — **done.** PR #108 squash-merged to `main` as
+   `69cf6e7` on 2026-08-02. Recorded here rather than left for the next
+   session: this is the D5 duty working on its first occasion, and it is worth
+   noting that the confirmation reached this file only because a follow-up
+   branch existed to carry the edit. A recap that merges and is never touched
+   again still cannot cite its own merge SHA — the closer's Phase B is the
+   general answer, this was the manual one.
+2. **Checks (a) and (b) have never been executed by the agent.** The closer
+   ran for the first time this session (see "First run" below) but on a
+   docs-only diff, so architecture and duplication scaled out. Their only
+   exercise to date is the by-hand calibration that produced them. The first
+   real test is a branch touching `packages/**` — 047 when it closes, or the
+   `ship` MVP. The five-finding ceiling and its collapsed-overflow block also
+   remain unexercised: two runs, zero findings between them.
 3. **Task 047 (`adapter-drive`) is still in flight** on its branch — three of
    six modules. It is the queue front.
 4. **OAuth token file mode** (`writeStoredToken` in
@@ -182,16 +189,39 @@ exhaustive up front instead of arriving as three mid-run rulings.
    multi-contributor naming; Jira-born manual overrides; `jira_updated_at`
    nullability. Horizon: `@saci/*` → `@breu/*`; `saci config` write surface.
 
+## First run — the closer reviewed its own introducing diff
+
+After the PR was opened, the owner invoked Phase A on `feat/closer-agent`
+itself. Verdict `pronto para push`, zero findings.
+
+**What it proved.** The `não aplicável — diff não toca packages/` path printed
+instead of going silent, which was the open question this recap originally
+raised. The Lesson #14 asymmetry held under contact: the verdict carried its
+own disclaimer that it describes the diff rather than authorizing the push, and
+the agent offered no next command, no push, no ask. It stopped. It also closed
+by naming what it had not covered, per the hard rule against letting a clean
+report imply a clean branch.
+
+**What it did not prove.** Checks (a) and (b) never ran — see queue item 2. The
+run proved the agent skips them correctly, not that it can perform them.
+
+**Format drift, and the fix.** The report grew a section the template did not
+specify, used to record two things examined and deliberately not reported (the
+047 token file mode, and F3). The judgment was right — a suppression the reader
+cannot see is indistinguishable from an oversight — but an unspecified section
+that reappears each run erodes the finding ceiling. Formalized rather than
+suppressed: the template now carries **"Examinado e não reportado"**, capped at
+three entries, omitted entirely when nothing was suppressed, and the section
+list is now declared exhaustive with an explicit instruction not to invent
+headings at runtime.
+
 ## Next concrete action
 
-Owner instructs push + PR for `feat/closer-agent` (both recaps aboard), then
-squash-merges.
-
-**Worth considering first:** this branch is the closer's own natural first
-test. Invoking it on `main...feat/closer-agent` before the push would exercise
-Phase A against a docs-only diff — which is exactly the case D6's trigger
-scaling was written for, and would confirm the `não aplicável — diff não toca
-packages/` path prints instead of going silent.
+PR #108 is merged (`69cf6e7`). What remains is this follow-up branch,
+`docs/closer-suppression-section`, carrying the two changes the first run
+produced: the formalized "Examinado e não reportado" section and this recap's
+own first-run record. They did not fit in #108 — the run that produced them
+happened after it was opened, and the PR was merged before they were committed.
 
 ## Paste-ready snippet for the next Orchestrator session
 
@@ -205,7 +235,10 @@ revisor de diff pre-push em duas fases. Fase A read-only: tres checks
 e caminho), relatorio em pt-BR, PARA no gate do owner. Fase B (push + abrir
 PR) so por instrucao explicita por-branch; squash-merge continua do owner.
 Registrado no AGENT_PLAYBOOK cap. 6 e no CLAUDE.md. 6 commits + 2 recaps no
-MESMO PR [preencher #]. Verifica o merge via P4 / git log antes de consumir.
+MESMO PR #108, ja mergeado em main como 69cf6e7 (2026-08-02) — merge ja
+confirmado, nao precisa reconfirmar. Um branch de follow-up,
+docs/closer-suppression-section, leva duas correcoes vindas da primeira
+execucao real do closer; confirma se ele ja entrou antes de consumir.
 
 ATENCAO NO P4: as tres fontes NAO enxergam slot tomado por branch nao
 mergeado. Nesta sessao as tres apontaram 047 e as tres estavam erradas —
