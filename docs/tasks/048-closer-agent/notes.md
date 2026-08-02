@@ -129,19 +129,81 @@ which was to prevent an open-ended rewrite of the section. What passes here is
 one sentence and one bullet, both direct consequences of the sixth role
 existing. `brief.md` is still not amended; it carries APPROVED at `9457b8c`.
 
+## Ruling 3 (2026-08-02) — Bundle F5 into Edit 4
+
+Raised by the executor at the Pause 3 for commit 5.
+
+**F5** — `CLAUDE.md:126` carries the same role chain the playbook did,
+`(Orchestrator → planner → brief-validator → executor)`, and it goes false for
+the reason F1 already established. Rulings 1 and 2 are both scoped by their
+own wording to `docs/AGENT_PLAYBOOK.md`, so neither reaches this file.
+
+**Ruling: bundle it.** Same class as F1 and F4 — falseness caused by this
+change adding the thing being counted. The argument is not restated here; see
+Ruling 1, "Ruling", and Ruling 2, "Why this is not the same class as F1".
+
+**Grant, exhaustive:** one touch, `CLAUDE.md:126`, appending `→ closer` to the
+chain. This is in addition to the single line Edit 4 already grants at
+`CLAUDE.md:130`. Nothing else in `CLAUDE.md` changes.
+
+**Consequence:** Edit 4's verification `git diff --stat CLAUDE.md` shows
+exactly one line changed becomes **met-by-ruling**, as with Ruling 1's
+"insertions only". Commit 5's subject needs no change — both touched lines are
+Related Documents entries, so it still reflects its diff (G-R4).
+
+**This closes `CLAUDE.md`.** The executor grepped the file for every mention of
+the pipeline roles before raising F5: only lines 126 and 130 carry them, and
+lines 131-132 name individual roles in statements that stay true. There is no
+third site.
+
+**Not granted — the three agent self-descriptions.** `.claude/agents/planner.md`,
+`brief-validator.md` and `executor.md` each describe themselves as part of "the
+linear pipeline (planner → brief-validator → executor)". These stay. That
+phrase describes the pipeline that produces and validates a brief, and the
+closer is not in it — it acts after execution, on the assembled diff. The
+statements are not false, and `brief.md` "Out of scope" forbids editing those
+three files outright.
+
 ## Brief defect noted for the recap
 
-The brief specified "insertions only" as an absolute verification for Edit 3.
-That was never satisfiable: adding a sixth role to a chapter that enumerates
-roles necessarily rewrites the enumeration. The defect is in the brief's
-verification design, not in the executor's reading of it.
+**Absolute line-count verifications do not survive a change that adds a member
+to an enumerated set.** Three of this task's rulings exist only because the
+brief phrased its checks as fixed counts:
+
+- Edit 3 — `git diff --stat` shows *insertions only* (relaxed by Ruling 1)
+- Edit 4 — `git diff --stat CLAUDE.md` shows *exactly one line changed*
+  (relaxed by Ruling 3)
+
+Adding a sixth role to documents that enumerate roles necessarily rewrites the
+enumerations. Every place that counts the roles breaks by construction, so a
+check demanding pure insertion, or a fixed number of touched lines, was
+unsatisfiable the moment it was written. F1, F4 and F5 were all the same
+failure surfacing in three files.
+
+The defect is in the brief's verification design, not in the executor's
+reading of it — the executor stopped at each one rather than quietly widening
+scope, which is the behavior the checks were meant to produce even though the
+checks themselves were wrong.
+
+**The fix for future briefs:** when a change adds a member to an enumerated
+set, scope the verification by *region and intent* ("only the role-count sites
+and the table row change") rather than by line arithmetic, and grep the
+enumeration sites during brief authoring so the grant is exhaustive up front
+instead of arriving as three mid-run rulings.
 
 ## Deviation from the approved commit sequence
 
-This file is committed as an extra commit not present in the four-commit
-sequence in `brief.md` — five commits instead of four. Recorded here as a
-declared deviation.
+`brief.md` declares four commits. The run produced **six**, and one of the four
+was amended. Recorded here as declared deviations:
 
-Ruling 2 was added to this file after that commit had already landed, so the
-commit was amended rather than followed by a sixth. Both rulings therefore
-travel in one commit, which keeps the sequence at five.
+1. This file is committed at all — it is not in the brief's sequence.
+2. Ruling 2 was written after that commit had landed, so the commit was
+   amended rather than followed by another. Its subject changed from
+   `docs(tasks): document the F1/F2 scope ruling for 048` to
+   `docs(tasks): document the mid-run scope rulings for 048`, because the
+   commit then carried two rulings and the old subject no longer reflected its
+   diff (G-R4).
+3. Ruling 3 was written after that amended commit was two deep in the branch,
+   so it takes a commit of its own rather than a second amend — rewriting a
+   commit that is no longer `HEAD` costs more than it buys, and the branch is
+   squash-merged anyway.
