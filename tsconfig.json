@@ -4,6 +4,7 @@
     { "path": "./packages/core" },
     { "path": "./packages/adapter-jira" },
     { "path": "./packages/adapter-sheets" },
+    { "path": "./packages/adapter-drive" },
     { "path": "./packages/cli" }
   ]
 }
