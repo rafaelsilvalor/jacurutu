@@ -229,11 +229,11 @@ This is **your** operating manual. It is not the agent's instruction set — tha
 
 Read this file end-to-end every 4–6 weeks until lessons #1–#10 are reflexes. After that, scan the lesson titles only — they will trigger the right behavior on their own.
 
-## Chapter 6 — The roles and the orchestration pipeline (Orchestrator → planner → brief-validator → executor)
+## Chapter 6 — The roles and the orchestration pipeline (Orchestrator → planner → brief-validator → executor → closer)
 
-The pipeline runs inside Claude Code under a role-based separation: roles, not surfaces, define who does what. Chat (claude.ai) is the conceptual surface — it hosts the Mentor role and stays out of the operational loop entirely. This chapter defines the five roles, then describes how to drive the pipeline and what to do when it surfaces a problem. The role model was ratified in the fused-model design session (`docs/sessions/2026-07-25-mentor-fused-model-design.md`) and piloted end to end on task 038.
+The pipeline runs inside Claude Code under a role-based separation: roles, not surfaces, define who does what. Chat (claude.ai) is the conceptual surface — it hosts the Mentor role and stays out of the operational loop entirely. This chapter defines the six roles, then describes how to drive the pipeline and what to do when it surfaces a problem. The role model was ratified in the fused-model design session (`docs/sessions/2026-07-25-mentor-fused-model-design.md`) and piloted end to end on task 038.
 
-### The five roles
+### The six roles
 
 | Role | Where | What it does |
 |---|---|---|
@@ -242,6 +242,7 @@ The pipeline runs inside Claude Code under a role-based separation: roles, not s
 | **planner** | Claude Code — subagent | Authors briefs from delegation prompts. |
 | **brief-validator** | Claude Code — subagent | Audits briefs mechanically; emits APPROVED or REJECTED. |
 | **executor** | Claude Code — subagent | Runs approved briefs — Edits, Pauses, commits. |
+| **closer** | Claude Code — subagent | Reviews the assembled diff before push; emits a report. Phase B pushes and opens the PR on explicit owner instruction. |
 
 ### The Orchestrator
 
@@ -252,6 +253,10 @@ The Orchestrator is the main session, not a subagent. Subagents get fresh contex
 - Never performs a subagent's work inline. If a subagent invocation fails, the session fails loud and reports; it does not absorb the work.
 
 Write policy: Plan mode is the session default. The Orchestrator writes ONLY under `docs/`, per artifact, via the write gate — show the full content → owner approves → write → read back from disk → confirm byte-match. Source code exists only behind `@executor`; the Orchestrator never writes it.
+
+### The closer
+
+The closer is the sixth role and the only one that acts on the assembled result rather than on the plan. It reads `git diff main...HEAD` on a task branch and runs three narrow checks — architecture against `CLAUDE.md` R18–R25, duplication against what `core` actually exports, and secret/path hygiene — then emits one pt-BR report and stops. Phase A is strictly read-only: the closer creates, modifies and stages nothing, and it never merges. Its verdict is **input to your judgment, not a gate that opens itself**: a clean report does not authorize the push, and a `trava` finding is a recommendation, not a veto the closer enforces (lesson #14 again, one role further down the line). When you disagree with the report, route through the same three responses as a REJECTED verdict or a rejected orchestrator gate — redesign with the Orchestrator, fix directly on the branch, or override the finding and record why. Phase B — push the branch, open the PR, and post-merge confirm the merge SHA — runs only on your explicit per-branch instruction, never inferred from a clean Phase A.
 
 ### When to use the pipeline vs. caminho B
 
@@ -324,14 +329,14 @@ Mid-run owner rulings become files: instead of relaying a ruling as a chat paste
 
 ### Recap policy (three recaps)
 
-Three roles produce session recaps; two produce none:
+Three roles produce session recaps; three produce none:
 
 - **Mentor** (chat sessions): transport unchanged — the recap travels on its own `docs/` branch + PR.
 - **Orchestrator**: decisions, gate outcome, deviations, queue state, next-session snippet. No execution log.
 - **executor**: pure execution log — Edits, Pauses, evidence, commits. No context re-narration.
-- **planner** and **brief-validator**: no recaps. The committed brief and the recorded verdict are their record.
+- **planner**, **brief-validator** and **closer**: no recaps. The committed brief, the recorded verdict and the emitted report are their record.
 
-Transport: Orchestrator and executor recaps ride the session PR. Standard sequence: brief → code (executor, Pauses) → recaps (`docs(sessions):` commit on the same branch) → push + PR on owner instruction → owner squash-merge. Consequence: a recap cannot cite its own PR's merge SHA; the NEXT session confirms the merge via P4 / `git log` in its "Consumes" line. The separate docs PR for task sessions is retired, and the `[CONFIRMAR: docs PR]` pendency class dies with it.
+Transport: Orchestrator and executor recaps ride the session PR. Standard sequence: brief → code (executor, Pauses) → recaps (`docs(sessions):` commit on the same branch) → push + PR on owner instruction → owner squash-merge. Consequence: a recap cannot cite its own PR's merge SHA; the NEXT session confirms the merge via P4 / `git log` in its "Consumes" line. The separate docs PR for task sessions is retired, and the `[CONFIRMAR: docs PR]` pendency class dies with it. Post-merge, the closer's Phase B confirms the merge SHA in-session (brief 048, D5), while authoring the next-session snippet remains the Orchestrator recap's duty.
 
 ### Blindness rules
 
@@ -382,6 +387,7 @@ R17 restated for Orchestrator sessions — the letter of the rule holds; the fus
 | `.claude/agents/planner.md` | Planner subagent — authors briefs from delegation prompts |
 | `.claude/agents/brief-validator.md` | Brief-validator subagent — audits briefs with 10 mechanical checks |
 | `.claude/agents/executor.md` | Executor subagent — runs briefs (pipeline-invoked) |
+| `.claude/agents/closer.md` | Closer subagent — reviews the assembled diff before push |
 | `.claude/skills/brief-template/` | Brief authoring template (preloaded by planner and brief-validator) |
 | `.claude/skills/pre-commit-self-audit/` | Executor's Pause-3 self-audit checklist |
 | `harness/workflows/` | Pre-built session templates for manual invocation (parallel surface to `.claude/agents/`) |
