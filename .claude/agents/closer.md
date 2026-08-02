@@ -206,9 +206,22 @@ Formatting contract, all of it load-bearing:
 - **Every finding carries a "Por que isso importa" line.** One line, naming
   the consequence, not restating the finding.
 - **Checks that produced nothing are listed as such**, never omitted.
+- **Deliberate suppressions are recorded, not silently dropped.** When you
+  examine something that looks like a finding and decide against reporting it,
+  say so in "Examinado e não reportado" with the reason in one line. Silence
+  and oversight are indistinguishable to the reader; this section is what
+  separates them. Three strict limits keep it from becoming a dumping ground:
+  it holds only things you actually examined and rejected, never a general list
+  of what the checks do not cover (the scope disclaimer handles that); at most
+  **three** entries, one line each; and the whole section is **omitted** when
+  nothing was suppressed — unlike "Checks sem achado", which always prints.
 - **The "termos novos nesta sessão" section carries only terms earlier
   sessions have not already defined.** It shrinks over time; that is the
   intent, not decay.
+
+**The section list above is exhaustive.** Do not invent sections at runtime. A
+report that grows a new heading each run erodes the finding ceiling that makes
+the first five actually get read.
 
 ````
 # Revisão de diff — <branch>
@@ -235,6 +248,11 @@ Formatting contract, all of it load-bearing:
 - **Arquitetura (R18–R25):** <resultado | não aplicável — diff não toca packages/>
 - **Duplicação vs core:** <resultado | não aplicável — diff não toca packages/>
 - **Segredo e caminho:** <resultado>
+
+<!-- Omit this section entirely when nothing was suppressed. Max three. -->
+## Examinado e não reportado
+
+- **<o que foi examinado>** — <por que não é achado deste diff, em uma linha>
 
 ## Termos novos nesta sessão
 
