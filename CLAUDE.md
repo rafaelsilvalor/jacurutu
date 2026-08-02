@@ -123,11 +123,11 @@ Do not translate piecemeal during unrelated PRs.
 - `docs/MENTOR_BRIEF.md` — the conceptual Mentor surface (chat): learning, pre-task exploration, meta-discussion
 - `docs/GIT_WORKFLOW.md` — branching, PRs, hooks, release tags
 - `docs/GOTCHAS.md` — known traps: worker pool timeouts, PSD binary parser, cache versioning, cross-platform pitfalls
-- `docs/AGENT_PLAYBOOK.md` — the Orchestrator role and the role-based pipeline (Orchestrator → planner → brief-validator → executor)
+- `docs/AGENT_PLAYBOOK.md` — the Orchestrator role and the role-based pipeline (Orchestrator → planner → brief-validator → executor → closer)
 - `docs/ROADMAP.md` — product roadmap (phases, milestones, parking lot, pending decisions); ages in sync with `MENTOR_BRIEF.md` §2
 - `docs/tasks/<NNN>-<slug>/` — per-task artifacts: `brief.md`, optional `plan.md`, optional `notes.md`. Created when a task starts; preserved after merge as the historical record
 - `harness/` — workflow prompts (`setup-code.md`, `pause-task.md`, etc.) for new sessions; parallel manual surface to `.claude/agents/`
-- `.claude/agents/` — orchestration subagents: `planner.md`, `brief-validator.md`, `executor.md`; invoked by the main session acting as Orchestrator (`docs/AGENT_PLAYBOOK.md` Chapter 6)
+- `.claude/agents/` — orchestration subagents: `planner.md`, `brief-validator.md`, `executor.md`, `closer.md` (reviews the assembled diff); invoked by the main session acting as Orchestrator (`docs/AGENT_PLAYBOOK.md` Chapter 6)
 - `.claude/skills/brief-template/` — authoring template for `docs/tasks/<NNN>-<slug>/brief.md`; preloaded by planner and brief-validator
 - `.claude/skills/pre-commit-self-audit/` — five mechanical checks run by the executor before every Pause 3
 - `README.md` — user-facing project description
