@@ -14,6 +14,7 @@ Packages:
 
 - **`@saci/core`** — pure domain logic and port interfaces. No I/O, clock, `fs`, or network. Holds the payload contract (`payload.ts`), the transform/policy domain (`transform.ts`, `policy.ts`), the three ports (`gateways.ts` — `JiraGateway`, `SheetGateway`, `DriveGateway`), and the export projection (`export.ts`). Never imports an adapter (R25).
 - **`@saci/adapter-jira`** — implements `JiraGateway` against the Jira REST API directly (`POST /rest/api/3/search/jql`, `nextPageToken` / `isLast` cursor pagination, Basic auth, raw global `fetch`). Depends on `core`.
+- **`@saci/adapter-drive`** — implements `DriveGateway` against Google Drive via `googleapis` + `google-auth-library` under a user OAuth Desktop loopback flow (scopes `drive.file` + `drive.metadata.readonly`; credentials in `~/.saci/`, never in the repo). Five one-Drive-call primitives — resolve folder, find child, create folder, upload file, read file content — all confirmed live in brief 047; folder-tree composition and the verify-never-create policy sit above it, in the future `ship` layer. No command wires it yet. Depends on `core`.
 - **`@saci/adapter-sheets`** — parking lot. A package shell exists, but a Sheets projection is built only when a concrete consumer (e.g. Looker Studio) exists. Not on the active path.
 - **`@saci/cli`** — the composition root and the only package with a `bin` (`saci`). Wires adapters into `core`. Composition functions live in `run-fetch.ts` / `run-export.ts`; `cli.ts` is the entry point.
 

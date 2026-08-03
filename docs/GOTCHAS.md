@@ -37,6 +37,7 @@
 | `G-BUILD` | `electron-builder`, packaging, code signing, autoupdater |
 | `G-I18N` | Internationalization — i18n layer, locale detection, fallbacks |
 | `G-PROC` | Process/orchestration traps when working with AI agents on briefs |
+| `G-DRIVE` | Google Drive adapter — OAuth scopes, tokens, Drive API semantics |
 
 Categories grow as needed. New category: lowercase shortcode, all-caps in IDs.
 
@@ -207,6 +208,42 @@ If folder sizes grow into thousands of files and the hitch becomes user-visible,
 **Workaround:** Run `npm install` at the worktree root to materialize workspace symlinks against the worktree's own `packages/*`. Guard: after the install, `git status --short` must show no tracked-file changes (especially `package-lock.json`); if it does, STOP and report — no lockfile drift may land. Then re-run `npm run build` and the full `npm test` suite.
 
 **Evidence:** Ruling 1 (2026-07-26) in `docs/tasks/042-template-naming-sanitization/notes.md`; discovered during task 042, which landed as PR #100 (merge commit `dc854d9` on `main`).
+
+---
+
+### G-DRIVE-1 — Changing the requested OAuth scopes silently reuses the old grant
+
+**Symptom:** After editing `DRIVE_SCOPES`, Drive calls keep failing with 403 / `insufficient` or `invalid_scope`, and no browser consent appears.
+
+**Cause:** `~/.saci/token.json` caches the grant issued for the *previous* scope set; the adapter finds a token file, reuses it, and never re-runs consent. Google enforces the granted scope string in the cached token, not the constant in the code.
+
+**Workaround:** Delete `~/.saci/token.json` and re-run; authorize again in the browser. Every scope change requires this.
+
+**Evidence:** `docs/tasks/046-spike-adapter-drive/run-instructions.md` §2 and `docs/explorations/drive-oauth.md` §4; adopted by brief 047.
+
+---
+
+### G-DRIVE-2 — Two `google-auth-library` copies make `OAuth2Client` types incompatible
+
+**Symptom:** `tsc` rejects `google.drive({ version: "v3", auth })` with `TS2769: No overload matches this call`, reporting that `OAuth2Client` is not assignable to the expected auth type. The compiler then falls back to the next overload and complains about `drive_v2`, so the message reads like a Drive API version mismatch rather than a types problem.
+
+**Cause:** `googleapis@173.0.0` asks for `google-auth-library@^10.2.0`, but its transitive `googleapis-common@8.0.3` pins `google-auth-library@10.5.0` exactly. npm therefore installs two copies — `10.9.1` at the root (the adapter's direct dependency, which also satisfies googleapis' range by dedupe) and `10.5.0` nested under `googleapis-common`. `OAuth2Client` declares a private field, so TypeScript compares the two classes nominally instead of structurally: an instance built from the root copy is not assignable to a parameter type generated against the nested copy. Aligning the direct pin to the nested version is not a durable fix — the transitive's exact pin moves on any of its patch bumps.
+
+**Workaround:** Construct the client through `google.auth.OAuth2` and derive the type from that value — `type DriveAuthClient = InstanceType<typeof google.auth.OAuth2>` — so the type comes from the copy googleapis itself uses. Never paper over it with a cast: a cast silences the compiler while leaving which copy is in play unknown. Importing `OAuth2Client` from `google-auth-library` into any signature that reaches googleapis reintroduces the failure.
+
+**Evidence:** Brief 047 Edit 5 — `packages/adapter-drive/src/client.ts` (`DriveAuthClient`) and `packages/adapter-drive/src/auth.ts`; recorded in `docs/tasks/047-adapter-drive/notes.md`. Observed 2026-08-02; `npm ls google-auth-library --all` shows both copies.
+
+---
+
+### G-DRIVE-3 — gaxios redacts the `authorization` header but not `refresh_token`
+
+**Symptom:** You are checking whether a Google library error can leak a credential. You look at the thrown error's `config.headers.authorization`, find `<<REDACTED> - See errorRedactor option ...>`, and conclude the library scrubs credentials before throwing. It does not: on a token-endpoint failure the same error object carries a **long-lived refresh token** — or, on the consent exchange, the authorization **code** — in clear under `config.data`. The redacted header is a false lead, and checking it first is how this trap survives a review.
+
+**Cause:** gaxios installs `defaultErrorRedactor` on every request unless the caller passes its own function or `false`. That redactor rewrites headers matching `authentication` / `authorization` / `secret`, and in a `FormData` or `URLSearchParams` body **only** the keys `grant_type`, `assertion` and anything matching `secret`. `google-auth-library`'s `refreshTokenNoCache` posts `URLSearchParams({ refresh_token, client_id, client_secret, grant_type })` and `getTokenAsync` posts `{ client_id, code_verifier, code, grant_type, redirect_uri, client_secret }` — so `client_secret` and `grant_type` are scrubbed while `refresh_token` and `code` are not, and they remain own enumerable state on the thrown error. Node's default error printing walks the `[cause]` chain, so attaching the library's error as `cause` prints whatever rode on its request: one `console.error(err)` or one unhandled rejection is enough. The refresh happens inside an ordinary Drive call, so the error arrives at the adapter's normal failure seam, from a path nothing marks as auth-shaped.
+
+**Workaround:** Never let a library error travel whole out of the adapter — concretely, never write `new Error(message, { cause: error })` with the library's own error. `toDriveError` and `toConsentError` (`packages/adapter-drive/src/errors.ts`) build a sanitized stand-in carrying the message, the classified status and the original stack string, and nothing else; nothing that leaves the module holds a reference to the library's error, and the library's error is never mutated. `errors.test.ts` (l) and (n) assert that a placeholder refresh token and a placeholder authorization code do not appear in `util.inspect(wrapped, { depth: null })`, each with an inline non-vacuity guard. Do not treat the redactor as the boundary — it is a helpful default, not a contract, and its coverage is where this trap lives.
+
+**Evidence:** Brief 047's fourth remediation round — commits `1426950`, `6a3f99c`, `fbe46bc`; full account, including the false access-token claim this corrected, in `docs/tasks/047-adapter-drive/notes.md` §7. Verified 2026-08-03 against **real request errors** (a hand-built `GaxiosError` bypasses the pipeline that installs the redactor and proves nothing) on both installed gaxios copies — `7.1.3` nested under `googleapis-common`, `7.3.0` at the root — and `google-auth-library@10.5.0`, the copy that executes (G-DRIVE-2). Redactor source: `gaxios/build/cjs/src/common.js`, `defaultErrorRedactor`.
 
 ---
 

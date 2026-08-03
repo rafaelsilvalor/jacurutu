@@ -36,6 +36,7 @@ export type {
   JiraGateway,
   SheetGateway,
   DriveGateway,
+  DriveItem,
 } from "./gateways.js";
 
 export {

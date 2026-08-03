@@ -12,7 +12,7 @@ The **production loop is the core**: pull a Jira task → scaffold its folder (t
 |---|---|---|
 | Read / data (Jira fetch) | Fuel | **Built** — `saci fetch` (026/028/029); per-project input resolution is **Axis A only** (entrega + vertical field ids). Axis B/C and `config project add` not built. |
 | Curated template management | Loop | **Planned** — only `appliedTemplate` / `templateUsed` type fields exist; no catalog, match, or apply code. |
-| Workflow actions — start / close / drive upload | Loop | **In progress** — `saci start --local` shipped (036, smoke-confirmed 2026-07-26); `close` / `ship` not built; `DriveGateway` is a port interface with TODOs, no `adapter-drive`. |
+| Workflow actions — start / close / drive upload | Loop | **In progress** — `saci start --local` shipped (036, smoke-confirmed 2026-07-26); `close` / `ship` not built; `DriveGateway` is a five-primitive port implemented by `adapter-drive` (047, all five confirmed live 2026-08-02), not yet wired into a command. |
 | BI export | Periphery | **Built** — `saci export` CSV/JSON fact table (023). Sheets projection parked (`adapter-sheets` is a placeholder). |
 
 (Status cells reflect the v2 source as of this writing, verified against the command surface and adapter implementations — not the prose elsewhere in this doc.)
@@ -204,9 +204,15 @@ from its Drive manifest. This is the core of the product after the
 - `[prod]` `saci config` — per-machine identity (multi-tenant per
   machine, mono-user per instance). Day-1 requirement: 3+ designers
   running their own instances.
-- `[prod]` Drive adapter (`adapter-drive`) — Google Drive read / write
-  for templates, manifests, and ship uploads. JS library not yet
-  researched (Pending decision).
+- `[prod]` Drive adapter (`adapter-drive`, shipped in brief 047) — Google
+  Drive read / write for templates, manifests, and ship uploads. Five
+  one-call primitives implementing the `DriveGateway` port — resolve
+  folder, find child, create folder, upload file, read file content —
+  over `googleapis` + `google-auth-library` with a user OAuth Desktop
+  loopback flow; all five confirmed live on 2026-08-02. The library
+  question was decision #11, closed by spike 046. No command wires it
+  yet: composition (folder-tree walking, verify-never-create, manifest
+  parsing) belongs to `ship`, a later brief.
 - `[prod]` Designer-friendly packaging — Saci-desktop (Electron)
   returns as a host for the CLI on non-technical designers' machines.
 - `[prod]` CLI human-facing display — a read-side command that renders the

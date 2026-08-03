@@ -4,7 +4,6 @@
 // the future adapters, not here.
 
 import type { Issue } from "./payload.js";
-import type { TaskManifest } from "./workspace.js";
 
 /**
  * Port for reading the current design issues. An adapter maps the raw Jira
@@ -38,22 +37,37 @@ export interface SheetGateway {
 }
 
 /**
+ * A Drive item as the port surfaces it: identity and kind only. `mimeType` is an
+ * opaque passthrough — core never interprets Drive wire values.
+ */
+export interface DriveItem {
+  id: string;
+  name: string;
+  mimeType: string;
+}
+
+/**
  * Port for the Drive-backed asset store. No Python precursor — the seed does not
- * touch Drive. Minimal surface: one ship-implied operation and one load-implied
- * operation. The upload contract still depends on the Phase 3 Workspace
- * production-state semantics and is intentionally left open; the manifest
- * shape is fixed by `TaskManifest` (schemaVersion 2, `./workspace.js`).
+ * touch Drive. Five primitives, one Drive call each: composition (folder-tree
+ * walking, the verify-never-create policy, manifest validation) belongs to the
+ * ship layer. Grounded in the operations proven live in the 046 spike.
  */
 export interface DriveGateway {
-  // TODO(2026-06-06): finalize folder-upload contract once Phase 3 Workspace
-  // production-state semantics land (ship operation).
-  /** Upload a local task folder to Drive; returns the resulting Drive path. */
-  uploadFolder(localFolderPath: string): Promise<string>;
+  /** Resolve a folder by id. Fail-loud (R4): a missing id, or a non-folder, throws. */
+  resolveFolder(folderId: string): Promise<DriveItem>;
 
   /**
-   * Read the task manifest stored at a Drive path. Implementation contract:
-   * adapters validate the raw Drive bytes via `parseManifest` (fail-loud,
-   * R4) before returning — the port never surfaces an unvalidated object.
+   * Find the direct child named `name` under `parentId`. `null` means absent —
+   * an expected answer, not a failure. More than one match throws (R4).
    */
-  readManifest(drivePath: string): Promise<TaskManifest>;
+  findChild(parentId: string, name: string): Promise<DriveItem | null>;
+
+  /** Create a folder named `name` under `parentId`; returns the created folder. */
+  createFolder(parentId: string, name: string): Promise<DriveItem>;
+
+  /** Upload a local file into `parentId`. Always creates; replace is a ship concern. */
+  uploadFile(parentId: string, name: string, localFilePath: string): Promise<DriveItem>;
+
+  /** Read a file's content as UTF-8 text. Parsing/validation is the caller's job (D2). */
+  readFileContent(fileId: string): Promise<string>;
 }
