@@ -3,7 +3,7 @@
 Companion to `brief.md`. Records the live evidence for the five `DriveGateway`
 primitives, the R2 dependency justification for the future PR description, the
 supersession of a brief-045 contract, the watch items and observations carried
-forward, and the closer's Phase A review of this branch (§7).
+forward, and the closer's two Phase A reviews of this branch (§7).
 
 ## 1. Live smoke — evidence round
 
@@ -235,41 +235,93 @@ Two clarifications on how criteria were met, neither a shortfall:
 
 ## 7. Closer Phase A review — findings and resolutions
 
-The `closer` agent (brief 048) ran its **first real Phase A diff review** in this
+The `closer` agent (brief 048) ran its **first real Phase A diff reviews** in this
 project against this branch, after `brief.md` was fully executed and before any
-push. It raised three findings; the owner authorized all three, and they were
-fixed on this branch in a remediation round. Recorded here because the round is
-the role's first evidence: two of the three were real defects in shipped-looking
-code that the executor, the Pause-3 gates and 297 green tests had all let
-through.
+push. The first pass raised three findings; the owner authorized all three, and
+they were fixed on this branch in a remediation round. A **second pass**, over
+the already-remediated diff, then found that the leading finding had documented
+the wrong mechanism and that one library call still escaped the fix — both
+corrected in a fourth round (commits `6a3f99c` and `fbe46bc`).
 
-### Finding 1 — the access token traveled inside the thrown error (fixed)
+Recorded here because the rounds are the role's first evidence, and because what
+they caught is not only defects. Two of the first pass's three findings were real
+defects in shipped-looking code that the executor, the Pause-3 gates and 297
+green tests had all let through. The second pass caught something else: a false
+claim that this pipeline produced *while fixing* one of them, and shipped into
+three documents with a confirmation attached.
 
-`toDriveError` attached the library's own error object as `cause`. A
-`GaxiosError` carries the outgoing request as own **enumerable** properties —
-`config.headers.authorization: "Bearer ya29..."` among them — and Node's default
-error printing walks the `[cause]` chain. Reproduced independently by the
-Orchestrator against the installed gaxios 7.3.0: the token appears in
-`util.inspect` of the wrapped error.
+### Finding 1 — a credential traveled inside the thrown error (fixed; the mechanism was misdiagnosed, then corrected)
 
+`toDriveError` attached the library's own error object as `cause`, and Node's
+default error printing walks the `[cause]` chain, so whatever the library hung on
+that error printed on the first `console.error(err)` or unhandled rejection.
 Latent, not live: the smoke prints only `error.message`, and no command wires the
-adapter yet. The first caller to `console.error(err)` — or the first unhandled
-rejection — would have printed a live access token. Compounding it, the
-`errors.ts` header asserted the opposite ("Nothing here touches the token, the
-client secret, or any request header"), which was true of what the module *read*
-and false of what it *returned*.
+adapter yet. Compounding it, the `errors.ts` header asserted the opposite
+("Nothing here touches the token, the client secret, or any request header"),
+which was true of what the module *read* and false of what it *returned*.
 
-Resolution: `cause` is now a sanitized stand-in built by `sanitizedCause` —
-message, classified status, and the original stack string, and nothing else. The
-incoming error is never mutated; it belongs to the library. R4's context survives
-because a stack is frame text, which carries no headers. `errors.test.ts` (k)
-asserts that `util.inspect(wrapped, { depth: null })` contains no `authorization`
-string, no `Bearer`-shaped token, and not the placeholder token of a
-gaxios-shaped fixture. That test was **proven non-vacuous**: the same fixture run
-against the old `{ cause: error }` shape leaks both the header name and the token
-value. Two existing assertions that pinned `cause === original`
-(`errors.test.ts` (j), `gateway.test.ts` (j)) moved to the new contract — they
-encoded exactly what this fix changes.
+The fix in `1426950` — `cause` is a sanitized stand-in built by `sanitizedCause`:
+message, classified status, the original stack string, nothing else — is correct
+and stands. What was wrong was the reason given for it.
+
+**What the first pass claimed, and why it was wrong.** The finding, the body of
+commit `1426950`, and the first version of this section all named the leaked value
+as a live `Bearer` **access token** carried in `config.headers.authorization`, and
+the Orchestrator reported reproducing it. That reproduction built a `GaxiosError`
+by hand. A hand-built error never passes through the request pipeline — and the
+pipeline is what installs gaxios's default `errorRedactor`. Against a real request
+error the header reads `<<REDACTED> - See errorRedactor option ...>`. No access
+token was escaping, and any reader who checked the claim would have found it
+false — with a sanitizer sitting there looking superfluous.
+
+**What is actually true, and it is worse.** gaxios's redactor scrubs headers
+matching `authorization` / `authentication` / `secret`, and in a request body the
+keys `grant_type`, `assertion` and anything matching `secret`
+(`defaultErrorRedactor`, in `gaxios/build/cjs/src/common.js`). It does **not cover
+`refresh_token`**. `google-auth-library`'s `refreshTokenNoCache` posts
+`URLSearchParams({ refresh_token, client_id, client_secret, grant_type })`, so an
+`invalid_grant` refresh — an expired or revoked token, i.e. the ordinary failure —
+throws an error carrying the **long-lived refresh token** in clear, as own
+enumerable state. That refresh runs inside a Drive call, so the error reaches
+`toDriveError` through `gateway.call`. The same gap exposes the authorization
+`code` on the consent exchange. The sanitizer was load-bearing all along, and it
+guards something worth more than what the record claimed: a credential that does
+not expire in an hour.
+
+Verified twice, independently, both times against **real request errors** rather
+than fixtures: by the closer (against both installed gaxios copies — `7.1.3`
+nested under `googleapis-common`, `7.3.0` at the root) and by the executor of the
+fourth round (against a local stub token endpoint, plus a read of the redactor
+source and of `google-auth-library@10.5.0`, the copy that actually executes —
+`G-DRIVE-2`).
+
+**Resolution, across three commits.**
+
+1. `1426950` sanitized the `cause`. Its message keeps the wrong justification:
+   history is not rewritten, and a wrong reason with the correction recorded
+   beside it is a better record than a tidied one.
+2. `6a3f99c` replaced the `sanitizedCause` doc comment with the verified
+   mechanism, stating what gaxios *does* redact **before** what it does not —
+   the only shape that answers the five-minute check instead of inviting it —
+   and added `errors.test.ts` (l), which pins the refresh-token case and carries
+   an inline non-vacuity guard (it asserts the fixture prints the placeholder
+   before wrapping, so the test cannot go quietly vacuous if the fixture drifts).
+3. `fbe46bc` closed the one library call the doctrine had missed. `client.getToken`
+   in `auth.ts` rose whole out of `authorize()` and `createDriveGateway()`; it now
+   goes through `toConsentError`, a sibling of `toDriveError` sharing the same
+   sanitized `cause`. That message keeps Google's `error_description` — the one
+   actionable sentence the classified Drive path would have dropped — and names
+   the fix, since a single-use code that expired or was already exchanged is the
+   ordinary cause and re-running consent is the answer. The authorization code is
+   awaited outside the `try`, so the two rejections the loopback server raises
+   itself (consent denied, callback without a code) keep travelling verbatim.
+
+`errors.test.ts` (k) keeps the authorization-header assertions as **defence in
+depth** — the library closes that path today, and the test still holds if a caller
+ever passes `errorRedactor: false` — relabelled so nobody mistakes it again for
+the verified threat. Two assertions that pinned `cause === original`
+(`errors.test.ts` (j), `gateway.test.ts` (j)) moved to the new contract in
+`1426950`; they encoded exactly what that fix changes.
 
 ### Finding 2 — `token.json` written with default permissions (fixed, with stated limits)
 
@@ -320,9 +372,10 @@ Resolution: §2 now states which copy runs, which was exercised live, and that t
 declared root copy serves a compile-time type only. **The pin was not changed** —
 what to depend on is a product decision, outside this remediation.
 
-### What this round teaches (the reason it is written down)
+### What these rounds teach (the reason they are written down)
 
-The useful lesson is not "the closer works". It is where the attention went.
+The useful lesson is not "the closer works". It is where the attention went, and
+what a check is worth when nobody questions the instrument.
 
 This task spent three revisions getting the authorization-URL redaction right in
 `drive-smoke.mjs` — writing the URL to a temp file, verifying both the success
@@ -330,24 +383,62 @@ and the write-failure branch, warning in the printed line that the URL carries
 the client id (§1 Reading 4). All of that guards a **client id**: a value that
 is not a credential on its own, in an output nobody was going to paste anyway.
 
-Meanwhile the **access token** — the live one, the one that grants Drive access
-right now — was riding out of `toDriveError` inside `cause`, on every failure
-path of the adapter, for the whole task. Nobody caught it: not the executor
-writing the module, not the module header that claimed the opposite in plain
-English, not the Pause-3 gates, not 297 green tests, not a secret sweep that did
-fire on this branch and matched only its own regex and a JSON field name (§5
-items 1–2). It took reading the diff **as a whole**, after the work looked done.
+Meanwhile the library's own error object was riding out of `toDriveError` inside
+`cause`, on every failure path of the adapter, for the whole task — and on the
+refresh path it carried a **long-lived refresh token** in clear. Nobody caught it:
+not the executor writing the module, not the module header that claimed the
+opposite in plain English, not the Pause-3 gates, not 297 green tests, not a
+secret sweep that did fire on this branch and matched only its own regex and a
+JSON field name (§5 items 1–2). It took reading the diff **as a whole**, after the
+work looked done.
 
-Two things follow from that, and they are the reason this section exists:
+Four things follow, and they are the reason this section exists:
 
 1. **Attention flows to the secret you are already thinking about.** The task had
    a credential-hygiene doctrine, and it was applied hard — to logging, which was
    the surface under discussion. The leak was in error construction, which nobody
    had framed as an output surface. A rule that is applied where you are looking
    is not the same as a rule that holds.
+
+   The correction is a **second instance of the same shape, one layer down**. The
+   round that fixed the leak reached for the access token — the credential this
+   task had been thinking about since the OAuth spike — and did not see the
+   refresh token sitting in the same object, unredacted, on the failure path that
+   actually fires. Even while auditing for credential leaks, attention went to the
+   credential already in mind.
 2. **Finding 2 had to be found twice.** It was raised in a calibration round
    against `e3a4dbd` and did not reach the owner; it landed only on the second
    pass. So the count is not "the closer caught three" — it is "one of the three
    was caught, dropped, and caught again". A review step that produces findings
    nobody receives is a review step that did not happen. That is worth more to a
    future reader than a clean win would be.
+3. **A verification that reproduces your own fixture verifies nothing — and is
+   worse than no verification, because the confirmation stops the next look.** The
+   access-token claim was not a guess; it was checked, and the check said yes. It
+   said yes about a `GaxiosError` constructed by hand, which is a statement about
+   that object, not about the library. The claim then entered three records at
+   once — a source comment, a commit body, and this file — each carrying "verified"
+   with it. Nothing in the pipeline re-opens a verified claim, so it took a second
+   Phase A pass over already-remediated code to catch. When the subject of a claim
+   is a library's behavior, the fixture has to come **from** the library: a real
+   request, through the real pipeline.
+4. **Four times in this task the instrument lied, not the thing measured.** Each
+   check looked authoritative and each was consulted in good faith:
+
+   | Instrument | What it reported | What was true |
+   |---|---|---|
+   | `git diff --name-only main..HEAD` (two dots) | unrelated files in the branch scope | the three-dot form diffs against the merge base (§6) |
+   | a hand-built `GaxiosError` | an unredacted `authorization` header | real errors pass through gaxios's redactor first |
+   | `awk length` on a UTF-8 commit body | max width 73, one column over | em-dashes are three bytes and one column; max width is exactly 72 |
+   | `git rev-list --count <base>..HEAD` | a commit count | four flag combinations give 21 / 20 / 19 / 18, all true |
+
+   The first three are the same failure: a confident **false positive** stated as
+   fact. The fourth is different in kind and harder to catch, which is why it is
+   worth recording separately — nobody was wrong. "17 commits from base" was
+   correct under `--first-parent --no-merges` when it was written. What was missing
+   was the instrument's name, and an unqualified number invites the next reader to
+   extend it: add one per commit and the figure propagates with the appearance of
+   confirmation, which is precisely the mechanism of point 3. The remedy is small
+   and mechanical — **state the flags with the number** (this branch: 18 task
+   commits, `--first-parent --no-merges`), and re-derive rather than inherit a
+   figure you did not measure.
