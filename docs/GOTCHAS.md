@@ -235,6 +235,18 @@ If folder sizes grow into thousands of files and the hitch becomes user-visible,
 
 ---
 
+### G-DRIVE-3 — gaxios redacts the `authorization` header but not `refresh_token`
+
+**Symptom:** You are checking whether a Google library error can leak a credential. You look at the thrown error's `config.headers.authorization`, find `<<REDACTED> - See errorRedactor option ...>`, and conclude the library scrubs credentials before throwing. It does not: on a token-endpoint failure the same error object carries a **long-lived refresh token** — or, on the consent exchange, the authorization **code** — in clear under `config.data`. The redacted header is a false lead, and checking it first is how this trap survives a review.
+
+**Cause:** gaxios installs `defaultErrorRedactor` on every request unless the caller passes its own function or `false`. That redactor rewrites headers matching `authentication` / `authorization` / `secret`, and in a `FormData` or `URLSearchParams` body **only** the keys `grant_type`, `assertion` and anything matching `secret`. `google-auth-library`'s `refreshTokenNoCache` posts `URLSearchParams({ refresh_token, client_id, client_secret, grant_type })` and `getTokenAsync` posts `{ client_id, code_verifier, code, grant_type, redirect_uri, client_secret }` — so `client_secret` and `grant_type` are scrubbed while `refresh_token` and `code` are not, and they remain own enumerable state on the thrown error. Node's default error printing walks the `[cause]` chain, so attaching the library's error as `cause` prints whatever rode on its request: one `console.error(err)` or one unhandled rejection is enough. The refresh happens inside an ordinary Drive call, so the error arrives at the adapter's normal failure seam, from a path nothing marks as auth-shaped.
+
+**Workaround:** Never let a library error travel whole out of the adapter — concretely, never write `new Error(message, { cause: error })` with the library's own error. `toDriveError` and `toConsentError` (`packages/adapter-drive/src/errors.ts`) build a sanitized stand-in carrying the message, the classified status and the original stack string, and nothing else; nothing that leaves the module holds a reference to the library's error, and the library's error is never mutated. `errors.test.ts` (l) and (n) assert that a placeholder refresh token and a placeholder authorization code do not appear in `util.inspect(wrapped, { depth: null })`, each with an inline non-vacuity guard. Do not treat the redactor as the boundary — it is a helpful default, not a contract, and its coverage is where this trap lives.
+
+**Evidence:** Brief 047's fourth remediation round — commits `1426950`, `6a3f99c`, `fbe46bc`; full account, including the false access-token claim this corrected, in `docs/tasks/047-adapter-drive/notes.md` §7. Verified 2026-08-03 against **real request errors** (a hand-built `GaxiosError` bypasses the pipeline that installs the redactor and proves nothing) on both installed gaxios copies — `7.1.3` nested under `googleapis-common`, `7.3.0` at the root — and `google-auth-library@10.5.0`, the copy that executes (G-DRIVE-2). Redactor source: `gaxios/build/cjs/src/common.js`, `defaultErrorRedactor`.
+
+---
+
 ## Maintenance
 
 Visit this file every 1–2 weeks during active development. Group related entries when the catalog grows past ~25 items. Promote frequent recurrences to `CLAUDE.md` rules so the next agent prevents them upfront instead of reacting.
