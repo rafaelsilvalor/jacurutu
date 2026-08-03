@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert";
 import path from "node:path";
+import { inspect } from "node:util";
 
 import { CREDENTIALS_DIR_NAME, DRIVE_SCOPES, TOKEN_FILENAME } from "./constants.js";
 import { driveErrorMessage, toDriveError } from "./errors.js";
@@ -8,9 +9,32 @@ import { driveErrorMessage, toDriveError } from "./errors.js";
 const OPERATION = "resolveFolder";
 const TARGET = "folder test-folder-id";
 
+// An obvious placeholder — no value here is shaped like a real credential (binding —
+// docs/explorations/drive-oauth.md §10).
+const PLACEHOLDER_ACCESS_TOKEN = "test-placeholder-access-token";
+
 /** A Google-API-shaped failure: the status hangs off `response`. */
 function apiError(status: number, message: string): Error & { response: { status: number } } {
   return Object.assign(new Error(message), { response: { status } });
+}
+
+/**
+ * A gaxios-shaped failure: the outgoing request rides along on the error, headers and
+ * all, and the same `config` object is reachable twice (directly and via `response`).
+ * This is the shape googleapis actually throws — the reason `cause` is sanitized.
+ */
+function gaxiosLikeError(): Error & { config: { headers: Record<string, string> } } {
+  const config = {
+    url: "https://www.googleapis.com/drive/v3/files/test-file-id",
+    headers: {
+      authorization: `Bearer ${PLACEHOLDER_ACCESS_TOKEN}`,
+      "content-type": "application/json",
+    },
+  };
+  return Object.assign(new Error("File not found"), {
+    config,
+    response: { status: 404, config, data: { error: { message: "File not found" } } },
+  });
 }
 
 test("(a) 401 points at the token file and re-authorization", () => {
@@ -72,10 +96,28 @@ test("(i) every message names the operation and the target", () => {
   assert.match(message, /^Drive uploadFile failed for file "brief\.pdf": /);
 });
 
-test("(j) toDriveError preserves the original error as cause", () => {
+test("(j) toDriveError keeps message, status and stack on a sanitized cause", () => {
   const original = apiError(404, "File not found");
   const wrapped = toDriveError(OPERATION, TARGET, original);
   assert.ok(wrapped instanceof Error);
-  assert.strictEqual(wrapped.cause, original);
   assert.strictEqual(wrapped.message, driveErrorMessage(OPERATION, TARGET, original));
+  const cause = wrapped.cause as Error & { status?: number };
+  assert.ok(cause instanceof Error);
+  assert.notStrictEqual(cause, original);
+  assert.strictEqual(cause.message, original.message);
+  assert.strictEqual(cause.status, 404);
+  assert.strictEqual(cause.stack, original.stack);
+});
+
+test("(k) a wrapped error prints no credential material, at any depth", () => {
+  const original = gaxiosLikeError();
+  const printed = inspect(toDriveError(OPERATION, TARGET, original), { depth: null });
+  assert.doesNotMatch(printed, /authorization/i);
+  assert.doesNotMatch(printed, /Bearer\s+\S/);
+  assert.ok(!printed.includes(PLACEHOLDER_ACCESS_TOKEN));
+  // The library's error is left exactly as it came: sanitizing copies, never mutates.
+  assert.strictEqual(
+    original.config.headers.authorization,
+    `Bearer ${PLACEHOLDER_ACCESS_TOKEN}`,
+  );
 });

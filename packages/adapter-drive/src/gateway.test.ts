@@ -178,7 +178,11 @@ test("(j) an API failure surfaces classified, naming the operation and the targe
     (error: Error) => {
       assert.match(error.message, /^Drive readFileContent failed for file test-file-id: /);
       assert.match(error.message, /status=404/);
-      assert.strictEqual(error.cause, failure);
+      // The cause is the sanitized stand-in, never the library's error object (errors.ts).
+      const cause = error.cause;
+      assert.ok(cause instanceof Error);
+      assert.notStrictEqual(cause, failure);
+      assert.strictEqual(cause.message, failure.message);
       return true;
     },
   );

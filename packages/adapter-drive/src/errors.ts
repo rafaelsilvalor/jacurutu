@@ -2,8 +2,10 @@
 // actionable). Ported from the 046 probe's `classifyError`, which was itself the
 // Python-era `_diagnose_error` shape.
 //
-// Credential hygiene: only the HTTP status and the error message are read. Nothing
-// here touches the token, the client secret, or any request header.
+// Credential hygiene: only the HTTP status and the error message are read, and only
+// those two plus the original stack are carried out. Nothing that leaves this module
+// holds a reference to the library's own error object, which carries the outgoing
+// request — `config.headers.authorization` included. See `sanitizedCause`.
 
 import path from "node:path";
 
@@ -98,9 +100,33 @@ export function driveErrorMessage(operation: string, target: string, error: unkn
 }
 
 /**
- * Wrap a Drive failure in an `Error` carrying the classified message, preserving the
- * original as `cause` so the stack is not lost (R4 — surfaced, never swallowed).
+ * Build the credential-free stand-in carried as `cause`. Google's client attaches the
+ * outgoing request to the error it throws — `config.headers.authorization` holds a live
+ * `Bearer` access token as an own enumerable property — and Node's default error
+ * printing walks the `cause` chain, so carrying the original would print that token on
+ * the first `console.error(err)` or unhandled rejection. Three facts cross over: the
+ * message, the classified status, and the original stack (the frames R4 wants kept).
+ * The incoming error is never mutated — it belongs to the library.
+ */
+function sanitizedCause(error: unknown): Error {
+  const cause = new Error(errorMessage(error));
+  const status = errorStatus(error);
+  if (status !== UNKNOWN_STATUS) {
+    Object.assign(cause, { status });
+  }
+  if (error instanceof Error && typeof error.stack === "string") {
+    cause.stack = error.stack;
+  }
+  return cause;
+}
+
+/**
+ * Wrap a Drive failure in an `Error` carrying the classified message, with a sanitized
+ * copy of the original as `cause` so the stack is not lost (R4 — surfaced, never
+ * swallowed) and no credential material travels with the thrown error.
  */
 export function toDriveError(operation: string, target: string, error: unknown): Error {
-  return new Error(driveErrorMessage(operation, target, error), { cause: error });
+  return new Error(driveErrorMessage(operation, target, error), {
+    cause: sanitizedCause(error),
+  });
 }
