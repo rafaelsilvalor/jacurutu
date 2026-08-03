@@ -1,7 +1,7 @@
 # Desktop UI host — browser-served vs. Electron
 
 Status: exploration — possibilities only, NOT a commitment or spec
-Origin: mentor session 2026-07-29 (UI host evaluation; mode: exploring
+Origin: mentor session 2026-08-03 (UI host evaluation; mode: exploring
 possibilities). No source documents outside the conversation.
 Roadmap link: pending decision #2 (designer-friendly packaging format);
 Phase 3 packaging item; Phase 5 (Desktop UI on top of CLI)
@@ -170,7 +170,7 @@ session.
 
 ## Changelog
 
-- 2026-07-29 — Created from the 2026-07-29 mentor session (exploring
+- 2026-08-03 — Created from the 2026-08-03 mentor session (exploring
   possibilities). Records the browser-served versus Electron comparison,
   the localhost-exposure correction to that session's first evaluation,
   and seven open questions. No decision taken.
