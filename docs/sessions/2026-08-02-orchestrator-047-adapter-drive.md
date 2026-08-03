@@ -13,8 +13,9 @@ was running. See "Doctrine absorbed mid-session".
 `@saci/adapter-drive` exists and is proven: the `DriveGateway` port was
 re-declared as five primitives and implemented over `googleapis` +
 `google-auth-library` with user OAuth, all five confirmed live 6/6 against
-real Drive — 11 commits on `feat/adapter-drive`, nothing pushed, and the
-first task in the project to face the new `closer` role.
+real Drive — 12 commits on `feat/adapter-drive` plus an `origin/main`
+merge, nothing pushed, and the first task in the project to face the new
+`closer` role.
 
 ## P4 slot evidence
 
@@ -82,6 +83,15 @@ Decisions closed with the owner, in order:
     entries (G-R4 — the approved subject had gone dishonest once the diff
     carried two), and #10 as `update` over `document`, because the ROADMAP
     clauses were false rather than merely unrecorded.
+11. **`origin/main` merged into the branch, not rebased.** The closer's own
+    definition (`.claude/agents/closer.md`) landed in `main` after this
+    branch forked, so the branch had to take it before the role could be
+    invoked at all. Merge over rebase, deliberately: both recaps cite
+    commit SHAs nominally, and rewriting them would turn this task's own
+    historical record into fiction. The merge is clean — `CLAUDE.md` was
+    auto-merged, the two sides having edited different sections — and it
+    makes `main` the comparison base, so `git diff main...HEAD` now shows
+    exactly this task's files.
 
 ## Deviations
 
@@ -166,10 +176,11 @@ amending the brief. **047 is the first task to pass through this role.**
 
 ## Next concrete action
 
-Invoke the `closer` for Phase A over `feat/adapter-drive` (11 commits,
-27 files against the merge base, both recaps aboard). Read its report,
-decide, then instruct Phase B — push and PR — explicitly. The next session
-confirms the merge SHA via P4 / `git log` before consuming anything.
+Invoke the `closer` for Phase A over `feat/adapter-drive` (12 task commits
+plus the `origin/main` merge, 28 files against the merge base, both recaps
+aboard). Read its report, decide, then instruct Phase B — push and PR —
+explicitly. The next session confirms the merge SHA via P4 / `git log`
+before consuming anything.
 
 ## Paste-ready snippet for the next Orchestrator session
 
@@ -182,8 +193,9 @@ vivo. Porta DriveGateway redeclarada como cinco primitivas; adapter sobre
 googleapis + google-auth-library com user OAuth (escopos drive.file +
 drive.metadata.readonly, credenciais em ~/.saci/); smoke 6/6 em
 2026-08-02, com createFolder ganhando a primeira evidencia viva do
-projeto. 11 commits + os dois recaps no MESMO PR [preencher #]. Verifica o
-merge via P4 / git log antes de consumir.
+projeto. 12 commits (os dois recaps inclusos) mais um merge de origin/main
+no MESMO PR [preencher #]. Verifica o merge via P4 / git log antes de
+consumir.
 ATENCAO: o slot 048 foi consumido por outra sessao (agente closer, sexto
 papel do pipeline — revisa o diff montado antes do push, Fase B empurra e
 abre a PR). O proximo slot livre e 049.
