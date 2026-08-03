@@ -5,7 +5,8 @@
 // Credential hygiene: only the HTTP status and the error message are read, and only
 // those two plus the original stack are carried out. Nothing that leaves this module
 // holds a reference to the library's own error object, which carries the outgoing
-// request — `config.headers.authorization` included. See `sanitizedCause`.
+// request body. `sanitizedCause` states which part of that body the library leaves
+// unredacted, and is the reason the copy exists.
 
 import path from "node:path";
 
@@ -101,12 +102,29 @@ export function driveErrorMessage(operation: string, target: string, error: unkn
 
 /**
  * Build the credential-free stand-in carried as `cause`. Google's client attaches the
- * outgoing request to the error it throws — `config.headers.authorization` holds a live
- * `Bearer` access token as an own enumerable property — and Node's default error
- * printing walks the `cause` chain, so carrying the original would print that token on
- * the first `console.error(err)` or unhandled rejection. Three facts cross over: the
- * message, the classified status, and the original stack (the frames R4 wants kept).
- * The incoming error is never mutated — it belongs to the library.
+ * outgoing request to the error it throws, and Node's default error printing walks the
+ * `cause` chain — so whatever rides on that request prints on the first
+ * `console.error(err)` or unhandled rejection.
+ *
+ * What is already safe, and why the loose version of this warning is wrong: gaxios
+ * installs `defaultErrorRedactor` on every request unless the caller opts out, so an
+ * `authorization` header, any header or body key matching `secret`, and the
+ * `grant_type` / `assertion` body keys all arrive here reading `<<REDACTED> ...>`. No
+ * access token survives that far.
+ *
+ * What is not safe: `refresh_token` is on no redaction list. `google-auth-library`'s
+ * `refreshTokenNoCache` posts `URLSearchParams({ refresh_token, client_id,
+ * client_secret, grant_type })`, and the redactor's `URLSearchParams` branch rewrites
+ * only the keys named above — so an `invalid_grant` refresh (an expired or revoked
+ * token: the ordinary failure) throws carrying the long-lived refresh token in clear,
+ * as own enumerable state. That refresh runs inside a Drive call, so the error reaches
+ * here through `gateway.call`. The consent exchange leaks its authorization `code` the
+ * same way. Verified 2026-08-03 against a stub token endpoint; the earlier, wrong
+ * version of this claim is recorded in `docs/tasks/047-adapter-drive/notes.md` §7.
+ *
+ * Three facts cross over: the message, the classified status, and the original stack
+ * (the frames R4 wants kept). The incoming error is never mutated — it belongs to the
+ * library.
  */
 function sanitizedCause(error: unknown): Error {
   const cause = new Error(errorMessage(error));

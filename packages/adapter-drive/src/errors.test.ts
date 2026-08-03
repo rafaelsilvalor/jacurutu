@@ -9,19 +9,32 @@ import { driveErrorMessage, toDriveError } from "./errors.js";
 const OPERATION = "resolveFolder";
 const TARGET = "folder test-folder-id";
 
-// An obvious placeholder — no value here is shaped like a real credential (binding —
+// Obvious placeholders — no value here is shaped like a real credential (binding —
 // docs/explorations/drive-oauth.md §10).
 const PLACEHOLDER_ACCESS_TOKEN = "test-placeholder-access-token";
+const PLACEHOLDER_REFRESH_TOKEN = "test-placeholder-refresh-token";
+
+/** gaxios's marker, verbatim from `defaultErrorRedactor`: what a redacted value reads. */
+const GAXIOS_REDACTED =
+  "<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.";
 
 /** A Google-API-shaped failure: the status hangs off `response`. */
 function apiError(status: number, message: string): Error & { response: { status: number } } {
   return Object.assign(new Error(message), { response: { status } });
 }
 
+// Two fixtures below guard two different things, and which is which matters — the round
+// that corrected `notes.md` §7 exists because a fixture was mistaken for the library's
+// behavior. `refreshFailureError` carries the leak verified against a real request error.
+// `gaxiosLikeError` carries one the library's own redactor already closes, and is kept as
+// defence in depth only.
+
 /**
- * A gaxios-shaped failure: the outgoing request rides along on the error, headers and
- * all, and the same `config` object is reachable twice (directly and via `response`).
- * This is the shape googleapis actually throws — the reason `cause` is sanitized.
+ * A gaxios-shaped failure with an *unredacted* authorization header, the same `config`
+ * reachable twice (directly and via `response`). Not what googleapis throws today: its
+ * default `errorRedactor` rewrites that header before the error escapes. Kept because the
+ * assertion still has to hold if a caller ever passes `errorRedactor: false` or a future
+ * version narrows what it covers.
  */
 function gaxiosLikeError(): Error & { config: { headers: Record<string, string> } } {
   const config = {
@@ -34,6 +47,33 @@ function gaxiosLikeError(): Error & { config: { headers: Record<string, string> 
   return Object.assign(new Error("File not found"), {
     config,
     response: { status: 404, config, data: { error: { message: "File not found" } } },
+  });
+}
+
+/**
+ * A token-refresh failure, modeled on the shape observed on 2026-08-03 against a stub
+ * token endpoint: own keys `config`, `response`, `code`, `status`, message
+ * `invalid_grant`, and the same `URLSearchParams` reachable as both `config.data` and
+ * `config.body`. Two details in that body are the whole point of the fixture:
+ * `client_secret` and `grant_type` already read as redacted, because gaxios's default
+ * redactor rewrote them, and `refresh_token` does not, because no redaction list covers
+ * it. A refresh runs inside a Drive call, so this error arrives through `gateway.call`.
+ */
+function refreshFailureError(): Error & { config: { data: URLSearchParams } } {
+  const body = new URLSearchParams({
+    refresh_token: PLACEHOLDER_REFRESH_TOKEN,
+    client_id: "test-placeholder-client-id",
+    client_secret: GAXIOS_REDACTED,
+    grant_type: GAXIOS_REDACTED,
+  });
+  return Object.assign(new Error("invalid_grant"), {
+    code: 400,
+    status: 400,
+    config: { method: "POST", url: "https://oauth2.googleapis.com/token", data: body, body },
+    response: {
+      status: 400,
+      data: { error: "invalid_grant", error_description: "Token has been expired or revoked." },
+    },
   });
 }
 
@@ -109,7 +149,7 @@ test("(j) toDriveError keeps message, status and stack on a sanitized cause", ()
   assert.strictEqual(cause.stack, original.stack);
 });
 
-test("(k) a wrapped error prints no credential material, at any depth", () => {
+test("(k) defence in depth: a wrapped error prints no authorization header", () => {
   const original = gaxiosLikeError();
   const printed = inspect(toDriveError(OPERATION, TARGET, original), { depth: null });
   assert.doesNotMatch(printed, /authorization/i);
@@ -120,4 +160,20 @@ test("(k) a wrapped error prints no credential material, at any depth", () => {
     original.config.headers.authorization,
     `Bearer ${PLACEHOLDER_ACCESS_TOKEN}`,
   );
+});
+
+test("(l) the verified leak: a wrapped refresh failure prints no refresh token", () => {
+  const original = refreshFailureError();
+  // Non-vacuity guard: the fixture must actually carry the leak, or (l) proves nothing.
+  assert.ok(inspect(original, { depth: null }).includes(PLACEHOLDER_REFRESH_TOKEN));
+
+  const wrapped = toDriveError(OPERATION, TARGET, original);
+  const printed = inspect(wrapped, { depth: null });
+  assert.ok(!printed.includes(PLACEHOLDER_REFRESH_TOKEN));
+  assert.doesNotMatch(printed, /refresh_token/);
+  // What R4 wants kept survives the sanitizing: the status classifies, the message names.
+  assert.match(wrapped.message, /status=400/);
+  assert.match(wrapped.message, /message="invalid_grant"/);
+  // Copied, never mutated — the body still holds what the library put there.
+  assert.strictEqual(original.config.data.get("refresh_token"), PLACEHOLDER_REFRESH_TOKEN);
 });
