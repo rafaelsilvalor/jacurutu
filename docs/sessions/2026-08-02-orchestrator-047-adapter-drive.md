@@ -286,12 +286,32 @@ review pass over already-remediated code.
 7. **`CLAUDE.md` R25 adapter list** does not name `adapter-drive`. Its
    wording is non-exhaustive, so it is not false — but a third concrete
    adapter now exists. Candidate for a later edit.
-8. **Playbook recap-policy reconciliation** (carried from 046;
+8. **Clause 3 of the `errors.ts` invariant header is false, and its *kind* is
+   the defect.** Raised by the closer's fourth Phase A (verdict
+   `pronto para push`, severity observation) and independently confirmed by the
+   executor before standing down. The clause reads "every field read out of it
+   is named at its reader, in that function's own docstring"; `errorMessage`
+   (line 98) has no docstring and reads `error.message`, the only counterexample
+   among the readers. Do **not** fix it by adding a docstring — the body is one
+   self-describing line and the comment could only restate it (R8), which is
+   shaping code to fit a claim. The clause states a property of the module's
+   *bookkeeping* rather than of its *behavior*, so it goes false by omission
+   instead of by a code change: an inventory wearing an invariant's clothes, one
+   level up, and the same shape as the defect `b2bae7b` set out to remove. The
+   reformulation that holds is **"reads are confined to named helpers"**, which
+   is falsified only by a read appearing outside one and is checkable in a
+   single command:
+   `grep -nE '\berror\.[a-zA-Z]|response\.(data|status)' packages/adapter-drive/src/errors.ts`
+   — every hit should fall inside `errorStatus`, `errorMessage`,
+   `errorDescription` or `sanitizedCause`. Carried as debt rather than fixed:
+   the owner closed the session at this point, and the finding existed only in
+   the session transcript until this entry.
+9. **Playbook recap-policy reconciliation** (carried from 046;
    rule-of-three met there).
-9. Parked (unchanged): local→Jira promotion (known common demand);
-   manifest `variation` field (042 D4); multi-contributor naming;
-   Jira-born manual overrides; `jira_updated_at` nullability.
-10. Horizon: `@saci/*` → `@breu/*` rename; the `saci config` write
+10. Parked (unchanged): local→Jira promotion (known common demand);
+    manifest `variation` field (042 D4); multi-contributor naming;
+    Jira-born manual overrides; `jira_updated_at` nullability.
+11. Horizon: `@saci/*` → `@breu/*` rename; the `saci config` write
     surface.
 
 ## Next concrete action
