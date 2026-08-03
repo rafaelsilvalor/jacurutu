@@ -13,9 +13,12 @@ was running. See "Doctrine absorbed mid-session".
 `@saci/adapter-drive` exists and is proven: the `DriveGateway` port was
 re-declared as five primitives and implemented over `googleapis` +
 `google-auth-library` with user OAuth, all five confirmed live 6/6 against
-real Drive — 12 commits on `feat/adapter-drive` plus an `origin/main`
-merge, nothing pushed, and the first task in the project to face the new
-`closer` role.
+real Drive — 20 task commits on `feat/adapter-drive`
+(`--first-parent --no-merges`) plus an `origin/main` merge, nothing pushed, and
+the first task in the project to face the new `closer` role. Two Phase A passes
+and four remediation rounds followed the brief's own execution: they closed two
+real credential leaks the pipeline had not seen, and corrected a third claim the
+pipeline had produced while fixing the first.
 
 ## P4 slot evidence
 
@@ -92,6 +95,29 @@ Decisions closed with the owner, in order:
     auto-merged, the two sides having edited different sections — and it
     makes `main` the comparison base, so `git diff main...HEAD` now shows
     exactly this task's files.
+12. **A sanitized `cause` rather than no `cause`.** R4 wants the frames, and a
+    stack string is frame text that carries no headers — so sanitizing loses
+    nothing the rule asked for.
+13. **The `mkdir` error is left unwrapped.** Node's `ErrnoException` already
+    names the syscall and the absolute path; wrapping would trade `.code`,
+    `.syscall` and `.path` for a generic hint. The 044 precedent applies where
+    the adapter knows something the operating system does not — "create an
+    OAuth client with user type Internal" is worth authoring, "could not create
+    a directory" is not.
+14. **`toConsentError` as a sibling of `toDriveError`, not a reuse of it.**
+    Reusing it would mislead twice: the failure would read as a Drive call it is
+    not, and 400 is unmapped in the status table, so the hint would say
+    "unclassified" to a designer whose consent just failed for the ordinary
+    reason. The composed message keeps Google's `error_description` — the one
+    detail the classified path drops — and names the discriminator between the
+    two candidate causes: failing every time rather than intermittently.
+15. **`G-DRIVE-3` authorized, and not as a duplicate record.** The three
+    surfaces answer different questions: the `errors.ts` comment answers "may I
+    delete this function?" and is the only one that reaches a reader at the
+    moment of the destructive act; `docs/GOTCHAS.md` answers "why is a
+    credential in my logs?" for a reader who has a symptom and no location;
+    `notes.md` §7 answers "how did the pipeline fail?" and is the weakest
+    operational surface and the strongest process record.
 
 ## Deviations
 
@@ -127,6 +153,53 @@ Brief 047 was written before the closer existed, so its "Expected output"
 does not mention it. The gap was closed at the Orchestrator level, not by
 amending the brief. **047 is the first task to pass through this role.**
 
+## Remediation — two closer passes, four fix rounds (2026-08-02 → 2026-08-03)
+
+The session crossed midnight. Commits through `1501303` are dated 2026-08-02;
+the fourth round is 2026-08-03. Both recap filenames keep the opening date.
+
+**First Phase A**, run after the brief was fully executed and before any push,
+raised three findings. All were owner-authorized and fixed in one round:
+
+1. A credential was reachable from a thrown error's `cause` chain — closed by a
+   sanitized stand-in carrying message, classified status and the original stack
+   (`1426950`).
+2. `token.json` was written `0644` and `~/.saci` was never created — closed with
+   `0o600` / `0o700` and a first-run `mkdir` (`d3d15f2`). The directory half was
+   a real first-run bug for every instance after the owner's, not merely the
+   hook the mode hung on. This finding had also surfaced in an earlier
+   calibration round against `e3a4dbd` and never reached the owner: a review
+   whose findings nobody receives did not happen.
+3. The R2 paragraph claimed version-specific evidence for a
+   `google-auth-library` copy that never executes — corrected in `1501303`.
+
+**Second Phase A** caught something the first round produced *while fixing*
+finding 1: the mechanism was misdiagnosed. gaxios installs
+`defaultErrorRedactor` on every request, so an `authorization` header arrives
+already redacted. The Orchestrator's confirming reproduction had hand-built a
+`GaxiosError`, which never touches the pipeline that installs the redactor — it
+proved the fixture, not the library, and the claim entered a source comment, a
+commit body and `notes.md` each carrying "verified".
+
+What is actually true is worse: the redactor covers no `refresh_token`, which
+`refreshTokenNoCache` posts in a `URLSearchParams` body, so an `invalid_grant`
+refresh — the ordinary expired-or-revoked case, running inside any Drive call —
+threw carrying a long-lived refresh token in clear. The sanitizer closes it by
+generality. The consent exchange leaked its authorization `code` the same way and
+was the one library call still travelling whole; closed in `fbe46bc`.
+
+Fourth round: `6a3f99c` (corrected rationale plus a regression test for the
+verified threat), `fbe46bc` (consent exchange sanitized), `f4a6967` (§7
+corrected), `1e74a9a` (`G-DRIVE-3`).
+
+**Two patterns worth carrying.** Attention flowed to the secret already under
+discussion: three revisions went into redacting an authorization URL carrying a
+client id, in output nobody was going to paste, while a live credential rode out
+of every adapter failure path untouched. And a verification that reproduces its
+own fixture is worse than none, because the confirmation is what stops the next
+look — nothing in this pipeline re-opens a verified claim, so it took a second
+review pass over already-remediated code.
+
 ## Rule-of-three ledger (updated)
 
 - **Brief-authored structural checks that cannot pass as written: 2
@@ -136,6 +209,20 @@ amending the brief. **047 is the first task to pass through this role.**
   `^import`, or require a value after the colon.
 - **A brief check that breaks when its base moves: 1st occurrence** (the
   two-dot `main..HEAD` form).
+- **The measuring instrument lying rather than the thing measured: 4
+  occurrences — threshold met.** The two-dot diff reporting unrelated files as
+  in scope; a hand-built `GaxiosError` reporting an unredacted `authorization`
+  header; `awk length` reporting 73 columns on a body whose widest line is
+  exactly 72, because an em-dash is three bytes and one column; and
+  `git rev-list --count` answering 21 / 20 / 19 / 18 depending on flags, all
+  true. The first three are the same failure — a confident false positive
+  stated as fact. The fourth is different in kind and harder to catch, because
+  nobody was wrong: the number was simply unqualified, and an unqualified
+  figure invites the next reader to extend it, which is how it gains the
+  appearance of confirmation. **Doctrine candidate:** state the instrument with
+  the measurement, and re-derive rather than inherit a figure you did not
+  measure. Promotion into `CLAUDE.md` or the playbook is a separate brief's
+  call, not this recap's.
 - Recap policy divergence: unchanged (threshold met at 046; this session
   produced both recaps, per policy).
 
@@ -150,6 +237,39 @@ amending the brief. **047 is the first task to pass through this role.**
    primitives are its building blocks; three sentences in `CLAUDE.md` and
    `docs/ROADMAP.md` assert the adapter is unwired and each names `ship`,
    so a grep finds all three when they go false.
+
+   **Four things the executor reported that are written nowhere else**, from
+   four invocations inside the adapter:
+
+   - **Do not generalize the error wrappers.** The shape that works is one
+     wrapper per failure vocabulary, all sharing `sanitizedCause`. Drive calls
+     have a status table, consent has a code-lifetime hint, and ship's failures
+     are about policy — a folder that already exists, a manifest that will not
+     parse — with no HTTP status at all. The hint text is the whole value and it
+     does not factor (A3).
+   - **`findChild` returning `null` is the highest-risk seam in the adapter, and
+     it is not recorded as a risk anywhere.** It is the load-bearing contract of
+     verify-never-create, and the one place a swallowed error and a legitimate
+     absence would be indistinguishable. `gateway.ts` produces the `null` above
+     the try, never inside a catch; any ship-layer wrapper that breaks that
+     separation turns the policy into create-always, silently. The comment
+     records the contract, not the failure mode.
+   - **There is no retry anywhere, and two hints promise one** ("retry with
+     backoff", for 429 and 5xx). If ship adds retry, those hints start telling
+     the user to do what the code already did, and no test will fail.
+   - **The refresh path is exercised by every Drive call and by no test.** It
+     lives entirely inside the library, so there is nothing to unit test and
+     nothing that would notice if it broke — which is exactly where the
+     refresh-token leak lived. If ship has a smoke, make one call run against a
+     deliberately expired access token; that is the only way this path is ever
+     observed.
+
+   **Process note that generalizes:** both real defects in this task were in
+   code with no caller yet. Gates, tests and greps inspect what the code says; a
+   leak that appears only when someone prints an error, and a file mode that
+   matters only on an OS nobody ran, are invisible to that. Ship is the first
+   caller — budget a pass for "what does this print when it fails", not only
+   "what does it do when it works".
 3. **Cross-user content-read gap (spike D7)** — still untested, needs a
    second `@estrategia.com` account. Must run before the D4 prefix check
    is implemented.
@@ -176,11 +296,16 @@ amending the brief. **047 is the first task to pass through this role.**
 
 ## Next concrete action
 
-Invoke the `closer` for Phase A over `feat/adapter-drive` (12 task commits
-plus the `origin/main` merge, 28 files against the merge base, both recaps
-aboard). Read its report, decide, then instruct Phase B — push and PR —
-explicitly. The next session confirms the merge SHA via P4 / `git log`
-before consuming anything.
+A **third** Phase A over `feat/adapter-drive` — 20 task commits
+(`--first-parent --no-merges`) plus the `origin/main` merge, 28 files against
+the merge base, both recaps and four remediation commits aboard. Read its
+report, decide, then instruct Phase B — push and PR — explicitly. The next
+session confirms the merge SHA via P4 / `git log` before consuming anything.
+
+The second pass earned the third: it found a defect the first pass had not
+reached and a false claim the remediation itself had introduced. A pass that
+confirms is cheap; a pass skipped because the previous one was clean is how
+both of those would have shipped.
 
 ## Paste-ready snippet for the next Orchestrator session
 
@@ -193,9 +318,15 @@ vivo. Porta DriveGateway redeclarada como cinco primitivas; adapter sobre
 googleapis + google-auth-library com user OAuth (escopos drive.file +
 drive.metadata.readonly, credenciais em ~/.saci/); smoke 6/6 em
 2026-08-02, com createFolder ganhando a primeira evidencia viva do
-projeto. 12 commits (os dois recaps inclusos) mais um merge de origin/main
-no MESMO PR [preencher #]. Verifica o merge via P4 / git log antes de
-consumir.
+projeto. 20 commits de tarefa (--first-parent --no-merges; os dois recaps
+inclusos) mais um merge de origin/main no MESMO PR [preencher #]. Verifica
+o merge via P4 / git log antes de consumir.
+Tres passadas de Fase A do closer e quatro rodadas de remediacao fecharam
+dois vazamentos reais de credencial (refresh token no refresh falho,
+authorization code no consent) e corrigiram uma alegacao falsa que o
+proprio pipeline produziu ao consertar o primeiro. Ver a secao
+"Remediation" desta recap e a secao 7 do notes.md do 047 antes de mexer no
+errors.ts: G-DRIVE-1/2/3 no GOTCHAS sao dessa tarefa.
 ATENCAO: o slot 048 foi consumido por outra sessao (agente closer, sexto
 papel do pipeline — revisa o diff montado antes do push, Fase B empurra e
 abre a PR). O proximo slot livre e 049.
