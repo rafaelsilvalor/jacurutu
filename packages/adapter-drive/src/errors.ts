@@ -2,11 +2,18 @@
 // actionable). Ported from the 046 probe's `classifyError`, which was itself the
 // Python-era `_diagnose_error` shape.
 //
-// Credential hygiene: only the HTTP status and the error message are read, and only
-// those two plus the original stack are carried out. Nothing that leaves this module
-// holds a reference to the library's own error object, which carries the outgoing
-// request body. `sanitizedCause` states which part of that body the library leaves
-// unredacted, and is the reason the copy exists.
+// Credential hygiene, stated as invariants rather than as an inventory of the fields
+// read: an inventory has to be revised on every new reader, this one drifted twice, and
+// this module is the hygiene audit point `docs/GOTCHAS.md` G-DRIVE-3 names. What holds,
+// and must keep holding as readers are added:
+//
+//   1. Nothing that leaves this module holds a reference to the library's error object —
+//      that object carries the outgoing request. `sanitizedCause` builds the stand-in
+//      and names which credential the library leaves unredacted, which is why it exists.
+//   2. That error is never mutated: readers copy values out, nothing writes back.
+//   3. Every field read out of it is named at its reader, in that function's own
+//      docstring — so no list here can go stale as the module grows.
+//   4. No credential material is read, logged, or composed into a message or a cause.
 
 import path from "node:path";
 
