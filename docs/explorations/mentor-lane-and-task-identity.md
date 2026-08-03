@@ -85,7 +85,8 @@ Orchestrator recap; a troubleshooting row in the playbook; burns
 (004-006, 034) that need prose so they do not read as mistakes; a
 recorded collision (035, two recaps on one slot); and a structural
 failure logged at 048 — the three canonical sources cannot see a slot
-held only on an unmerged branch, which is exactly what 047 was doing.
+held only on an unmerged branch, which is what 047 was doing on
+2026-08-02. It merged as PR #110 the next day.
 A date is self-assigned: no lookup, no protocol, no conflict, no gap.
 
 | # | Decision |
@@ -97,8 +98,8 @@ A date is self-assigned: no lookup, no protocol, no conflict, no gap.
 | E5 | Same-day collisions take a short ordinal suffix, applied only on collision. Intra-day ordering rides the Consumes chain and git, not the filename. |
 | E6 | The dev token stays out. The original trigger of the 039 package — a second regular contributor — remains parked. |
 | E7 | Global slug uniqueness becomes a system invariant: it carries the task-to-recap join now that the two dates diverge. The numeric P4 dies; a slug-collision check against the whole history of `docs/tasks/` replaces it. |
-| E8 | A task born before the cutover keeps its `NNN` identity for life, including its later recaps. Not hypothetical: 047 is alive on an unmerged branch. |
-| E9 | While any pre-049 task is alive, planner and validator accept both shapes. Support for the old shape is removed when the last pre-049 task merges. |
+| E8 | A task born before the cutover keeps its `NNN` identity for life, including its later recaps. No pre-049 task is in flight as of 2026-08-03 (047 merged as PR #110; zero open PRs), so the rule governs a future task caught mid-flight rather than a present case. |
+| E9 | While any pre-049 task is alive, planner and validator accept both shapes. Support for the old shape is removed when the last pre-049 task merges. As of 2026-08-03 that window is empty, so the dual-acceptance support may never be exercised. |
 
 Cutover rule in one sentence: a task is born under one scheme and dies
 under it; the cutover governs birth, never a task in flight.
@@ -161,3 +162,7 @@ so the planner is not invoked (M-R15).
 - 2026-08-03 — note created. Decision sets A (15) and B (9) closed in
   session; three briefs identified with their dependency order;
   disposition set to `candidate`.
+- 2026-08-03 — corrected E8 and the section 3 preamble: 047 was recorded
+  as mid-execution on an unmerged branch, a stale claim inherited from
+  the desktop-ui-host recap. It merged as PR #110. E9's dual-acceptance
+  window is empty as a result.
