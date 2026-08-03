@@ -3,7 +3,7 @@
 Companion to `brief.md`. Records the live evidence for the five `DriveGateway`
 primitives, the R2 dependency justification for the future PR description, the
 supersession of a brief-045 contract, the watch items and observations carried
-forward, and the closer's two Phase A reviews of this branch (§7).
+forward, and the closer's Phase A reviews of this branch (§7).
 
 ## 1. Live smoke — evidence round
 
@@ -214,6 +214,33 @@ scope (`brief.md`, Out of scope); this note is the record of the supersession.
    non-product script under `docs/tasks/` with a single linear run, whose sink
    contract (`AuthorizeLog`) takes one plain function. Recorded so a future
    reader sees it was judged, not missed.
+7. **The one uncovered path, recorded because coverage cannot close it — a
+   swallowed error in `listByQuery`.** The mistake `gateway.call` exists to
+   prevent has a home one module down. A future contributor tolerating a bad
+   page writes exactly this into `client.ts`, around the `files.list` call:
+
+   ```ts
+   } catch {
+     return []; // tolerate a bad page
+   }
+   ```
+
+   Nothing fails. An empty list is not an error at this seam — it is
+   `findChild`'s documented absence answer, so `findChild` returns `null`, the
+   ship layer reads `null` as "the folder is not there", and the
+   verify-never-create policy creates a duplicate beside a folder that already
+   exists. A 403 or a 500 arrives looking like a clean "not found", which is
+   the one answer the policy acts on destructively. `client.ts` is untested by
+   design (D4), so no unit test would notice, and the smoke would not either:
+   the swallow fires only on a failure the smoke does not provoke.
+
+   The **contract** is written down in four places — the port docstring in
+   `packages/core/src/gateways.ts`, `findChild`'s docstring in `gateway.ts`,
+   the `call` seam comment in the same file, and `brief.md` §D1. What was
+   unrecorded is this **failure mode**: the specific innocent edit that
+   satisfies every one of those readings and defeats them anyway. That is the
+   narrower claim and the fair one — the risk was not undocumented, its shape
+   was.
 
 ## 6. Done criteria not met
 
@@ -233,7 +260,7 @@ Two clarifications on how criteria were met, neither a shortfall:
   after the fact — see Edit 10 — precisely because this task made their
   present-tense claims false.
 
-## 7. Closer Phase A review — findings and resolutions
+## 7. Closer Phase A reviews — findings and resolutions
 
 The `closer` agent (brief 048) ran its **first real Phase A diff reviews** in this
 project against this branch, after `brief.md` was fully executed and before any
