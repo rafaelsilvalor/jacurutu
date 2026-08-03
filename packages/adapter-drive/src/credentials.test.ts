@@ -1,12 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert";
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdtemp, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { CREDENTIALS_DIR_NAME, OAUTH_CLIENT_FILENAME, TOKEN_FILENAME } from "./constants.js";
 import {
   credentialsDir,
+  ensureCredentialsDir,
   oauthClientPath,
   parseOAuthClient,
   readOAuthClient,
@@ -145,7 +146,38 @@ test("(j) token round-trips through write and read, keeping only known fields", 
   });
 });
 
-test("(k) readStoredToken fails loud on a malformed token file", async () => {
+test("(k) writeStoredToken creates the credentials dir when it is absent", async () => {
+  const home = await mkdtemp(path.join(tmpdir(), "saci-drive-home-"));
+  const dir = credentialsDir(home);
+  const file = path.join(dir, TOKEN_FILENAME);
+  await writeStoredToken(file, { refresh_token: "test-refresh-token" });
+  assert.deepStrictEqual(await readStoredToken(file), { refresh_token: "test-refresh-token" });
+});
+
+// POSIX modes only. On win32 the mode argument is inert, so asserting it there would
+// pass without proving anything — the test declares itself skipped instead. The mode
+// path is therefore UNVERIFIED on the one platform this adapter has live evidence
+// from; see notes.md §7.
+const POSIX_ONLY = process.platform === "win32" ? "POSIX file modes are inert on win32" : false;
+
+test("(l) the token file and the dir it creates are owner-only", { skip: POSIX_ONLY }, async () => {
+  const home = await mkdtemp(path.join(tmpdir(), "saci-drive-home-"));
+  const dir = credentialsDir(home);
+  const file = path.join(dir, TOKEN_FILENAME);
+  await writeStoredToken(file, { refresh_token: "test-refresh-token" });
+  assert.strictEqual((await stat(file)).mode & 0o777, 0o600);
+  assert.strictEqual((await stat(dir)).mode & 0o777, 0o700);
+});
+
+test("(m) ensureCredentialsDir leaves an existing dir alone", async () => {
+  const home = await mkdtemp(path.join(tmpdir(), "saci-drive-home-"));
+  const dir = credentialsDir(home);
+  await ensureCredentialsDir(dir);
+  await ensureCredentialsDir(dir);
+  assert.ok((await stat(dir)).isDirectory());
+});
+
+test("(n) readStoredToken fails loud on a malformed token file", async () => {
   const dir = await mkdtemp(path.join(tmpdir(), "saci-drive-cred-"));
   const file = path.join(dir, TOKEN_FILENAME);
   await writeFile(file, "{ not json", "utf8");

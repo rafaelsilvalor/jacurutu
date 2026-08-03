@@ -7,7 +7,7 @@
 // this module logs, echoes, or embeds a client secret or a token value. Errors name
 // the FILE and the fix, never the contents.
 
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
 
@@ -16,6 +16,15 @@ import {
   OAUTH_CLIENT_FILENAME,
   TOKEN_FILENAME,
 } from "./constants.js";
+
+/**
+ * Owner-only POSIX modes for credential material (R7). Both bind at creation time
+ * only: an existing directory or token file keeps whatever permissions it already
+ * has. Inert on win32, load-bearing on the macOS and Linux instances this project
+ * ships to as well (R1).
+ */
+const CREDENTIALS_DIR_MODE = 0o700;
+const TOKEN_FILE_MODE = 0o600;
 
 /** Where the two credential files live for one user. */
 export interface CredentialPaths {
@@ -176,7 +185,26 @@ export async function readStoredToken(filePath: string): Promise<StoredToken | n
   return narrowStoredToken(parsed);
 }
 
-/** Persist the token as 2-space JSON with a trailing newline (the identity.ts style). */
+/**
+ * Create the credentials directory owner-only, if it is not there already. First run
+ * on a fresh machine has no `~/.saci`, and creation is the only moment the mode can be
+ * set at all — an existing directory keeps its current permissions untouched.
+ */
+export async function ensureCredentialsDir(dirPath: string): Promise<void> {
+  await mkdir(dirPath, { recursive: true, mode: CREDENTIALS_DIR_MODE });
+}
+
+/**
+ * Persist the token as 2-space JSON with a trailing newline (the identity.ts style),
+ * readable by its owner only. The file holds a long-lived refresh token, and the
+ * default 0644 would leave it readable by every other account on a shared POSIX
+ * machine. The mode binds only when this call creates the file: a `token.json` that
+ * already exists keeps the permissions it was written with.
+ */
 export async function writeStoredToken(filePath: string, token: StoredToken): Promise<void> {
-  await writeFile(filePath, `${JSON.stringify(token, null, 2)}\n`, "utf8");
+  await ensureCredentialsDir(path.dirname(filePath));
+  await writeFile(filePath, `${JSON.stringify(token, null, 2)}\n`, {
+    encoding: "utf8",
+    mode: TOKEN_FILE_MODE,
+  });
 }
