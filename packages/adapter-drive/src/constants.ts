@@ -29,7 +29,11 @@ export const ITEM_FIELDS = "id, name, mimeType";
 export const CHILD_LIST_FIELDS = "files(id, name, mimeType)";
 /**
  * Page size for the child-by-name listing: one match plus one, which is exactly
- * enough to tell "found" from "ambiguous" without paging further.
+ * enough to tell "found" from "ambiguous" without paging further. A correctness
+ * lower bound, not a tuning knob — at 1, two same-named siblings arrive as a single
+ * row and `findChild` answers "found" instead of throwing, which is the one failure
+ * the verify-never-create policy cannot recover from. `gateway.test.ts` (e) fails,
+ * with that reason printed, if this drops below 2.
  */
 export const CHILD_PAGE_SIZE = 2;
 

@@ -66,7 +66,11 @@ function fakeFilesApi(setup: FakeSetup = {}): FakeApi {
       queries.push(query);
       pageSizes.push(pageSize);
       failIfAsked();
-      return setup.matches ?? [];
+      // Capped like the real listing, which never returns more rows than asked for. A
+      // fake that ignored `pageSize` would hand `setup.matches` straight to the gateway
+      // and leave CHILD_PAGE_SIZE unfalsifiable — test (e) is what turns this cap into
+      // a constraint on the constant's value.
+      return (setup.matches ?? []).slice(0, pageSize);
     },
     async createItem(input: CreateItemInput): Promise<DriveItem> {
       creates.push(input);
@@ -108,6 +112,9 @@ test("(c) findChild returns the single match and queries with the capped page si
   assert.deepStrictEqual(fake.queries, [
     "'test-parent-id' in parents and name = 'TEST-FOLDER' and trashed = false",
   ]);
+  // The same constant on both sides, deliberately: this pins that findChild forwards
+  // CHILD_PAGE_SIZE exactly once — not a literal, not an unrelated number, not
+  // `undefined` — and says nothing about its value. Test (e) constrains the value.
   assert.deepStrictEqual(fake.pageSizes, [CHILD_PAGE_SIZE]);
 });
 
@@ -116,7 +123,12 @@ test("(d) findChild returns null when the child is absent", async () => {
   assert.strictEqual(await gateway.findChild(PARENT_ID, "MISSING"), null);
 });
 
-test("(e) findChild throws when more than one child shares the name", async () => {
+/**
+ * Ambiguity detection, and — through the fake's page-size cap — the lower bound on
+ * CHILD_PAGE_SIZE that makes it reachable at all. The two twins are seeded behind the
+ * cap, so the second one arrives only because the constant asks for a second row.
+ */
+test("(e) findChild throws on two same-named children, which the page size reveals", async () => {
   const twin: DriveItem = { ...FOLDER, id: "test-folder-id-2" };
   const gateway = new DriveGateway({ files: fakeFilesApi({ matches: [FOLDER, twin] }).files });
   await assert.rejects(
@@ -128,6 +140,13 @@ test("(e) findChild throws when more than one child shares the name", async () =
       assert.match(error.message, /2 items/);
       return true;
     },
+    "findChild accepted two same-named children silently instead of " +
+      `throwing. CHILD_PAGE_SIZE is ${CHILD_PAGE_SIZE}, and the listing ` +
+      "returns at most that many rows: below 2, the second sibling never " +
+      "arrives, a genuine conflict reads as a single match, and the " +
+      "verify-never-create policy above this port reuses whichever folder " +
+      "Drive happened to list first. The constant is a correctness bound " +
+      "on this test, not a tuning knob — restore it to at least 2.",
   );
 });
 
