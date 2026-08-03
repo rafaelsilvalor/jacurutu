@@ -13,11 +13,13 @@ import path from "node:path";
 import {
   CREDENTIALS_DIR_NAME,
   DRIVE_SCOPES,
+  OAUTH_CLIENT_FILENAME,
   TOKEN_FILENAME,
 } from "./constants.js";
 
-/** Relative token location quoted in hints; composed, never a hardcoded separator (R1). */
+/** Relative credential locations quoted in hints; composed, never hardcoded (R1). */
 const TOKEN_PATH_HINT = path.join(CREDENTIALS_DIR_NAME, TOKEN_FILENAME);
+const OAUTH_CLIENT_PATH_HINT = path.join(CREDENTIALS_DIR_NAME, OAUTH_CLIENT_FILENAME);
 
 /** Status used when the error carries none — an offline failure, a thrown string, etc. */
 const UNKNOWN_STATUS = "n/a";
@@ -52,6 +54,15 @@ const SERVER_ERROR_HINT =
 /** Hint when the status is unknown or unmapped: report, never invent a cause. */
 const UNCLASSIFIED_HINT = "unclassified — read the status and message above";
 
+/**
+ * Hint for the code-for-token exchange. It names the ordinary cause first because that
+ * is what the designer in front of the browser just did: an authorization code is
+ * single-use and short-lived, so a slow or repeated consent is the likely failure and
+ * re-running is the whole fix. The credential-mismatch case is second because it fails
+ * every time rather than intermittently, which is how the reader tells them apart.
+ */
+const CONSENT_HINT = `the authorization code is single-use and expires within minutes — re-run the command and complete the browser consent again. If it fails immediately on every attempt, the client id, secret or redirect handling in ${OAUTH_CLIENT_PATH_HINT} does not match the Desktop OAuth client in Google Cloud`;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -79,6 +90,20 @@ function errorStatus(error: unknown): number | string {
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Google's `error_description` from a token-endpoint failure — the one human-readable
+ * sentence the raw error carries that neither the status nor the message repeats
+ * ("Token has been expired or revoked."). Read as narrowly as the status is: one string
+ * field, nothing else out of the response body.
+ */
+function errorDescription(error: unknown): string | null {
+  if (!isRecord(error) || !isRecord(error.response) || !isRecord(error.response.data)) {
+    return null;
+  }
+  const description = error.response.data.error_description;
+  return typeof description === "string" ? description : null;
 }
 
 function hintForStatus(status: number | string): string {
@@ -147,4 +172,28 @@ export function toDriveError(operation: string, target: string, error: unknown):
   return new Error(driveErrorMessage(operation, target, error), {
     cause: sanitizedCause(error),
   });
+}
+
+/**
+ * Wrap a failure of the OAuth code-for-token exchange (`auth.ts`), the one library call
+ * in this package that is not a Drive call. Same sanitized `cause` as `toDriveError`:
+ * the exchange body carries the authorization `code` in clear — the redactor rewrites
+ * `client_secret` and `grant_type` and leaves `code` alone — so the doctrine that no
+ * library error travels whole applies here too.
+ *
+ * It does not reuse `driveErrorMessage`, which would mislead twice over: the failure
+ * would read as a Drive call, and 400 is unmapped there, so the hint would say
+ * "unclassified" to a designer whose consent just failed for an ordinary reason. This
+ * message keeps the one detail the raw error had and the classified path drops —
+ * Google's `error_description` — and names the fix instead.
+ */
+export function toConsentError(error: unknown): Error {
+  const description = errorDescription(error);
+  const detail = description === null ? "" : ` (${description})`;
+  return new Error(
+    `OAuth consent exchange failed: status=${errorStatus(error)} message="${errorMessage(
+      error,
+    )}"${detail}. Hint: ${CONSENT_HINT}`,
+    { cause: sanitizedCause(error) },
+  );
 }

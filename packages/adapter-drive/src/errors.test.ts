@@ -3,8 +3,13 @@ import assert from "node:assert";
 import path from "node:path";
 import { inspect } from "node:util";
 
-import { CREDENTIALS_DIR_NAME, DRIVE_SCOPES, TOKEN_FILENAME } from "./constants.js";
-import { driveErrorMessage, toDriveError } from "./errors.js";
+import {
+  CREDENTIALS_DIR_NAME,
+  DRIVE_SCOPES,
+  OAUTH_CLIENT_FILENAME,
+  TOKEN_FILENAME,
+} from "./constants.js";
+import { driveErrorMessage, toConsentError, toDriveError } from "./errors.js";
 
 const OPERATION = "resolveFolder";
 const TARGET = "folder test-folder-id";
@@ -13,6 +18,9 @@ const TARGET = "folder test-folder-id";
 // docs/explorations/drive-oauth.md §10).
 const PLACEHOLDER_ACCESS_TOKEN = "test-placeholder-access-token";
 const PLACEHOLDER_REFRESH_TOKEN = "test-placeholder-refresh-token";
+const PLACEHOLDER_AUTH_CODE = "test-placeholder-authorization-code";
+/** Stands in for Google's `error_description`; its wording on a reused code is unverified. */
+const PLACEHOLDER_DESCRIPTION = "test-placeholder description from the token endpoint";
 
 /** gaxios's marker, verbatim from `defaultErrorRedactor`: what a redacted value reads. */
 const GAXIOS_REDACTED =
@@ -73,6 +81,32 @@ function refreshFailureError(): Error & { config: { data: URLSearchParams } } {
     response: {
       status: 400,
       data: { error: "invalid_grant", error_description: "Token has been expired or revoked." },
+    },
+  });
+}
+
+/**
+ * A consent code-for-token failure: same endpoint and same observed error shape as
+ * `refreshFailureError`, with the body `getTokenAsync` actually posts. The leak here is
+ * `code` — the redactor rewrites `client_secret` and `grant_type` and has no rule for
+ * it. The `error_description` text is a stand-in: what Google words it as on a reused
+ * code was not observed, only that the field is there and is a string.
+ */
+function consentFailureError(): Error & { config: { data: URLSearchParams } } {
+  const body = new URLSearchParams({
+    client_id: "test-placeholder-client-id",
+    code: PLACEHOLDER_AUTH_CODE,
+    grant_type: GAXIOS_REDACTED,
+    redirect_uri: "http://127.0.0.1:54321/oauth2callback",
+    client_secret: GAXIOS_REDACTED,
+  });
+  return Object.assign(new Error("invalid_grant"), {
+    code: 400,
+    status: 400,
+    config: { method: "POST", url: "https://oauth2.googleapis.com/token", data: body, body },
+    response: {
+      status: 400,
+      data: { error: "invalid_grant", error_description: PLACEHOLDER_DESCRIPTION },
     },
   });
 }
@@ -176,4 +210,35 @@ test("(l) the verified leak: a wrapped refresh failure prints no refresh token",
   assert.match(wrapped.message, /message="invalid_grant"/);
   // Copied, never mutated — the body still holds what the library put there.
   assert.strictEqual(original.config.data.get("refresh_token"), PLACEHOLDER_REFRESH_TOKEN);
+});
+
+test("(m) toConsentError says what failed and what to do, without a Drive frame", () => {
+  const message = toConsentError(consentFailureError()).message;
+  assert.match(message, /^OAuth consent exchange failed: /);
+  assert.doesNotMatch(message, /^Drive /);
+  assert.match(message, /status=400/);
+  assert.match(message, /message="invalid_grant"/);
+  // The description is the one detail the classified Drive path would have dropped.
+  assert.ok(message.includes(PLACEHOLDER_DESCRIPTION));
+  assert.match(message, /single-use/);
+  assert.match(message, /re-run the command/);
+  assert.ok(message.includes(path.join(CREDENTIALS_DIR_NAME, OAUTH_CLIENT_FILENAME)));
+  assert.doesNotMatch(message, /unclassified/);
+});
+
+test("(n) a wrapped consent failure prints no authorization code", () => {
+  const original = consentFailureError();
+  // Non-vacuity guard, as in (l): the fixture must carry the leak it claims to guard.
+  assert.ok(inspect(original, { depth: null }).includes(PLACEHOLDER_AUTH_CODE));
+
+  const printed = inspect(toConsentError(original), { depth: null });
+  assert.ok(!printed.includes(PLACEHOLDER_AUTH_CODE));
+  assert.doesNotMatch(printed, /code=/);
+  assert.strictEqual(original.config.data.get("code"), PLACEHOLDER_AUTH_CODE);
+});
+
+test("(o) toConsentError omits the parenthetical when no description is carried", () => {
+  const message = toConsentError(new Error("socket hang up")).message;
+  assert.match(message, /^OAuth consent exchange failed: status=n\/a message="socket hang up"\. /);
+  assert.match(message, /single-use/);
 });

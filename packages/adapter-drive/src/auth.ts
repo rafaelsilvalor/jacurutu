@@ -6,7 +6,10 @@
 // Credential hygiene (binding — docs/explorations/drive-oauth.md §10): progress lines
 // carry file paths, scope strings, and expiry metadata only. No token value and no
 // client secret is ever logged. The authorization URL is printed because the user
-// must open it, and the same line warns that it embeds the client id.
+// must open it, and the same line warns that it embeds the client id. The one library
+// call here that can throw — the code-for-token exchange — is wrapped by
+// `toConsentError`, so no library error leaves this module whole; its request body
+// carries the authorization code in clear, which the library does not redact.
 //
 // Not unit tested by design (D4): the smoke covers it — the flow is a browser
 // round-trip, and a fake of it would assert nothing about Google.
@@ -18,6 +21,7 @@ import { google } from "googleapis";
 
 import type { DriveAuthClient } from "./client.js";
 import { DRIVE_SCOPES, LOOPBACK_CALLBACK_PATH } from "./constants.js";
+import { toConsentError } from "./errors.js";
 import {
   readOAuthClient,
   readStoredToken,
@@ -121,7 +125,16 @@ async function runConsentFlow(
   log(`[drive-auth] loopback server listening on ${redirectUri}`);
   log("[drive-auth] open the URL below in a browser and authorize. Do not share it — it carries the client id:");
   log(authUrl);
-  const { tokens } = await client.getToken(await code);
+  // Awaited outside the try on purpose: the two rejections `startLoopbackServer` raises
+  // (consent denied, callback without a code) are ours, already specific, and carry no
+  // request — wrapping them in a code-expiry hint would name the wrong cause.
+  const authorizationCode = await code;
+  let tokens: Credentials;
+  try {
+    ({ tokens } = await client.getToken(authorizationCode));
+  } catch (error) {
+    throw toConsentError(error);
+  }
   const token = toStoredToken(tokens);
   await writeStoredToken(tokenFile, token);
   log(`[drive-auth] consent completed; token written to ${tokenFile}`);
