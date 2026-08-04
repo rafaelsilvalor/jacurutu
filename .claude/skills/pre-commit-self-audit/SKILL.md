@@ -71,7 +71,7 @@ subject (after the type prefix and colon) must be an imperative-mood verb.
 
 Allowlist (PASS): `add, fix, update, remove, refactor, rename, document,
 migrate, port, bump, drop, restore, revert, support, deprecate, promote,
-wire, declare, canonicalize`.
+wire, declare, canonicalize, start`.
 
 Denylist (FAIL): `added, fixing, updates, fixes, adding, updating, removed,
 refactored, renamed, documented, migrated, ported, bumped, dropped, restored,
@@ -81,7 +81,7 @@ Verb not in either list: STOP and report — do not auto-classify.
 
 ```bash
 VERB=$(printf '%s' "$SUBJECT" | sed -E 's/^[a-z]+(\([a-z0-9-]+\))?: ([a-z]+).*/\2/' | tr '[:upper:]' '[:lower:]')
-ALLOW="add fix update remove refactor rename document migrate port bump drop restore revert support deprecate promote wire declare canonicalize"
+ALLOW="add fix update remove refactor rename document migrate port bump drop restore revert support deprecate promote wire declare canonicalize start"
 DENY="added fixing updates fixes adding updating removed refactored renamed documented migrated ported bumped dropped restored reverted supported"
 
 if printf '%s\n' $ALLOW | grep -qx "$VERB"; then
