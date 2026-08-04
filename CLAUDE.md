@@ -121,6 +121,7 @@ Do not translate piecemeal during unrelated PRs.
 
 ## Related Documents
 
+- `docs/PROCESS_MAP.md` — entry point to *how work happens here*: reading order, the six roles, the gates, artifact naming, rule-ID namespaces, authority hierarchy. Read it after this file, before acting
 - `docs/MENTOR_BRIEF.md` — the conceptual Mentor surface (chat): learning, pre-task exploration, meta-discussion
 - `docs/GIT_WORKFLOW.md` — branching, PRs, hooks, release tags
 - `docs/GOTCHAS.md` — known traps: worker pool timeouts, PSD binary parser, cache versioning, cross-platform pitfalls

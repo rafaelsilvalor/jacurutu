@@ -380,6 +380,7 @@ R17 restated for Orchestrator sessions — the letter of the rule holds; the fus
 | File | Purpose |
 |---|---|
 | `CLAUDE.md` | Code rules for the executor agent (Claude Code) |
+| `docs/PROCESS_MAP.md` | Agent-facing map of the process surface — reading order, the six roles, the gates, artifact naming, rule-ID namespaces. Where this file is the orchestration manual for *you*, that one orients an agent arriving cold |
 | `docs/MENTOR_BRIEF.md` | Behavioral rules for the mentor agent (Claude in chat) |
 | `docs/GIT_WORKFLOW.md` | Operational git discipline — branches, PRs, hooks, releases |
 | `docs/GOTCHAS.md` | Stack-specific traps catalog (`G-CAT-N` IDs) |
