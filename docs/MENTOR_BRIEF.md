@@ -235,6 +235,7 @@ Seed list — grow with each substantive session.
 | File | Audience |
 |---|---|
 | `CLAUDE.md` | Executor agent (Claude Code) — technical rules for code |
+| `docs/PROCESS_MAP.md` | Any agent arriving cold — reading order, the six roles, the gates, artifact naming, rule-ID namespaces, authority hierarchy |
 | `docs/MENTOR_BRIEF.md` | Mentor agent (Claude in chat) — this file |
 | `docs/ROADMAP.md` | Both — product roadmap (phases, milestones, parking lot, pending decisions) |
 | `docs/GIT_WORKFLOW.md` | Both agents and the user — branching, PRs, hooks, releases |
