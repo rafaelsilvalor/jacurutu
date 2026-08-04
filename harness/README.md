@@ -27,9 +27,9 @@ harness/
 
 Quando voltar pra projeto que já tem o sistema:
 
-- **Sessão nova de chat:** cola `docs/workflows/setup-chat.md`
-- **Sessão nova de Cowork:** cola `docs/workflows/setup-cowork.md`
-- **Sessão nova de Code:** cola `docs/workflows/setup-code.md`
+- **Sessão nova de Mentor:** cola `harness/workflows/setup-mentor.md`
+- **Sessão nova de Cowork:** cola `harness/workflows/setup-cowork.md`
+- **Sessão nova de Code:** cola `harness/workflows/setup-code.md`
 - **Tarefa nova:** invoca pipeline (planner → validator → executor) via main session do Claude Code, ou caminho B (`docs/AGENT_PLAYBOOK.md` Capítulo 6)
 
 ## Bootstrap em projeto novo (caso de uso secundário)
