@@ -28,16 +28,16 @@ correction only a repo-wide sweep could see: `docs/PROCESS_MAP.md` landed
 the chat-Mentor doctrine in nine places — one of them a literal mirror of the
 false R9 sentence this brief fixes.
 
-**Size note — measurement, not justification.** Substance measures **~903**
+**Size note — measurement, not justification.** Substance measures **~915**
 against the 350-650 range for a doctrinal caminho B brief
-(`.claude/skills/brief-template/SKILL.md`): 39% over, and the fourth
+(`.claude/skills/brief-template/SKILL.md`): 41% over, and the fourth
 consecutive overrun (047 ~600, 048 ~430, 049 ~480, this one). The owner ruled
 in the authoring session that **the size guidance does not govern this brief**,
 and that the guidance itself is to be reformulated as a separate piece of work.
 This brief is therefore written at full fidelity and the figure is recorded
 here as input to that reformulation, not as a defense.
 
-Two facts the reformulation should have. First, the composition: of the 903,
+Two facts the reformulation should have. First, the composition: of the 915,
 ~280 lines are literal text — current wording quoted so the executor can match
 on it, the replacement prose itself, and the repair tables — and ~120 more are
 verification checkboxes. A compression pass over Context, Goal and the decision
