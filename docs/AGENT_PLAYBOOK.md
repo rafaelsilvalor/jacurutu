@@ -231,18 +231,36 @@ Read this file end-to-end every 4–6 weeks until lessons #1–#10 are reflexes.
 
 ## Chapter 6 — The roles and the orchestration pipeline (Orchestrator → planner → brief-validator → executor → closer)
 
-The pipeline runs inside Claude Code under a role-based separation: roles, not surfaces, define who does what. Chat (claude.ai) is the conceptual surface — it hosts the Mentor role and stays out of the operational loop entirely. This chapter defines the six roles, then describes how to drive the pipeline and what to do when it surfaces a problem. The role model was ratified in the fused-model design session (`docs/sessions/2026-07-25-mentor-fused-model-design.md`) and piloted end to end on task 038.
+The pipeline runs inside Claude Code under a role-based separation: roles, not surfaces, define who does what. The Mentor is its own main session and the conceptual surface — it stays out of the operational loop entirely. This chapter defines the six roles, then describes how to drive the pipeline and what to do when it surfaces a problem. The role model was ratified in the fused-model design session (`docs/sessions/2026-07-25-mentor-fused-model-design.md`) and piloted end to end on task 038.
 
 ### The six roles
 
 | Role | Where | What it does |
 |---|---|---|
-| **Mentor** | Chat (claude.ai) — the conceptual surface | Learning, pre-task exploration, meta-discussions. No gate, no task modeling, no operational rulings. |
+| **Mentor** | Claude Code — its own main session | Learning, pre-task exploration, meta-discussion. Writes only `docs/explorations/`. No gate, no task modeling, no operational rulings, no subagents. |
 | **Orchestrator** | Claude Code — the main session | Task modeling, decision closure with the owner, delegation to subagents, the orchestrator gate, the write gate, session close-out. |
 | **planner** | Claude Code — subagent | Authors briefs from delegation prompts. |
 | **brief-validator** | Claude Code — subagent | Audits briefs mechanically; emits APPROVED or REJECTED. |
 | **executor** | Claude Code — subagent | Runs approved briefs — Edits, Pauses, commits. |
 | **closer** | Claude Code — subagent | Reviews the assembled diff before push; emits a report. Phase B pushes and opens the PR on explicit owner instruction. |
+
+### The Mentor
+
+The Mentor is a main session like the Orchestrator, not a subagent and not an
+Orchestrator mode — one session, one role. It is opened in Plan mode via
+`harness/workflows/setup-mentor.md`, which invokes
+`.claude/skills/mentor-mode/SKILL.md`; that skill carries the session mechanics
+and `docs/MENTOR_BRIEF.md` carries the behavior.
+
+Read is wide: any file in the repo, plus non-mutating shell. Write is narrow:
+`docs/explorations/` only, through the write gate, and nothing else — the
+Mentor runs no mutating git and invokes no subagent. It finishes with the note
+on disk; branch, commit, push and PR are yours or an Orchestrator session's.
+The restriction is doctrine, not enforcement — the permission layer has no
+per-role condition, and the skill's section 7 says so plainly.
+
+Sessions close by proposing a disposition for each note touched, which you
+ratify (`docs/MENTOR_BRIEF.md` M-R14). There is no Mentor recap.
 
 ### The Orchestrator
 
@@ -329,9 +347,9 @@ Mid-run owner rulings become files: instead of relaying a ruling as a chat paste
 
 ### Recap policy (three recaps)
 
-Three roles produce session recaps; three produce none:
+Two roles produce session recaps; four produce none:
 
-- **Mentor** (chat sessions): transport unchanged — the recap travels on its own `docs/` branch + PR.
+- **Mentor**: no recap. The session's only artifact is the topic note under `docs/explorations/`, which travels on its own `docs/<topic>` branch and PR — created by you or by an Orchestrator session, never by the Mentor (`docs/MENTOR_BRIEF.md` M-R14).
 - **Orchestrator**: decisions, gate outcome, deviations, queue state, next-session snippet. No execution log.
 - **executor**: pure execution log — Edits, Pauses, evidence, commits. No context re-narration.
 - **planner**, **brief-validator** and **closer**: no recaps. The committed brief, the recorded verdict and the emitted report are their record.
@@ -359,7 +377,7 @@ R17 restated for Orchestrator sessions — the letter of the rule holds; the fus
 
 - **The task modifies the pipeline itself.** Cluster 013-015 is the canonical example: a brief that creates the validator can't be audited by the validator; a brief that redesigns AGENT_PLAYBOOK's pipeline chapter can't be planned by the agent reading the old chapter. Use caminho B for these.
 - **The task is Category S.** A one-line chat message in the executor session is enough. No brief, no pipeline.
-- **The task is exploratory.** Discovery work where the shape of the output is unclear belongs on the conceptual surface first (Mentor, in chat); only after the shape stabilizes does it come back to an Orchestrator session as a brief.
+- **The task is exploratory.** Discovery work where the shape of the output is unclear belongs in a Mentor session first; only after the shape stabilizes does it come back to an Orchestrator session as a brief.
 - **Multiple architectural decisions remain open.** The planner produces briefs from delegations, not from incomplete designs. If the delegation prompt would need to say "and decide between X and Y", the work isn't ready for the pipeline yet.
 
 > **Lesson #13 — The pipeline runs on closed decisions.** Open decisions close before delegation — in the Orchestrator's decision modeling with you, or on the conceptual surface (Mentor) while still exploratory. The planner faithfully encodes what you delegate; if the delegation has gaps, the brief has gaps; if the brief has gaps, the executor will either STOP or invent. None of those are good outcomes.
@@ -381,15 +399,16 @@ R17 restated for Orchestrator sessions — the letter of the rule holds; the fus
 |---|---|
 | `CLAUDE.md` | Code rules for the executor agent (Claude Code) |
 | `docs/PROCESS_MAP.md` | Agent-facing map of the process surface — reading order, the six roles, the gates, artifact naming, rule-ID namespaces. Where this file is the orchestration manual for *you*, that one orients an agent arriving cold |
-| `docs/MENTOR_BRIEF.md` | Behavioral rules for the mentor agent (Claude in chat) |
+| `docs/MENTOR_BRIEF.md` | Behavioral rules for the Mentor session (Claude Code) |
 | `docs/GIT_WORKFLOW.md` | Operational git discipline — branches, PRs, hooks, releases |
 | `docs/GOTCHAS.md` | Stack-specific traps catalog (`G-CAT-N` IDs) |
 | `docs/AGENT_PLAYBOOK.md` | This file — orchestration manual for the user |
 | `.claude/agents/planner.md` | Planner subagent — authors briefs from delegation prompts |
-| `.claude/agents/brief-validator.md` | Brief-validator subagent — audits briefs with 10 mechanical checks |
+| `.claude/agents/brief-validator.md` | Brief-validator subagent — audits briefs with 11 mechanical checks |
 | `.claude/agents/executor.md` | Executor subagent — runs briefs (pipeline-invoked) |
 | `.claude/agents/closer.md` | Closer subagent — reviews the assembled diff before push |
 | `.claude/skills/brief-template/` | Brief authoring template (preloaded by planner and brief-validator) |
 | `.claude/skills/pre-commit-self-audit/` | Executor's Pause-3 self-audit checklist |
+| `.claude/skills/mentor-mode/` | Mentor session mechanics (skill invoked at session open) |
 | `harness/workflows/` | Pre-built session templates for manual invocation (parallel surface to `.claude/agents/`) |
 | `README.md` | End-user description of Saci |
