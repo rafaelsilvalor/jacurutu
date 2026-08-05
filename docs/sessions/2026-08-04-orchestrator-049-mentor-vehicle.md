@@ -159,8 +159,12 @@ run.
   step: 1st occurrence** (Ruling 1). Related in kind to 048's "absolute
   line-count verification" defect: both are verifications or rules written
   without enumerating the surface they govern.
-- **Verification checkbox with an incomplete exclusion set: 1st occurrence**
-  (Ruling 2).
+- **Verification sweep that cannot see what it claims to prove: 1st
+  occurrence, two distinct defects in one checkbox** (Ruling 2, and the
+  closer's finding above) — an exclusion set missing a surface, and `grep -v`
+  anchored on line content instead of path. Both hid real matches. Rule for
+  future sweeps: anchor exclusions with `-vE '^\./path/'`, and enumerate the
+  surfaces while authoring the checkbox rather than discovering them at STOP.
 - **P4 blind to unmerged-branch slot claims:** unchanged at 1st — did not
   recur, because there were zero open PRs. Not solved.
 - **Recap policy doctrine-vs-practice divergence:** still a reconciliation
@@ -172,9 +176,11 @@ run.
    `docs/mentor-vehicle`, nothing pushed.
 2. **Brief 050 (A2) — the doctrine.** Queue front, and it must delete skill
    section 9 and the `setup-mentor.md` migration paragraph. Two extra items to
-   fold in: the R9 sentence about English `--- COPIAR ---` blocks (D4), and the
+   fold in: the R9 sentence about English `--- COPIAR ---` blocks (D4); the
    skill's read policy listing `npm test`, which in a worktree yields the
-   vacuous green described above.
+   vacuous green described above; and M-R14's pointer at
+   `docs/MENTOR_BRIEF.md:211` to the deleted `close-chat-session.md` — D14's
+   rewrite closes it by construction, but it has to actually land.
 3. **The mechanical write deny** — verify whether skill-level `allowed-tools`
    can scope a restriction to a session, then a follow-up brief. Until then the
    Mentor's narrow write is honor-system, and the skill says so.
@@ -202,13 +208,55 @@ file touched disk, before it was committed. Skills are picked up from the
 working tree, not from `main`. Harmless here; worth knowing before a future
 session writes a skill it does not intend to activate yet.
 
+## Closer Phase A — the finding it earned
+
+Run on `docs/mentor-vehicle` @ `b6664e9`, after both recaps were committed.
+Verdict `pronto para push`, zero findings. Checks (a) and (b) scaled out — the
+diff touches no `packages/**` — so secret and path hygiene was the only check
+that ran, clean across all 1441 added lines.
+
+The value came from elsewhere. Its **"Examinado e não reportado"** section,
+formalized after the closer's first run at 048, carried the one thing this
+session's own verification could not see:
+
+**`docs/MENTOR_BRIEF.md:211` (M-R14) instructs running
+`close-chat-session.md`, which this branch deletes.** It is the repo's only
+live dangling pointer, and the Edit 4 sweep was structurally incapable of
+reporting it. The checkbox filtered with
+
+    | grep -v "docs/sessions/" | grep -v "docs/tasks/"
+
+which matches the whole `path:line:content` string, not the path. Line 211
+carries the literal `docs/sessions/YYYY-MM-DD-<slug>.md` inside its own prose,
+so the filter dropped a genuine hit. Anchored on the path, the sweep finds it:
+
+    grep -rn "setup-chat\|close-chat-session" --include="*.md" . \
+      | grep -vE '^\./(docs/sessions|docs/tasks|docs/explorations)/'
+
+So the Edit 4 checkbox carried **two** defects, not the one ruled at STOP #1:
+a missing surface in the exclusion set, and content-matching where
+path-matching was meant.
+
+**Correction to this brief's Goal.** It claims the task leaves "no reference to
+a deleted file anywhere in the repo's live surface". That is false as shipped —
+M-R14 is exactly such a reference. The claim also contradicted the brief's own
+Out of scope, which declares `MENTOR_BRIEF.md` untouchable. Same defect class
+as the D3/D5-step-5 contradiction: two parts of one brief asserting
+incompatible things.
+
+Not repaired here, by decision. `MENTOR_BRIEF.md` is out of scope, and note D14
+has brief 050 rewriting M-R14 wholesale; patching one filename inside a
+paragraph scheduled for replacement is churn. The pointer sits inside the
+doctrine window D6 declared, and the migration lines in the skill and in
+`setup-mentor.md` cover the reader until 050 lands.
+
 ## Next concrete action
 
 Open the PR against `main` from `docs/mentor-vehicle` — the owner's call and
 the owner's hand. The PR body should carry Ruling 1 and Ruling 2, since neither
-is recorded in the brief. Optionally invoke the closer's Phase A on the branch
-first; it will scale out checks (a) and (b) on a docs-only diff and run secret
-hygiene.
+is recorded in the brief. The closer's Phase A already ran on `b6664e9`:
+verdict `pronto para push`, zero findings, one item surfaced through its
+suppression section (see above).
 
 ## Paste-ready snippet for the next Orchestrator session
 
@@ -244,4 +292,11 @@ Duas decisoes do 049 que NAO estao no brief, so nesta recap: (1) o Mentor
 escreve a nota e para — branch, commit, push e PR sao meus ou de uma sessao
 Orchestrator; (2) o conjunto de exclusao do sweep do Edit 4 estava
 incompleto, faltava docs/explorations/.
+
+O closer rodou a Fase A na branch: pronto para push, zero achados. O unico
+item veio da secao "Examinado e nao reportado" — o M-R14, em
+MENTOR_BRIEF.md:211, ainda manda rodar o close-chat-session.md que o 049
+deletou. O 050 fecha isso ao reescrever o M-R14. E NAO reuse o sweep do
+Edit 4: os grep -v dele casam conteudo da linha, nao caminho, e por isso
+ele passou limpo escondendo esse ponteiro.
 ```
