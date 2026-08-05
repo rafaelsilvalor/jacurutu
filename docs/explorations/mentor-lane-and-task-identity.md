@@ -167,5 +167,5 @@ so the planner is not invoked (M-R15).
   as mid-execution on an unmerged branch, a stale claim inherited from
   the desktop-ui-host recap. It merged as PR #110. E9's dual-acceptance
   window is empty as a result.
-- 2026-08-03 — brief A split into A1 (049, vehicle) and A2 (050,
+- 2026-08-04 — brief A split into A1 (049, vehicle) and A2 (050,
   doctrine); E3's cutover re-anchored from slot 049 to brief C's merge.

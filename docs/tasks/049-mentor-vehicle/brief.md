@@ -17,7 +17,7 @@ Mentor as its own Claude Code main session, plus nine (E1–E9) on the task
 identifier. The note names three follow-on briefs: A (Mentor doctrine), B
 (ROADMAP migration), C (identifier cutover).
 
-**Brief A was split during modeling on 2026-08-03.** As a single brief it
+**Brief A was split during modeling on 2026-08-04.** As a single brief it
 specified three new files plus four canonical-document rewrites — past 600
 lines, which `.claude/skills/brief-template/SKILL.md` calls "XL in disguise".
 The split is by surface:
@@ -42,11 +42,11 @@ honest header; the deviation is declared here rather than hidden by thinning.
 
 This task **modifies the pipeline itself**, so it takes caminho B per
 `docs/AGENT_PLAYBOOK.md` "When NOT to use the pipeline": the Orchestrator
-authored this brief directly, with the owner closing D1–D7 on 2026-08-03. The
+authored this brief directly, with the owner closing D1–D7 on 2026-08-04. The
 planner was not invoked. The brief-validator **is** still invoked — its eleven
 checks are mechanical and apply unchanged.
 
-P4 slot evidence (three sources, checked 2026-08-03):
+P4 slot evidence (three sources, checked 2026-08-04):
 
 - `ls docs/tasks/` — highest existing slot `048-closer-agent`. Gaps 004-006
   (burned, `CLAUDE.md` E5) and 034 are preserved, not free.
@@ -58,7 +58,7 @@ P4 slot evidence (three sources, checked 2026-08-03):
 
 The three sources agree and yield **049**. No unmerged branch holds a higher
 slot — the structural blind spot recorded at 048 does not apply here (zero open
-PRs on 2026-08-03).
+PRs on 2026-08-04).
 
 ## Goal
 
@@ -119,7 +119,7 @@ Out of scope:
 4. **The test suite is not evidence for this task, and must not be run as if
    it were.** This brief's diff touches no file under `packages/**`, and this
    session worktree hits `docs/GOTCHAS.md` G-NODE-2. Both failure shapes were
-   reproduced on 2026-08-03 while authoring this brief: with `node_modules`
+   reproduced on 2026-08-04 while authoring this brief: with `node_modules`
    unmaterialized, `npm test` globs `packages/*/dist/**/*.test.js`, matches
    nothing, and exits `0` on zero tests — a vacuous green; after `npm run
    build` it resolves `@saci/*` to the main checkout and fails on
@@ -174,7 +174,7 @@ modeled, a brief written, a ruling issued, or code edited, the session
 
 Note D3 specified "wide read, narrow write", mechanically backed by a path
 `deny` in `.claude/settings.json`. **The mechanical half is not implementable
-as specified** and is deferred by owner ruling on 2026-08-03:
+as specified** and is deferred by owner ruling on 2026-08-04:
 
 - `.claude/settings.json` does not exist in this repo. The only settings file
   is `.claude/settings.local.json`, which `.gitignore` excludes (line 8).
@@ -519,7 +519,7 @@ A2 depends on A1; B depends on A2 (the note contract); C depends on A1
 (`close-mentor-session.md`).
 
 **5c. Changelog.** Append one dated entry under `## Changelog`:
-2026-08-03 — brief A split into A1 (049, vehicle) and A2 (050, doctrine);
+2026-08-04 — brief A split into A1 (049, vehicle) and A2 (050, doctrine);
 E3's cutover re-anchored from slot 049 to brief C's merge.
 
 Verification:
@@ -606,7 +606,7 @@ In case of:
 ## Plan required justification
 
 - Every architectural decision is closed in D1–D7, each ruled by the owner
-  during the caminho B session on 2026-08-03.
+  during the caminho B session on 2026-08-04.
 - Edit 2 specifies the frontmatter verbatim and the body as an ordered
   ten-section contract with grep-checkable verification.
 - Edit 3 specifies both files as section lists with mandatory content clauses;
