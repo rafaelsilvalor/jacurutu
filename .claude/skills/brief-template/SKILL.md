@@ -291,11 +291,54 @@ and "Expected output (end of session)". Together these amount to a
 **scaffolding allowance of ~100 lines** on top of the substance range.
 Behavior checks and the Commit sequence are substance, not scaffolding.
 
-- **Category M task:** 80-150 lines of substance (~250 total with full
-  scaffolding).
-- **Category L task:** 200-400 lines of substance (~500 total with full
-  scaffolding).
+Ranges are indexed on **brief class**, not on task category alone. A doctrinal
+brief is structurally longer than a delegated one at the same task size: it
+specifies verbatim prose for the files it creates and carries owner-closed
+decision blocks with their rationale. A delegation prompt produces neither.
 
-If substance exceeds 400 lines (~500 total), the task is likely XL in
-disguise — break it into smaller briefs. If substance is under 80 lines, the
-task is likely Category S — no brief needed; a chat message is enough.
+| Brief class | Substance | Total, with scaffolding |
+|---|---|---|
+| Category M | 80-250 | ~350 |
+| Category L, planner-delegated | 200-400 | ~500 |
+| Category L, doctrinal (caminho B) | 350-650 | ~750 |
+
+Under 80 lines of substance the task is likely Category S — no brief needed;
+a chat message is enough.
+
+### Crossing the range is a trigger, not a violation
+
+Above the range, a brief does one of two things and says which:
+
+- **splits**, or
+- **declares why it does not**, in a short size note in its Context section.
+
+Neither is a failure state. The failure is silence — an oversized brief that
+neither splits nor explains reads as an author who did not measure.
+
+The number's job is to force the question, not to answer it. The question is
+qualitative:
+
+> Could these edits ship as two independent PRs, each closing on its own
+> evidence?
+
+If yes, split. If no, declare and continue. Two worked examples:
+
+- **Brief 049 split**, into a vehicle brief and a doctrine brief. The vehicle
+  — a skill, two workflows, and the deletions they replace — closes on its own
+  evidence; the doctrine rewrites close on theirs.
+- **Brief 048 did not split**, and was right not to. The agent file, its
+  registration in the playbook and its line in `CLAUDE.md` are one another's
+  verification; a sub-brief delivering the agent without its registration
+  would close on incomplete evidence.
+
+### Where these numbers come from
+
+Measured across all 46 briefs in `docs/tasks/` on 2026-08-04. Median totals
+ran 342 for Category M and 523 for Category L, against previous ceilings of
+~250 and ~500 that 83% and 64% of briefs respectively exceeded. Within
+Category L the split by class is decisive: planner-delegated briefs run a
+median of 467 and fit the old range; caminho B briefs run 641 and never did.
+
+These ranges track the observed medians, not an aspiration. Re-measure before
+changing them again: the previous adjustment (the ~100-line scaffolding
+allowance, PR #98) raised the effective ceiling without closing the gap.
