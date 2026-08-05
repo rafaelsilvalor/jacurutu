@@ -159,10 +159,10 @@ git reset --hard <hash-do-reflog>
 - ❌ Deletar `.git/` manualmente
 - ❌ "Tentar de novo" com mais força
 
-## Quando chamar mentor
+## Quando chamar o Orchestrator
 
 Se após Etapa 1 você não consegue identificar o cenário, **não
-prossiga**. Cola os outputs em chat com mentor sênior antes de
+prossiga**. Cola os outputs numa sessão Orchestrator antes de
 qualquer ação.
 
 Diagnóstico errado leva a reset errado. Reset errado em commit
