@@ -40,9 +40,12 @@ Three sources, checked 2026-08-04: `ls docs/tasks/` topped at
 048 both merged (#110, #108/#109); no `CLAUDE.md` E* entry reserves a forward
 slot. All three agreed on **049**.
 
-The blind spot recorded at 048 — the three sources cannot see a slot held on an
-unmerged branch — did not bite this time, because there were zero open PRs.
-It remains a live trap, not a solved one.
+**Correction, recorded post-merge.** This paragraph originally claimed the 048
+blind spot — the three sources cannot see a slot held on an unmerged branch —
+"did not bite this time, because there were zero open PRs". Both halves were
+wrong. It bit, and open PRs were never the mechanism: a parallel session was
+holding slot 049 on the unmerged branch `docs/init-six-role-bootstrap` while
+this P4 ran. See "The parallel session" below.
 
 ## Three note decisions did not survive contact with the repo
 
@@ -165,15 +168,20 @@ run.
   anchored on line content instead of path. Both hid real matches. Rule for
   future sweeps: anchor exclusions with `-vE '^\./path/'`, and enumerate the
   surfaces while authoring the checkbox rather than discovering them at STOP.
-- **P4 blind to unmerged-branch slot claims:** unchanged at 1st — did not
-  recur, because there were zero open PRs. Not solved.
+- **P4 blind to unmerged-branch slot claims: 2nd occurrence** (048, and this
+  session — see "The parallel session" above). By `AGENT_PLAYBOOK.md` chapter
+  5, a second occurrence is when the pattern becomes a rule. The rule 048
+  already drafted as its candidate fix: **P4 takes a fourth source** —
+  `git branch -a` plus a scan of `docs/tasks/**` on every unmerged branch and
+  sibling worktree. Three sources agreeing is not evidence while a parallel
+  session is running, and "zero open PRs" is not the test.
 - **Recap policy doctrine-vs-practice divergence:** still a reconciliation
   candidate; this session again shipped two recaps per the policy as written.
 
 ## Pending items (queue)
 
-1. **This session's PR** — not opened. Six commits plus two recaps on
-   `docs/mentor-vehicle`, nothing pushed.
+1. ~~**This session's PR**~~ — **done.** PR #119 squash-merged to `main` as
+   `d0c96b8` on 2026-08-05T00:29Z.
 2. **Brief 050 (A2) — the doctrine.** Queue front, and it must delete skill
    section 9 and the `setup-mentor.md` migration paragraph. Two extra items to
    fold in: the R9 sentence about English `--- COPIAR ---` blocks (D4); the
@@ -181,6 +189,15 @@ run.
    vacuous green described above; and M-R14's pointer at
    `docs/MENTOR_BRIEF.md:211` to the deleted `close-chat-session.md` — D14's
    rewrite closes it by construction, but it has to actually land.
+   Two more arrive from the parallel session, both landing in 050 because both
+   touch files 050 owns: **`start` belongs in `docs/MENTOR_BRIEF.md` §2's
+   allowlist bullet**, which records the 2026-05-28 canonicalization and the
+   five verbs added then — that session left it unwritten precisely because the
+   file is in Brief A's scope. And the **`brief-validator` C11 extraction
+   defect**: `grep -oE 'ALLOW="[^"]+"'` matches two lines in the skill, the real
+   `ALLOW=` line and the line documenting the command, so the runtime allowlist
+   carries a junk token. Impact nil today, and this brief was validated twice
+   under it; an anchored `sed -n 's/^ALLOW="\(.*\)"$/\1/p'` resolves it.
 3. **The mechanical write deny** — verify whether skill-level `allowed-tools`
    can scope a restriction to a session, then a follow-up brief. Until then the
    Mentor's narrow write is honor-system, and the skill says so.
@@ -250,13 +267,56 @@ paragraph scheduled for replacement is churn. The pointer sits inside the
 doctrine window D6 declared, and the migration lines in the skill and in
 `setup-mentor.md` cover the reader until 050 lands.
 
+## The parallel session, and the slot the P4 could not see
+
+Discovered after PR #119 merged, during the close ritual.
+
+A second Orchestrator session ran the same day in the worktree
+`harness-workflow-guide-d9dc9c` and merged two PRs between this session's base
+and its own merge: `6d8a6ed` (#117, `start` added to the commit-verb allowlist)
+and `a7ba38d` (#118,
+`docs/sessions/2026-08-04-orchestrator-allowlist-and-049-parking.md`).
+
+That session authored a brief **also numbered 049** —
+`049-init-six-role-bootstrap`, 253 lines, parked at `0f93156` on the unmerged
+local branch `docs/init-six-role-bootstrap`. One of its stated reasons for
+parking: *"E3 puts the identifier cutover at slot 049 … authoring
+`docs/tasks/049-…` consumed with a number the exact slot the cutover was
+designed to start."*
+
+This session then did exactly that.
+
+**What is not broken.** `main` carries only `docs/tasks/049-mentor-vehicle`.
+The other brief is a draft by its own session's decision (its F3) and is
+re-authored under the dated identifier, so it never becomes a second
+`docs/tasks/049-*`. There is no on-disk collision.
+
+**What is.** Two documents merged to `main` on the same day use "049" for
+different tasks. And that session's first reason for parking has since
+evaporated — this brief re-anchored E3 away from slot 049 — while its other two
+reasons (its Edits 5 and 7 rewrite files that briefs A and C change) still
+stand, so the parking decision survives on its remaining legs.
+
+That session's recap is history and is not rewritten. This section is the
+reconciliation, and it lives here because the false claim was this recap's.
+
+**Sequencing, ruled by the owner post-merge.** That session's next action reads
+"wait for Brief A to merge, then author Brief C". A1 has merged — but A2 (050)
+rewrites `docs/MENTOR_BRIEF.md` and `docs/AGENT_PLAYBOOK.md` chapter 6, both
+inside the convention-file set C migrates. Running C first buys the rewrite
+twice. **Order is A2 (050) → C.**
+
 ## Next concrete action
 
-Open the PR against `main` from `docs/mentor-vehicle` — the owner's call and
-the owner's hand. The PR body should carry Ruling 1 and Ruling 2, since neither
-is recorded in the brief. The closer's Phase A already ran on `b6664e9`:
-verdict `pronto para push`, zero findings, one item surfaced through its
-suppression section (see above).
+Author brief 050 (A2) — the doctrine half — via caminho B, after settling the
+`brief-template` ceiling question raised in the rule-of-three ledger above.
+PR #119 is merged (`d0c96b8`,
+2026-08-05T00:29Z); this recap could not cite that SHA when it was written, and
+carries it now only because the reconciliation branch existed to add it.
+
+The closer's Phase A ran on `b6664e9` before the push: verdict
+`pronto para push`, zero findings, one item surfaced through its suppression
+section (see above).
 
 ## Paste-ready snippet for the next Orchestrator session
 
@@ -269,14 +329,26 @@ Orchestrator autora, planner NAO e invocado).
 Ultima entrega: task 049 — o Mentor saiu do chat e virou main session
 propria no Claude Code. Skill .claude/skills/mentor-mode/SKILL.md, mais
 harness/workflows/setup-mentor.md e close-mentor-session.md; setup-chat.md
-e close-chat-session.md deletados, todos os ponteiros reparados. 6 commits
-+ 2 recaps no MESMO PR da branch docs/mentor-vehicle. CONFIRMA via git log
-se esse PR ja mergeou antes de consumir — quando esta recap foi escrita ele
-nao tinha sido nem aberto.
+e close-chat-session.md deletados, todos os ponteiros reparados. Entrou em
+main como d0c96b8 (PR #119) — merge JA confirmado, nao precisa reconfirmar.
+
+ATENCAO NO P4: nesta sessao as tres fontes deram 049 e estavam erradas. Uma
+sessao paralela ja segurava o 049 na branch nao mergeada
+docs/init-six-role-bootstrap (commit 0f93156, brief
+049-init-six-role-bootstrap, parado). Segunda ocorrencia do mesmo cego —
+roda TAMBEM git branch -a e git worktree list, e olha docs/tasks/ nas
+branches nao mergeadas. "Zero PRs abertos" nao e o teste.
 
 Brief A da nota virou dois: A1=049 (entregue), A2=050 (doutrina), B=051,
 C=052. O cutover de identificador foi reancorado no merge do brief C — nao
 existe mais "cutover no slot 049".
+
+ORDEM: A2 (050) ANTES do Brief C. O recap da sessao paralela
+(2026-08-04-orchestrator-allowlist-and-049-parking.md) diz "autora C assim
+que A mergear" — nao siga. O 050 reescreve MENTOR_BRIEF.md e o capitulo 6,
+que estao dentro dos arquivos de convencao que o C migra; C antes compra o
+retrabalho duas vezes. A tarefa init-six-role-bootstrap segue parada,
+reautorada depois do C sob o identificador datado.
 
 TEMA DESTA SESSAO: brief 050 — a doutrina. Reescreve MENTOR_BRIEF.md
 (M-R12 a M-R15, §5, §7, §8), AGENT_PLAYBOOK.md cap. 6, o contrato do
