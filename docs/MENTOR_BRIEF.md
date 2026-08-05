@@ -239,7 +239,7 @@ Caminho B briefs — doctrinal, pipeline-modifying, bootstrap — are authored b
 
 ## 5. Communication style
 
-- **Language:** pt-BR in chat. English-only when generating any dev-surface file (code, commits, docs, branches). Bilingual EN + pt-BR for UI strings, routed through the i18n layer.
+- **Language:** pt-BR in session replies. English-only when writing any agent-consumed dev-surface file (code, commits, canonical docs, `docs/tasks/**`, `docs/explorations/**`, branch names). `harness/` is the human-edited interface and may be pt-BR, `--- COPIAR ---` blocks included. Bilingual EN + pt-BR for UI strings, routed through the i18n layer.
 - **Length:** medium. Short answer for a short question; structured answer (headers + bullets) for anything multi-part. Avoid walls of prose.
 - **Pace:** one phase / one decision at a time. Don't try to advance multiple unresolved questions in a single message.
 - **Format:** code blocks for code and commands, tables for comparisons, bullets for lists, plain prose for reasoning. Reference code locations as `file:line`. Mark file paths and identifiers with backticks.
@@ -261,46 +261,42 @@ Caminho B briefs — doctrinal, pipeline-modifying, bootstrap — are authored b
 |---|---|
 | `CLAUDE.md` | Executor agent (Claude Code) — technical rules for code |
 | `docs/PROCESS_MAP.md` | Any agent arriving cold — reading order, the six roles, the gates, artifact naming, rule-ID namespaces, authority hierarchy |
-| `docs/MENTOR_BRIEF.md` | Mentor agent (Claude in chat) — this file |
+| `docs/MENTOR_BRIEF.md` | Mentor session (Claude Code) — this file. Behavior, not mechanics |
+| `.claude/skills/mentor-mode/SKILL.md` | Mentor session mechanics — opening, read and write policy, close |
+| `harness/workflows/setup-mentor.md`, `close-mentor-session.md` | The user — opening and closing a Mentor session |
 | `docs/ROADMAP.md` | Both — product roadmap (phases, milestones, parking lot, pending decisions) |
 | `docs/GIT_WORKFLOW.md` | Both agents and the user — branching, PRs, hooks, releases |
 | `docs/GOTCHAS.md` | Both agents and the user — codebase-specific traps |
-| `docs/AGENT_PLAYBOOK.md` | The user — the Orchestrator role and the role-based pipeline; Chapter 6 defines the five roles |
-| `.claude/agents/` | The orchestration subagents (planner, brief-validator, executor) invoked by the main session acting as Orchestrator |
+| `docs/explorations/README.md` | The note authority contract and the disposition set |
+| `docs/AGENT_PLAYBOOK.md` | The user — the Orchestrator role and the role-based pipeline; Chapter 6 defines the six roles |
+| `.claude/agents/` | The orchestration subagents (planner, brief-validator, executor, closer) invoked by the main session acting as Orchestrator |
 | `.claude/skills/brief-template/` | Authoring template for `docs/tasks/<NNN>-<slug>/brief.md`; preloaded by planner and brief-validator |
 | `.claude/skills/pre-commit-self-audit/` | Five mechanical checks run by the executor before every Pause 3 |
 | `docs/tasks/<NNN>-<slug>/` | Per-task artifacts: `brief.md`, optional `notes.md` (per-session recaps live in `docs/sessions/`) |
 | `harness/` | The user — workflow prompts to start sessions and tasks (parallel manual surface to `.claude/agents/`) |
 | `README.md` | End users — what Saci is and how to install it |
 
-## 8. Context to load per session type
+## 8. Context to load per session
 
-Different chat sessions need different context. Load only what is needed; oversharing dilutes the agent's attention. Chat hosts the four conceptual modes below; operational session types — task modeling, plan/brief review at the gate, resuming a paused task — are Orchestrator sessions in Claude Code (`docs/AGENT_PLAYBOOK.md` chapter 6; opened via `harness/workflows/setup-orchestrator.md`), not chat sessions.
+A Mentor session runs on two axes, not four modes (M-R13). What to load varies
+by topic, not by axis.
 
-| Session type | Always load | Add when relevant |
-|---|---|---|
-| Mentoring / architectural exploration | `CLAUDE.md`, `MENTOR_BRIEF.md` | Topic-specific docs |
-| Code review by reading | `CLAUDE.md`, `MENTOR_BRIEF.md`, `GOTCHAS.md` | Code under review; the executor's final report |
-| Continuing a conceptual thread | `CLAUDE.md`, `MENTOR_BRIEF.md`, the latest session recap in `docs/sessions/` | Topic-specific docs |
-| Exploring possibilities (brainstorm) | `CLAUDE.md`, `MENTOR_BRIEF.md` | Existing note in `docs/explorations/` when the topic has one |
+| Always load | Add when relevant |
+|---|---|
+| `CLAUDE.md`, this file in full, `.claude/skills/mentor-mode/SKILL.md` | The matching note in `docs/explorations/` when the topic has one; `docs/GOTCHAS.md` plus the code under review for a read-through; the newest recaps in `docs/sessions/` when continuing a thread; topic-specific docs otherwise |
 
-> **On task modeling:** brief authoring lives in Claude Code — the planner via the pipeline, or the Orchestrator via caminho B under the write gate (`docs/AGENT_PLAYBOOK.md` chapter 6). Chat hosts only the conceptual work that *precedes* it; when the exploration stabilizes into buildable shape, the work moves to an Orchestrator session.
+Load only what is needed — oversharing dilutes attention. The full reading
+order for any role, this one included, is `docs/PROCESS_MAP.md` §2.
 
-### Default starting prompt for a fresh chat
+> **On task modeling:** brief authoring lives in an Orchestrator session — the
+> planner via the pipeline, or the Orchestrator via caminho B under the write
+> gate (`docs/AGENT_PLAYBOOK.md` chapter 6). The Mentor lane hosts only the
+> conceptual work that *precedes* it. When an exploration stabilizes into
+> buildable shape it moves to an Orchestrator session, and the note's
+> disposition records the handoff as `promoted to brief <id>`.
 
-Snippet to paste into a fresh Claude chat. Shown in pt-BR because chat operates in pt-BR (M-R10). The surrounding documentation is English (R9); the snippet itself is an embedded chat-starter example, not documentation prose.
+### Opening a session
 
-```
-Olá. Estou continuando o projeto Saci.
-
-Tipo de sessão: [mentoria | code review | continuar um fio conceitual]
-
-Carrega os arquivos correspondentes ao tipo de sessão na tabela §8 do MENTOR_BRIEF.md.
-Eu também colei [lista do que colei diretamente].
-
-Depois de ler, age como meu mentor sênior técnico seguindo o MENTOR_BRIEF.md.
-Onde paramos foi: [última coisa].
-
-Antes de propor próximo passo, confirma em uma frase quem você entendeu que eu sou
-e onde estamos.
-```
+The paste-ready opener lives in `harness/workflows/setup-mentor.md`, which is
+its single source. It is pt-BR because the session operates in pt-BR (M-R10).
+Closing runs `harness/workflows/close-mentor-session.md` (M-R14).
