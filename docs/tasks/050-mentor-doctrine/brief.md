@@ -28,16 +28,16 @@ correction only a repo-wide sweep could see: `docs/PROCESS_MAP.md` landed
 the chat-Mentor doctrine in nine places — one of them a literal mirror of the
 false R9 sentence this brief fixes.
 
-**Size note — measurement, not justification.** Substance measures **~930**
+**Size note — measurement, not justification.** Substance measures **~981**
 against the 350-650 range for a doctrinal caminho B brief
-(`.claude/skills/brief-template/SKILL.md`): 43% over, and the fourth
+(`.claude/skills/brief-template/SKILL.md`): 51% over, and the fourth
 consecutive overrun (047 ~600, 048 ~430, 049 ~480, this one). The owner ruled
 in the authoring session that **the size guidance does not govern this brief**,
 and that the guidance itself is to be reformulated as a separate piece of work.
 This brief is therefore written at full fidelity and the figure is recorded
 here as input to that reformulation, not as a defense.
 
-Two facts the reformulation should have. First, the composition: of the 930,
+Two facts the reformulation should have. First, the composition: of the 981,
 ~280 lines are literal text — current wording quoted so the executor can match
 on it, the replacement prose itself, and the repair tables — and ~120 more are
 verification checkboxes. A compression pass over Context, Goal and the decision
@@ -92,6 +92,8 @@ Out of scope:
    - `harness/workflows/close-task.md`
    - `harness/workflows/audit-merge.md`
    - `harness/workflows/setup-cowork.md`
+   - `harness/workflows/gitflow-emergency-recovery.md`
+   - `.claude/agents/executor.md`
    - `docs/tasks/050-mentor-doctrine/brief.md` (this file, commit #1)
 
    No file is created and no file is deleted by this brief.
@@ -130,7 +132,7 @@ Out of scope:
 
 6. **Do not reuse the Edit 4 sweep from brief 049.** Its `grep -v` filters
    matched line *content* instead of path and hid a real dangling pointer (the
-   closer's finding at `MENTOR_BRIEF.md:211`). Edit 9's sweep anchors on
+   closer's finding at `MENTOR_BRIEF.md:211`). Edit 10's sweep anchors on
    `^\./path/` and enumerates every excluded surface.
 
 ### Conventions
@@ -838,8 +840,8 @@ Commit: `docs: remove the brief 049 migration notices`
 
 ### Edit 9 — Fix the Mentor read policy and the disposition duplication
 
-Both changes are in `.claude/skills/mentor-mode/SKILL.md`; the sweep closes the
-task.
+Both changes are in `.claude/skills/mentor-mode/SKILL.md`. The closing sweep is
+**not** here — it moved to Edit 10c so that it runs after every repair.
 
 #### 9a. Section 5 — drop `npm test` (D2)
 
@@ -880,7 +882,50 @@ Every transition is dated, nothing is ever deleted, and the **owner ratifies**:
 the Mentor writes only the status the owner ratified.
 ```
 
-#### 9c. The closing sweep
+Verification for Edit 9:
+
+- [ ] `grep -c 'npm test' .claude/skills/mentor-mode/SKILL.md` returns `1` — the
+      explanatory sentence, not a list entry. `grep -c '^- \`npm test\`'`
+      returns `0`
+- [ ] `grep -c 'G-NODE-2' .claude/skills/mentor-mode/SKILL.md` returns `1`
+- [ ] Section 8 no longer enumerates: `grep -c '^- \`candidate\`' …` returns `0`,
+      and `grep -c 'docs/explorations/README.md' …` returns at least `1`
+- [ ] The five dispositions appear exactly once in the repo's live surface, in
+      `docs/explorations/README.md`, plus the operational copy in
+      `harness/workflows/close-mentor-session.md` that D4 preserves. That
+      workflow is **not** edited
+
+Commit: `docs(skills): drop npm test from the Mentor read policy`
+
+### Edit 10 — Repair the last two chat-Mentor pointers, then sweep
+
+Two one-line repairs, then the sweep that closes the task. Both files were
+missed when D1's surface list was enumerated — the third such omission in this
+brief, after `setup-cowork.md` and cb1's absent exclusion set. Root cause in
+every case: the list was written from memory instead of derived from a search.
+
+#### 10a. `.claude/agents/executor.md`
+
+| Current | Replacement |
+|---|---|
+| `  the owner can copy it whole, in one click, into the mentor chat.` | `  the owner can copy it whole, in one click.` |
+
+The destination is what went false, not the reason. Naming a replacement
+destination would assert a fact this brief has not established, so the clause
+is dropped rather than redirected.
+
+#### 10b. `harness/workflows/gitflow-emergency-recovery.md`
+
+| Current | Replacement |
+|---|---|
+| `prossiga**. Cola os outputs em chat com mentor sênior antes de` | `prossiga**. Cola os outputs numa sessão Orchestrator antes de` |
+
+The following line (`qualquer ação.`) is unchanged. Orchestrator, not Mentor:
+diagnosing a git-recovery scenario is an operational ruling, which M-R12 — as
+rewritten by this brief — places outside the Mentor lane. pt-BR by R9, stays
+pt-BR.
+
+#### 10c. The closing sweep
 
 Run, from the repository root:
 
@@ -900,10 +945,15 @@ not active. The filters anchor on `^\./path/` and match the path, not the line
 content — the defect that let 049's sweep pass clean while hiding
 `MENTOR_BRIEF.md:211`.
 
+Verification for Edit 10:
+
+- [ ] `grep -c 'mentor chat' .claude/agents/executor.md` returns `0`
+- [ ] `grep -c 'Cola os outputs numa sessão Orchestrator' harness/workflows/gitflow-emergency-recovery.md`
+      returns `1`, and the line after it still reads `qualquer ação.`
 - [ ] The sweep returns **nothing**. Any hit is a **STOP and report**, with the
       path and line quoted — do not repair it silently
 
-Commit: `docs(skills): drop npm test from the Mentor read policy`
+Commit: `docs: fix the last two chat-Mentor pointers`
 
 ### Commit sequence
 
@@ -916,6 +966,7 @@ Commit: `docs(skills): drop npm test from the Mentor read policy`
 7. `docs: fix the stale chat-Mentor pointers across the doc surface` — 63
 8. `docs: remove the brief 049 migration notices` — 44
 9. `docs(skills): drop npm test from the Mentor read policy` — 55
+10. `docs: fix the last two chat-Mentor pointers` — 43
 
 Every verb — `add`, `migrate`, `update`, `fix`, `remove`, `drop` — is in the
 allowlist at `.claude/skills/pre-commit-self-audit/SKILL.md`. Every subject is
@@ -931,7 +982,7 @@ allowlist at `.claude/skills/pre-commit-self-audit/SKILL.md`. Every subject is
 
 - [ ] Every modified path is in constraint 1's list:
       `git diff --name-only main..HEAD` matched against it, one by one
-- [ ] Exactly 12 files changed, this brief included
+- [ ] Exactly 14 files changed, this brief included
 - [ ] No file was created and none deleted:
       `git diff --name-status main..HEAD | grep -cE '^[AD]'` returns `0` except
       for the brief's own `A` in commit #1
@@ -1001,7 +1052,7 @@ In case of:
 
 - Text on disk not matching a "current" quote → **STOP and report**. Do not
   reconcile by judgment (constraint 4).
-- A sweep hit in Edit 9 → **STOP and report** with the path and line.
+- A sweep hit in Edit 10 → **STOP and report** with the path and line.
 - An unrelated defect found → report, do not fix.
 
 **DO NOT proceed "fixing" things without permission.**
@@ -1013,7 +1064,7 @@ In case of:
 - All decisions are closed (D1–D8) with the owner, in the Orchestrator session
   that authored this brief.
 - Judgment calls have explicit STOP fallbacks: text mismatch (constraint 4),
-  sweep hit (Edit 9), registration gap not matching its quote (D7).
+  sweep hit (Edit 10), registration gap not matching its quote (D7).
 - Pause 2 and Pause 3 remain required regardless — Lesson #6.
 
 ## Reference documents (read before starting)
@@ -1036,6 +1087,6 @@ In priority order:
 1. Branch name and `git log --oneline main..HEAD` — commit count, ordered
 2. `git diff --stat main...HEAD` — line counts per file
 3. Any verification checkbox that could not be met, with explanation
-4. The Edit 9 sweep result, pasted
+4. The Edit 10 sweep result, pasted
 5. Confirmation that no `git push` was executed
 6. Suggested next step
