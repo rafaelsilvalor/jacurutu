@@ -28,16 +28,16 @@ correction only a repo-wide sweep could see: `docs/PROCESS_MAP.md` landed
 the chat-Mentor doctrine in nine places — one of them a literal mirror of the
 false R9 sentence this brief fixes.
 
-**Size note — measurement, not justification.** Substance measures **~915**
+**Size note — measurement, not justification.** Substance measures **~930**
 against the 350-650 range for a doctrinal caminho B brief
-(`.claude/skills/brief-template/SKILL.md`): 41% over, and the fourth
+(`.claude/skills/brief-template/SKILL.md`): 43% over, and the fourth
 consecutive overrun (047 ~600, 048 ~430, 049 ~480, this one). The owner ruled
 in the authoring session that **the size guidance does not govern this brief**,
 and that the guidance itself is to be reformulated as a separate piece of work.
 This brief is therefore written at full fidelity and the figure is recorded
 here as input to that reformulation, not as a defense.
 
-Two facts the reformulation should have. First, the composition: of the 915,
+Two facts the reformulation should have. First, the composition: of the 930,
 ~280 lines are literal text — current wording quoted so the executor can match
 on it, the replacement prose itself, and the repair tables — and ~120 more are
 verification checkboxes. A compression pass over Context, Goal and the decision
@@ -91,6 +91,7 @@ Out of scope:
    - `harness/workflows/setup-mentor.md`
    - `harness/workflows/close-task.md`
    - `harness/workflows/audit-merge.md`
+   - `harness/workflows/setup-cowork.md`
    - `docs/tasks/050-mentor-doctrine/brief.md` (this file, commit #1)
 
    No file is created and no file is deleted by this brief.
@@ -329,7 +330,7 @@ If the opening message is ambiguous about the owner's intent or about the mode, 
 ```
 **M-R14 — Session-close ritual: dispositions, not a recap.** When the owner signals the end of a Mentor session — explicitly ("encerrar", "fechar sessão") or through detected signals followed by confirmation — run `harness/workflows/close-mentor-session.md`, which is the authority on the close. The ritual proposes a **disposition** for every note the session touched, drawn from the closed set defined in `docs/explorations/README.md`. The owner ratifies; the Mentor writes the ratified status and never the proposed one; every transition is dated; nothing is ever deleted. A session that had no topic says so in one line and ends.
 
-The Mentor recap is **retired**, and the claude.ai project-knowledge cache-swap with it — that ritual existed only to feed the chat surface. A Mentor session saves nothing to `docs/sessions/`; the topic note is its only artifact.
+The Mentor recap is **retired**, and with it the project-knowledge cache-swap: the session reads the repo directly, so there is nothing to re-upload. Nothing is saved to `docs/sessions/`; the topic note is the session's only artifact.
 
 Transport is not the Mentor's. The session finishes at the write gate's read-back, with the note on disk, and reports in one line what is waiting. Branch, commit, push and PR are the owner's or an Orchestrator session's. If a code task is paused in another session, run `pause-task.md` there first — code before concept.
 ```
@@ -752,7 +753,7 @@ its `NNN` / P4 facts especially (D8).
 |---|---|
 | `- 'docs/MENTOR_BRIEF.md' — chat-mentor behavior; M-R3 mirrors Pause-3.` | `- 'docs/MENTOR_BRIEF.md' — Mentor-lane behavior; M-R3 mirrors Pause-3.` |
 
-#### 7c. The cache-swap ritual (D6) — `harness/workflows/`
+#### 7c. The cache-swap ritual (D6) and one missed surface (D1) — `harness/workflows/`
 
 In `close-task.md`, under `## Limpeza pós-merge`, delete item **2** in full —
 the `**Re-upload dos docs canônicos no project knowledge do claude.ai.**`
@@ -766,7 +767,19 @@ In `audit-merge.md`, under `## Pré-requisitos`:
 |---|---|
 | `- Brief original acessível (na project knowledge do Claude.ai ou\n  no checkout local).` | `- Brief original acessível no checkout local.` |
 
-These two files are pt-BR by R9 and stay pt-BR.
+In `setup-cowork.md`, inside the `Importante:` list of its COPIAR block:
+
+| Current | Replacement |
+|---|---|
+| `  arquitetural, vou usar Claude Chat (claude.ai) e voltar pra você` | `  arquitetural, vou abrir uma sessão Mentor e voltar pra você` |
+
+The following line (`  com decisão tomada.`) is unchanged. This file was missed
+when D1's surface list was enumerated: it is live, referenced from
+`harness/README.md` and `harness/workflows/README.md`, and asserts the Mentor
+runs in chat. Same defect class as brief 049's Edit 4 exclusion set — a
+surface omitted while enumerating.
+
+These three files are pt-BR by R9 and stay pt-BR.
 
 Verification for Edit 7:
 
@@ -776,6 +789,8 @@ Verification for Edit 7:
       `§7`, the P4 paragraph, or any line containing `NNN`
 - [ ] `harness/workflows/close-task.md` has no `2.` under
       `## Limpeza pós-merge`, and no orphan `1.`
+- [ ] `grep -c 'Claude Chat' harness/workflows/setup-cowork.md` returns `0`,
+      and the line below the replaced one still reads `  com decisão tomada.`
 - [ ] `harness/init/` and `harness/README.md` are unmodified:
       `git diff --name-only main..HEAD | grep -cE '^harness/(init/|README)'`
       returns `0`
@@ -916,7 +931,7 @@ allowlist at `.claude/skills/pre-commit-self-audit/SKILL.md`. Every subject is
 
 - [ ] Every modified path is in constraint 1's list:
       `git diff --name-only main..HEAD` matched against it, one by one
-- [ ] Exactly 11 files changed, this brief included
+- [ ] Exactly 12 files changed, this brief included
 - [ ] No file was created and none deleted:
       `git diff --name-status main..HEAD | grep -cE '^[AD]'` returns `0` except
       for the brief's own `A` in commit #1
