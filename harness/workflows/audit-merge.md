@@ -68,8 +68,8 @@ evidência registrada, não memória do mentor.
 
 ## Próximo workflow
 
-- Pass nas três dimensões → `close-chat-session.md` (modo code review).
+- Pass nas três dimensões → `close-mentor-session.md` (modo code review).
 - Fail em Dimensão 1 ou 3 → novo brief de correção via
-  `init/07-create-brief.md` ou modelagem ad-hoc no chat.
+  `init/07-create-brief.md` ou modelagem ad-hoc em sessão Orchestrator.
 - Fail em Dimensão 2 → pendência registrada no recap; correção entra
   no próximo brief estrutural.

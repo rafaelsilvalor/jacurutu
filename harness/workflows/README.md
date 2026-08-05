@@ -7,15 +7,15 @@ Templates copiáveis pra cenários recorrentes de orquestração.
 1. Identifica o cenário (setup? tarefa? recuperação?)
 2. Abre o workflow correspondente
 3. Copia o bloco entre `--- COPIAR ---`
-4. Cola no agente (Chat, Cowork ou Code)
+4. Cola no agente (Cowork ou Code)
 5. Adapta partes em `[colchetes]`
 
 ## Catálogo
 
 ### Setup de sessão (escolha pela interface)
 
-- **`setup-chat.md`** — iniciar sessão de mentoria/discussão em
-  claude.ai
+- **`setup-mentor.md`** — iniciar sessão Mentor (faixa conceitual) em
+  Claude Code, Plan mode
 - **`setup-cowork.md`** — iniciar sessão de trabalho em Cowork
 - **`setup-code.md`** — iniciar sessão de código em Claude Code
 - **`setup-orchestrator.md`** — iniciar sessão Orchestrator (main
@@ -23,9 +23,9 @@ Templates copiáveis pra cenários recorrentes de orquestração.
 
 ### Continuidade
 
-- **`close-chat-session.md`** — encerrar sessão de chat (mentoria,
-  modelar tarefa, revisar plano, code review) com recap salvo em
-  docs/sessions/
+- **`close-mentor-session.md`** — encerrar sessão Mentor propondo a
+  disposição das notas em docs/explorations/ (sem recap salvo em
+  docs/sessions/)
 - **`resume-session.md`** — retomar trabalho do dia anterior
   (qualquer interface)
 - **`recover-stuck-agent.md`** — agente travou ou estado inesperado

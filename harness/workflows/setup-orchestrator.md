@@ -11,7 +11,8 @@ fundido (`docs/AGENT_PLAYBOOK.md` capítulo 6). Serve pra:
 - Fechar a sessão com recap
 
 Uma tarefa por sessão. Trabalho conceitual (aprendizado, exploração
-pré-tarefa, meta-discussão) fica com o Mentor no chat (`setup-chat.md`).
+pré-tarefa, meta-discussão) fica com a sessão Mentor
+(`setup-mentor.md`).
 
 ## Pré-requisitos
 
