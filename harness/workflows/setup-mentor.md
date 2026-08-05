@@ -54,11 +54,6 @@ Nenhum subagent nesta sessão: sem planner, sem brief-validator, sem
 executor, sem closer, sem gate, sem pipeline. Se eu pedir pra modelar
 tarefa, escrever brief, emitir ruling operacional ou editar código, me
 redireciona pra uma sessão Orchestrator em vez de absorver o trabalho.
-
-Nota de migração: docs/MENTOR_BRIEF.md e docs/AGENT_PLAYBOOK.md capítulo
-6 ainda descrevem o Mentor como papel de chat. Onde eles dizem "chat",
-lê "esta sessão Mentor no Claude Code". O brief 050 reescreve os dois e
-remove esta nota.
 ```
 
 ## --- FIM COPIAR ---

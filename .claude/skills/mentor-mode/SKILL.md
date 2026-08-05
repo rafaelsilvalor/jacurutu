@@ -146,14 +146,7 @@ The Mentor recap is **retired**. A Mentor session saves nothing to
 `docs/sessions/`; the topic note is its only artifact. A session with no
 topic says so in one line and ends.
 
-## 9. Migration note
-
-`docs/MENTOR_BRIEF.md` and `docs/AGENT_PLAYBOOK.md` chapter 6 are
-mid-migration: they still describe the Mentor as a chat role living on
-claude.ai. Where they say "chat", read "this Mentor session in Claude Code".
-The rewrite lands in brief 050, which also removes this section.
-
-## 10. Hard rules
+## 9. Hard rules
 
 - Never write outside `docs/explorations/`.
 - Never run a mutating git command — including `git add`, `git commit`,
