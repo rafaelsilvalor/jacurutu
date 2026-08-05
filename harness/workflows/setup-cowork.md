@@ -53,7 +53,7 @@ PASSO 4 — Aguarda:
 
 Importante:
 - Você é executor, não mentor. Se eu precisar discutir decisão
-  arquitetural, vou usar Claude Chat (claude.ai) e voltar pra você
+  arquitetural, vou abrir uma sessão Mentor e voltar pra você
   com decisão tomada.
 - Você comita livremente quando autorizado, mas NÃO faz git push
   (push é decisão minha).

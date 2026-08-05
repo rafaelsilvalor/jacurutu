@@ -315,6 +315,6 @@ When more recovery is needed, see `harness/workflows/gitflow-emergency-recovery.
 ## Related documents
 
 - `CLAUDE.md` — code rules. R10–R17 cover the principles behind this file.
-- `docs/MENTOR_BRIEF.md` — chat-mentor behavior; M-R3 mirrors Pause-3.
+- `docs/MENTOR_BRIEF.md` — Mentor-lane behavior; M-R3 mirrors Pause-3.
 - `docs/GOTCHAS.md` — codebase traps that interact with git workflow (e.g. `CACHE_VERSION` bump as its own commit).
 - `harness/workflows/` — pre-built session templates: `setup-code.md`, `gitflow-merge-into-main.md`, `gitflow-emergency-recovery.md`, etc.
