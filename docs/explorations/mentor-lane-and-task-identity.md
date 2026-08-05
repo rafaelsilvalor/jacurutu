@@ -93,7 +93,7 @@ A date is self-assigned: no lookup, no protocol, no conflict, no gap.
 |---|---|
 | E1 | The target is the task identifier; the recap inherits it. |
 | E2 | Task: `docs/tasks/YYYY-MM-DD-slug/`. Recap: `docs/sessions/<session-date>-<role>-<slug>.md`, role in {orchestrator, executor}. |
-| E3 | Cutover at slot 049. Through 048, `NNN`; from 049 on, date. Forward only, no retroactive migration. |
+| E3 | The cutover takes effect on brief C's merge: a task born before it keeps `NNN`, a task born after it takes a date. Forward only, no retroactive migration. The original anchor — "cutover at slot 049" — could not hold, because the four briefs of section 6 are themselves born under the old scheme and take 049-052: `brief-validator` check C1 requires a three-digit id until brief C rewrites it. The re-anchored rule names no slot, so it cannot be falsified a second time. |
 | E4 | An aborted task becomes a preserved folder carrying an `ABORTED` marker and its reason. Burns stop existing as a concept — there is no sequence left to puncture. |
 | E5 | Same-day collisions take a short ordinal suffix, applied only on collision. Intra-day ordering rides the Consumes chain and git, not the filename. |
 | E6 | The dev token stays out. The original trigger of the 039 package — a second regular contributor — remains parked. |
@@ -137,15 +137,16 @@ Collateral gain: the two slot-less recaps that exist today
 `2026-06-24-executor-product-map-at-a-glance.md`) stop being exceptions —
 the new shape absorbs that class.
 
-## 6. The three briefs
+## 6. The four briefs
 
-| Brief | Scope | Depends on |
-|---|---|---|
-| A | Mentor doctrine in Claude Code: skill, harness prompt, `MENTOR_BRIEF.md`, `AGENT_PLAYBOOK.md` ch. 6, `close-mentor-session.md`, `settings.json` deny, `explorations/README.md` contract, `CLAUDE.md` related documents | none |
-| B | Migration of the 22 ROADMAP entries into notes; both sections become pointers | A, for the note contract |
-| C | Identifier cutover at 049 across the 15 convention files | A, for `close-mentor-session.md` |
+| Brief | Slot | Scope | Depends on |
+|---|---|---|---|
+| A1 | 049 | The vehicle: the `mentor-mode` skill, `setup-mentor.md` and `close-mentor-session.md`, retirement of the two chat workflows, and repair of every pointer that retirement breaks. The `settings.json` deny is deferred with a recorded reason | none |
+| A2 | 050 | The doctrine: `MENTOR_BRIEF.md` (M-R12 through M-R15, §5, §7, §8), `AGENT_PLAYBOOK.md` ch. 6, the `explorations/README.md` contract, and the `CLAUDE.md` related-documents gloss | A1 |
+| B | 051 | Migration of the 22 ROADMAP entries into notes; both sections become pointers | A2, for the note contract |
+| C | 052 | Identifier cutover across the 15 convention files | A1, for `close-mentor-session.md` |
 
-All three are Category L and caminho B — they modify the pipeline itself,
+All four are Category L and caminho B — they modify the pipeline itself,
 so the planner is not invoked (M-R15).
 
 ## 7. Risks accepted
@@ -166,3 +167,5 @@ so the planner is not invoked (M-R15).
   as mid-execution on an unmerged branch, a stale claim inherited from
   the desktop-ui-host recap. It merged as PR #110. E9's dual-acceptance
   window is empty as a result.
+- 2026-08-03 — brief A split into A1 (049, vehicle) and A2 (050,
+  doctrine); E3's cutover re-anchored from slot 049 to brief C's merge.
