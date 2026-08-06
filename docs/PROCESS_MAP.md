@@ -267,7 +267,7 @@ Each of these has happened and is documented. They are process failures, not cod
 2. **Asserting instead of pasting.** Evidence-close requires the verbatim command output, in the final message block, in one fenced block. See §6.3.
 3. **Committing on the `claude/*` session branch.** It is scaffolding. Create the real branch first.
 4. **Drifting the approved commit message at commit time.** Gate-approved subjects and bodies are verbatim; verify with `git log -1` after committing and amend if it drifted.
-5. **Writing pt-BR into `docs/`, a commit, a branch name, or an identifier.** R9. `harness/` prose is the only pt-BR-tolerant surface, and its `--- COPIAR ---` payloads are still English.
+5. **Writing pt-BR into `docs/`, a commit, a branch name, or an identifier.** R9. `harness/` is the only pt-BR-tolerant surface, `--- COPIAR ---` payloads included.
 6. **Fixing something adjacent because it was obviously broken.** Out of scope ≠ out of mind: report it, do not silently fix. A refactor commit that also fixes a bug violates R14 and gets rejected.
 7. **Structural deviation from the brief's Edit map** — merging, splitting, renaming, or relocating planned files, even when the result is cleaner. STOP and confirm before writing.
 8. **Implementing from an exploration note.** Notes carry no mandate. See §9.7.
