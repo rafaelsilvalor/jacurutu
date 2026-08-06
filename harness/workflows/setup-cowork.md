@@ -53,7 +53,7 @@ PASSO 4 — Aguarda:
 
 Importante:
 - Você é executor, não mentor. Se eu precisar discutir decisão
-  arquitetural, vou usar Claude Chat (claude.ai) e voltar pra você
+  arquitetural, vou abrir uma sessão Mentor e voltar pra você
   com decisão tomada.
 - Você comita livremente quando autorizado, mas NÃO faz git push
   (push é decisão minha).
@@ -83,9 +83,9 @@ código com análise, documentação, ou processamento de dados.
 - ⚠️ **Pausa 3 é mais difícil de impor em Cowork** — ele entrega
   resultado e você revisa post-hoc. Vale escrever no setup que
   ele DEVE pausar antes de comitar.
-- ⚠️ **Cowork não substitui mentoria.** Se você está confuso sobre
-  o que pedir, primeiro vai ao Chat pra modelar, depois Cowork
-  pra executar.
+- ⚠️ **Cowork não substitui modelagem.** Se você está confuso sobre
+  o que pedir, primeiro abre uma sessão Orchestrator pra modelar,
+  depois Cowork pra executar.
 
 ## Próximo passo após setup
 

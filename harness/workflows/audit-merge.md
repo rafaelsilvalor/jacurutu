@@ -14,8 +14,7 @@ basta uma checada visual no `git log` e no diff.
 - PR mergeada em `main`.
 - Recap do executor já mergeado em `main` (D2). Auditoria não roda
   contra branch ativa do executor.
-- Brief original acessível (na project knowledge do Claude.ai ou
-  no checkout local).
+- Brief original acessível no checkout local.
 
 ## --- COPIAR ---
 

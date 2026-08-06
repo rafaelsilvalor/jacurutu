@@ -188,10 +188,9 @@ a check that did not run.
 
 Emit exactly this template. It is pt-BR by design: the file around it is
 agent-consumed surface and therefore English (`CLAUDE.md` R9), but the report
-is chat output read by the owner, and chat is pt-BR under M-R10. This inverts
-the `harness/` pattern (pt-BR prose wrapping an English `--- COPIAR ---`
-payload) for the same reason it exists there — the payload is written in the
-language of its consumer.
+is output read by the owner, and owner-facing output is pt-BR under M-R10. The
+`harness/` surface is pt-BR throughout — prose and `--- COPIAR ---` payload
+alike — for the same reason: text is written in the language of its consumer.
 
 Formatting contract, all of it load-bearing:
 

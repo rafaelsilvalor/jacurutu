@@ -77,10 +77,13 @@ Shell is limited to **non-mutating** commands:
 - `git diff`
 - `ls`
 - `grep`
-- `npm test`
 
 Anything that changes repository or workspace state is out, whether or not
 it appears in the forbidden list of section 6.
+`npm test` is deliberately absent: in a session worktree it either matches zero
+compiled tests and exits `0` on a vacuous green, or resolves `@saci/*` to the
+main checkout (`docs/GOTCHAS.md` G-NODE-2). A Mentor session reads and reasons;
+it has no use for a result that needs interpreting before it means anything.
 
 ## 6. Write policy — narrow
 
@@ -131,29 +134,15 @@ Run `harness/workflows/close-mentor-session.md`. That workflow is the
 authority on the close; this section states only what it produces.
 
 The session proposes a **disposition** for every note it touched, drawn from
-a closed set:
-
-- `open`
-- `candidate`
-- `deferred` — a declared trigger is required
-- `discarded` — a reason is required
-- `promoted to brief <id>`
-
-Every transition is dated, nothing is ever deleted, and the **owner
-ratifies** — the Mentor writes only the status the owner ratified.
+the closed set in `docs/explorations/README.md` — the single source for it.
+Every transition is dated, nothing is ever deleted, and the **owner ratifies**:
+the Mentor writes only the status the owner ratified.
 
 The Mentor recap is **retired**. A Mentor session saves nothing to
 `docs/sessions/`; the topic note is its only artifact. A session with no
 topic says so in one line and ends.
 
-## 9. Migration note
-
-`docs/MENTOR_BRIEF.md` and `docs/AGENT_PLAYBOOK.md` chapter 6 are
-mid-migration: they still describe the Mentor as a chat role living on
-claude.ai. Where they say "chat", read "this Mentor session in Claude Code".
-The rewrite lands in brief 050, which also removes this section.
-
-## 10. Hard rules
+## 9. Hard rules
 
 - Never write outside `docs/explorations/`.
 - Never run a mutating git command — including `git add`, `git commit`,

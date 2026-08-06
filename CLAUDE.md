@@ -46,8 +46,8 @@ Detailed domain notes and known traps live in `docs/GOTCHAS.md`; product roadmap
 
 The dev surface splits by *audience*, not by directory.
 
-- *Agent-consumed surface* (English-only): code identifiers, comments, file/folder names, commit messages, branch names, PR titles/descriptions, canonical documentation (`CLAUDE.md`, `README.md`, `docs/**`), task artifacts (`docs/tasks/**`), config keys, log/console messages. Includes any block inside `harness/` that produces canonical output — e.g. the `--- COPIAR ---` blocks inside `harness/workflows/*.md` are pasted into the agent as English instructions, so those blocks are English even though the surrounding usage notes are pt-BR.
-- *Human-edited interface* (pt-BR is acceptable): the prompts in `harness/init/*.md`, `harness/workflows/setup-mentor.md`, `harness/workflows/README.md`, and the prose around `--- COPIAR ---` blocks in `harness/workflows/`. Rationale: the user reads, copies, and customizes these directly; pt-BR reduces friction for the user without affecting agent quality, because these files are typically pasted into chat (where M-R10 already mandates pt-BR).
+- *Agent-consumed surface* (English-only): code identifiers, comments, file/folder names, commit messages, branch names, PR titles/descriptions, canonical documentation (`CLAUDE.md`, `README.md`, `docs/**`), task artifacts (`docs/tasks/**`), config keys, log/console messages.
+- *Human-edited interface* (pt-BR is acceptable): everything under `harness/` — the prompts in `harness/init/*.md`, the workflow files in `harness/workflows/`, their `README.md`, and the `--- COPIAR ---` blocks themselves. Rationale: the user reads, copies, and customizes these directly, and every block lands in a session where M-R10 already mandates pt-BR — so pt-BR reduces friction without affecting agent quality. This bullet was corrected on 2026-08-04 (brief 049, D4): it previously claimed the COPIAR blocks were English, while every one on disk was pt-BR, including the `setup-orchestrator.md` block the owner pastes to open an Orchestrator session.
 - *UI surface* (EN + pt-BR): visible labels, button text, placeholders, tooltips, error toasts, empty states, menu items. Stored in an i18n layer keyed by string ID, with both locales defined. **Never inline a pt-BR-only literal in new HTML/JSX/template code** — route through the i18n layer (or add a `TODO(i18n)` if the layer is not yet in place).
 - Default locale is auto-detected from the OS (`app.getLocale()` in main, `navigator.language` in renderer); the user may override in settings.
 - Existing pt-BR content in source files (`main.js`, `psd-worker.js`, `renderer/app.js`) predates this rule and is tracked as `E3` for migration.
@@ -122,7 +122,7 @@ Do not translate piecemeal during unrelated PRs.
 ## Related Documents
 
 - `docs/PROCESS_MAP.md` — entry point to *how work happens here*: reading order, the six roles, the gates, artifact naming, rule-ID namespaces, authority hierarchy. Read it after this file, before acting
-- `docs/MENTOR_BRIEF.md` — the conceptual Mentor surface (chat): learning, pre-task exploration, meta-discussion
+- `docs/MENTOR_BRIEF.md` — the Mentor lane, its own Claude Code main session: who the owner is and how the conceptual surface behaves (M-R*)
 - `docs/GIT_WORKFLOW.md` — branching, PRs, hooks, release tags
 - `docs/GOTCHAS.md` — known traps: worker pool timeouts, PSD binary parser, cache versioning, cross-platform pitfalls
 - `docs/AGENT_PLAYBOOK.md` — the Orchestrator role and the role-based pipeline (Orchestrator → planner → brief-validator → executor → closer)
@@ -132,4 +132,5 @@ Do not translate piecemeal during unrelated PRs.
 - `.claude/agents/` — orchestration subagents: `planner.md`, `brief-validator.md`, `executor.md`, `closer.md` (reviews the assembled diff); invoked by the main session acting as Orchestrator (`docs/AGENT_PLAYBOOK.md` Chapter 6)
 - `.claude/skills/brief-template/` — authoring template for `docs/tasks/<NNN>-<slug>/brief.md`; preloaded by planner and brief-validator
 - `.claude/skills/pre-commit-self-audit/` — five mechanical checks run by the executor before every Pause 3
+- `.claude/skills/mentor-mode/` — session mechanics for the Mentor lane; invoked at the open of a Mentor session
 - `README.md` — user-facing project description

@@ -235,7 +235,7 @@ evidence-closes (Pause 3 step 7), guard outputs, verification transcripts:
 - **Single-block packaging.** Every Pause presentation (marker,
   artifact, status, diff --stat, proposed message, audit report) and
   every evidence-close paste is emitted as ONE fenced code block, so
-  the owner can copy it whole, in one click, into the mentor chat.
+  the owner can copy it whole, in one click.
   Prose outside the block is allowed only before the marker or after
   the block ends.
 - **No-debt precondition.** No new Pause opens while a prior

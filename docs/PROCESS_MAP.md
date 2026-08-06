@@ -31,7 +31,7 @@ The process here is deliberately heavy for a one-person project. The reason is s
 | Role | Add |
 |---|---|
 | Orchestrator (main Claude Code session) | `docs/AGENT_PLAYBOOK.md` chapters 2 and 6, `docs/GIT_WORKFLOW.md`, `docs/GOTCHAS.md`, the newest recaps in `docs/sessions/` |
-| Mentor (chat) | `docs/MENTOR_BRIEF.md` in full, then its §8 table for what else to load |
+| Mentor (its own Claude Code main session) | `docs/MENTOR_BRIEF.md` in full, `.claude/skills/mentor-mode/SKILL.md`, then its §8 table for what else to load |
 | planner | `.claude/agents/planner.md`, `.claude/skills/brief-template/SKILL.md` |
 | brief-validator | `.claude/agents/brief-validator.md`, `.claude/skills/brief-template/SKILL.md` |
 | executor | `.claude/agents/executor.md` "Reference reading order" — it lists its own six inputs in order |
@@ -51,7 +51,7 @@ The process here is deliberately heavy for a one-person project. The reason is s
 CLAUDE.md                    the rules. Highest authority on code.
 docs/                        canonical documentation + the historical record
   AGENT_PLAYBOOK.md            the pipeline, the gates, the lessons (#1–#15)
-  MENTOR_BRIEF.md              who the owner is, how the chat lane behaves (M-R*)
+  MENTOR_BRIEF.md              who the owner is, how the Mentor lane behaves (M-R*)
   GIT_WORKFLOW.md              branches, commits, hooks, PRs, recovery (G-R*/G-A*)
   GOTCHAS.md                   stack traps with permanent IDs (G-CAT-N)
   ROADMAP.md                   phases, parking lot, pending decisions
@@ -61,7 +61,7 @@ docs/                        canonical documentation + the historical record
   explorations/                findings without mandate — lowest authority
 .claude/                     machine-loaded orchestration
   agents/                      planner, brief-validator, executor, closer
-  skills/                      brief-template, pre-commit-self-audit
+  skills/                      brief-template, pre-commit-self-audit, mentor-mode
 harness/                     human-driven, copy-paste surface
   workflows/                   16 scenario prompts (setup, continuity, git, review)
   init/                        7 prompts that bootstrap this system in a new repo
@@ -70,7 +70,7 @@ harness/                     human-driven, copy-paste surface
 
 `.claude/` and `harness/` are **parallel surfaces for the same process**: `.claude/agents/` is invoked programmatically by the main session; `harness/workflows/` is pasted by hand by the owner. Neither is a fallback for the other — they serve different transports.
 
-Language split, per `CLAUDE.md` R9: everything under `docs/`, `CLAUDE.md`, and `.claude/` is agent-consumed and therefore **English-only**. `harness/` is human-edited and may be pt-BR — except the `--- COPIAR ---` blocks inside `harness/workflows/*.md`, which are pasted into an agent and are English. Chat replies to the owner are pt-BR (`docs/MENTOR_BRIEF.md` M-R10).
+Language split, per `CLAUDE.md` R9: everything under `docs/`, `CLAUDE.md`, and `.claude/` is agent-consumed and therefore **English-only**. `harness/` is human-edited and may be pt-BR, the `--- COPIAR ---` blocks inside `harness/workflows/*.md` included. Session replies to the owner are pt-BR (`docs/MENTOR_BRIEF.md` M-R10).
 
 ## 4. The six roles
 
@@ -78,7 +78,7 @@ Roles, not surfaces, define who does what. Canonical definition: `docs/AGENT_PLA
 
 | Role | Where it runs | Writes | Never does |
 |---|---|---|---|
-| **Mentor** | chat (claude.ai) | nothing — produces prose | task modeling, briefs, operational rulings, code (M-R12, M-R15) |
+| **Mentor** | Claude Code — its own main session | `docs/explorations/` only, via the write gate | task modeling, briefs, operational rulings, code (M-R12, M-R15) |
 | **Orchestrator** | Claude Code main session, Plan mode | `docs/` only, via the write gate | source code — that is the executor's |
 | **planner** | Claude Code subagent | `docs/tasks/<NNN>-<slug>/` only | execute the brief it just wrote |
 | **brief-validator** | Claude Code subagent | nothing — read-only | judge semantics, roadmap fit, or whether the task is a good idea |
@@ -178,7 +178,7 @@ Knowing which file owns an ID saves a search every time one is cited.
 | `G-R1`–`G-R11` | git operational rules | `docs/GIT_WORKFLOW.md` |
 | `G-A1`–`G-A8` | git anti-patterns | `docs/GIT_WORKFLOW.md` |
 | `G-CAT-N` | a stack trap, e.g. `G-DRIVE-1`, `G-NODE-2` | `docs/GOTCHAS.md` catalog |
-| `M-R1`–`M-R15` | chat-mentor behavior rules | `docs/MENTOR_BRIEF.md` §4 |
+| `M-R1`–`M-R15` | Mentor-lane behavior rules | `docs/MENTOR_BRIEF.md` §4 |
 | `P1`–`P5` | observed patterns about the owner | `docs/MENTOR_BRIEF.md` §3 |
 | Lessons `#1`–`#15` | orchestration judgment, numbered by discovery order | `docs/AGENT_PLAYBOOK.md` |
 | `D1`–`D5` | the five drift signals | `docs/AGENT_PLAYBOOK.md` §2.2 |
@@ -267,7 +267,7 @@ Each of these has happened and is documented. They are process failures, not cod
 2. **Asserting instead of pasting.** Evidence-close requires the verbatim command output, in the final message block, in one fenced block. See §6.3.
 3. **Committing on the `claude/*` session branch.** It is scaffolding. Create the real branch first.
 4. **Drifting the approved commit message at commit time.** Gate-approved subjects and bodies are verbatim; verify with `git log -1` after committing and amend if it drifted.
-5. **Writing pt-BR into `docs/`, a commit, a branch name, or an identifier.** R9. `harness/` prose is the only pt-BR-tolerant surface, and its `--- COPIAR ---` payloads are still English.
+5. **Writing pt-BR into `docs/`, a commit, a branch name, or an identifier.** R9. `harness/` is the only pt-BR-tolerant surface, `--- COPIAR ---` payloads included.
 6. **Fixing something adjacent because it was obviously broken.** Out of scope ≠ out of mind: report it, do not silently fix. A refactor commit that also fixes a bug violates R14 and gets rejected.
 7. **Structural deviation from the brief's Edit map** — merging, splitting, renaming, or relocating planned files, even when the result is cleaner. STOP and confirm before writing.
 8. **Implementing from an exploration note.** Notes carry no mandate. See §9.7.
@@ -280,7 +280,7 @@ Each of these has happened and is documented. They are process failures, not cod
 |---|---|
 | `CLAUDE.md` | code rules, architecture, exceptions |
 | `docs/AGENT_PLAYBOOK.md` | the pipeline, the six roles, the gates, lessons #1–#15 |
-| `docs/MENTOR_BRIEF.md` | who the owner is; chat-lane behavior (`M-R*`) |
+| `docs/MENTOR_BRIEF.md` | who the owner is; Mentor-lane behavior (`M-R*`) |
 | `docs/GIT_WORKFLOW.md` | branches, commits, hooks, PRs, releases, recovery |
 | `docs/GOTCHAS.md` | stack traps (`G-CAT-N`) |
 | `docs/ROADMAP.md` | phases, parking lot, pending decisions |
