@@ -28,16 +28,16 @@ correction only a repo-wide sweep could see: `docs/PROCESS_MAP.md` landed
 the chat-Mentor doctrine in nine places — one of them a literal mirror of the
 false R9 sentence this brief fixes.
 
-**Size note — measurement, not justification.** Substance measures **~981**
+**Size note — measurement, not justification.** Substance measures **~1073**
 against the 350-650 range for a doctrinal caminho B brief
-(`.claude/skills/brief-template/SKILL.md`): 51% over, and the fourth
+(`.claude/skills/brief-template/SKILL.md`): 65% over, and the fourth
 consecutive overrun (047 ~600, 048 ~430, 049 ~480, this one). The owner ruled
 in the authoring session that **the size guidance does not govern this brief**,
 and that the guidance itself is to be reformulated as a separate piece of work.
 This brief is therefore written at full fidelity and the figure is recorded
 here as input to that reformulation, not as a defense.
 
-Two facts the reformulation should have. First, the composition: of the 981,
+Two facts the reformulation should have. First, the composition: of the 1073,
 ~280 lines are literal text — current wording quoted so the executor can match
 on it, the replacement prose itself, and the repair tables — and ~120 more are
 verification checkboxes. A compression pass over Context, Goal and the decision
@@ -94,6 +94,7 @@ Out of scope:
    - `harness/workflows/setup-cowork.md`
    - `harness/workflows/gitflow-emergency-recovery.md`
    - `.claude/agents/executor.md`
+   - `.claude/agents/closer.md`
    - `docs/tasks/050-mentor-doctrine/brief.md` (this file, commit #1)
 
    No file is created and no file is deleted by this brief.
@@ -125,6 +126,11 @@ Out of scope:
    exactly; in a repair table, change exactly the span named and nothing else
    on the line. If the text on disk does not match a "current" quote, **STOP
    and report** — do not reconcile by judgment.
+
+   *Verbatim means wording, not whitespace* (errata E4). Line-wrapping follows
+   the target file's own convention: hard-wrap where the file hard-wraps, one
+   long line where its neighbours are long lines. The rule exists to stop the
+   text being paraphrased or "improved", not to freeze column positions.
 
 5. **Do not renumber, retire, or add an `M-R` rule.** The namespace stays
    `M-R1`–`M-R15` (`docs/PROCESS_MAP.md` §8): four rewritten in place, three
@@ -356,7 +362,11 @@ Verification for Edit 2:
 - [ ] `grep -c '^\*\*M-R' docs/MENTOR_BRIEF.md` returns `15`
 - [ ] `grep -c 'mentor-mode' docs/MENTOR_BRIEF.md` returns at least `3`
 - [ ] `grep -c 'promoted to brief' docs/MENTOR_BRIEF.md` returns `0` — M-R14
-      points at the set, it does not enumerate it (D4)
+      points at the set, it does not enumerate it (D4). **True only at this
+      point in the run** (errata E7): Edit 3c reintroduces one occurrence in
+      §8's blockquote, which mentions a single value rather than enumerating
+      the set and is therefore consistent with D4. Re-running this checkbox
+      after Edit 3 correctly returns `1`
 - [ ] The §2 allowlist bullet contains both `2026-05-28` and `2026-08-04`
 
 Commit: `docs: migrate the Mentor doctrine to the Claude Code lane`
@@ -381,7 +391,7 @@ Replacement:
 
 #### 3b. §7, the Related documents table
 
-Three rows are corrected and four are added. Leave every other row untouched,
+Three rows are corrected and three are added. Leave every other row untouched,
 and keep the existing row order; new rows go where indicated.
 
 | Current row | Action |
@@ -442,7 +452,9 @@ Verification for Edit 3:
 - [ ] `grep -c 'Default starting prompt' docs/MENTOR_BRIEF.md` returns `0`
 - [ ] `grep -c 'Olá. Estou continuando o projeto Saci' docs/MENTOR_BRIEF.md`
       returns `0` — the duplicated starter snippet is gone
-- [ ] `grep -c 'six roles' docs/MENTOR_BRIEF.md` returns `1`
+- [ ] `grep -c 'six roles' docs/MENTOR_BRIEF.md` returns `2` (errata E1) — 3b's
+      corrected `AGENT_PLAYBOOK.md` row, plus the `PROCESS_MAP.md` row that
+      already said "six roles" in `main` and is not touched by this brief
 - [ ] `grep -niE '\bchat\b|claude\.ai' docs/MENTOR_BRIEF.md` still returns
       nothing
 - [ ] The three added §7 rows are present:
@@ -544,8 +556,9 @@ Verification for Edit 4:
 - [ ] `grep -c 'Two roles produce session recaps' docs/AGENT_PLAYBOOK.md`
       returns `1`
 - [ ] Chapters 1–5 are untouched: `git diff main..HEAD -- docs/AGENT_PLAYBOOK.md`
-      shows no hunk before the line `## Chapter 6`, except the two
-      Related-documents hunks at the end of the file
+      shows no hunk before the line `## Chapter 6`, except the three
+      Related-documents hunks at the end of the file (errata E3) — 4f is two
+      replacements plus one addition, so three is the correct result
 
 Commit: `docs: update playbook chapter 6 for the Mentor main session`
 
@@ -684,10 +697,17 @@ Commit: `docs(explorations): update the note authority contract`
 Remove the trailing sentence. Current bullet text ends with:
 
 ```
-Includes any block inside `harness/` that produces canonical output — e.g. the `--- COPIAR ---` blocks inside `harness/workflows/*.md`, which are pasted into the agent as English instructions, so those blocks are English even though the surrounding usage notes are pt-BR.
+Includes any block inside `harness/` that produces canonical output — e.g. the `--- COPIAR ---` blocks inside `harness/workflows/*.md` are pasted into the agent as English instructions, so those blocks are English even though the surrounding usage notes are pt-BR.
 ```
 
 Delete that sentence entirely. The bullet now ends at `…log/console messages.`
+
+The quote above was corrected as errata E5: it originally read
+`…workflows/*.md`, which are pasted…`, with a comma and a `which` that the file
+on disk does not carry. The wrong version was transcribed from the copy of
+`CLAUDE.md` loaded into the authoring session's context rather than read from
+disk, and it produced a STOP mid-run. **A "current" quote is read from the
+file, never from a context copy of it.**
 
 #### 6b. R9, the human-edited bullet
 
@@ -785,7 +805,13 @@ These three files are pt-BR by R9 and stay pt-BR.
 
 Verification for Edit 7:
 
-- [ ] `grep -rniE 'claude\.ai' --include="*.md" docs/ CLAUDE.md .claude/ harness/workflows/` returns nothing
+- [ ] The same sweep as Edit 11c, with the same exclusion set, returns nothing
+      for `claude\.ai`. Corrected as errata E6: this checkbox originally swept
+      `docs/` whole, with no exclusions, and therefore demanded zero across
+      `docs/sessions/` and `docs/tasks/` — historical surfaces this brief
+      declares are never rewritten. As written it returned 58 hits and was
+      unsatisfiable. **A brief with more than one sweep defines the exclusion
+      set once; the others reference it.**
 - [ ] `grep -c 'mentor-mode' docs/PROCESS_MAP.md` returns at least `2`
 - [ ] `git diff main..HEAD -- docs/PROCESS_MAP.md` contains no hunk touching
       `§7`, the P4 paragraph, or any line containing `NNN`
@@ -919,6 +945,11 @@ is dropped rather than redirected.
 | Current | Replacement |
 |---|---|
 | `prossiga**. Cola os outputs em chat com mentor sênior antes de` | `prossiga**. Cola os outputs numa sessão Orchestrator antes de` |
+| `## Quando chamar mentor` | `## Quando chamar o Orchestrator` |
+
+The heading row was added as errata E8, under an owner ruling taken mid-run.
+Without it the section shipped with a heading promising "mentor" over a body
+redirecting to an Orchestrator session — an incoherence this brief created.
 
 The following line (`qualquer ação.`) is unchanged. Orchestrator, not Mentor:
 diagnosing a git-recovery scenario is an operational ruling, which M-R12 — as
@@ -955,6 +986,66 @@ Verification for Edit 10:
 
 Commit: `docs: fix the last two chat-Mentor pointers`
 
+### Edit 11 — Fix the last two R9 claims, and prove the fix
+
+This brief carries two claims, and until this Edit only one of them was proven.
+Edit 10c's sweep establishes that no live document says the Mentor runs in chat.
+Nothing established that `CLAUDE.md` R9 and the repository agree about the
+language of `--- COPIAR ---` blocks — 10c's pattern matches `claude.ai` and
+`mentor` near `chat`, and is structurally blind to that assertion. Two live
+documents still contradict the corrected R9, one of them contradicting itself.
+
+Found by deriving the list from a search instead of enumerating from memory,
+which is what the previous three omissions (`setup-cowork.md`, E6's absent
+exclusion set, E8's heading) all had in common.
+
+#### 11a. `docs/PROCESS_MAP.md` §12, item 5
+
+| Current | Replacement |
+|---|---|
+| `R9. \`harness/\` prose is the only pt-BR-tolerant surface, and its \`--- COPIAR ---\` payloads are still English.` | `R9. \`harness/\` is the only pt-BR-tolerant surface, \`--- COPIAR ---\` payloads included.` |
+
+Without this the file contradicts itself: §3, as Edit 7a rewrote it, says the
+blocks are pt-BR; §12 still says English.
+
+#### 11b. `.claude/agents/closer.md`
+
+| Current | Replacement |
+|---|---|
+| `the \`harness/\` pattern (pt-BR prose wrapping an English \`--- COPIAR ---\`` | `the \`harness/\` pattern (English prose wrapping a pt-BR \`--- COPIAR ---\`` |
+
+The sentence explains why the closer's report template is pt-BR inside an
+English file, by analogy to `harness/`. The analogy was stated backwards
+relative to what `harness/` actually does, and this brief has now made R9 say
+so explicitly. The following line (`payload) for the same reason it exists
+there — the payload is written in the`) is unchanged.
+
+#### 11c. The R9 sweep — the proof that was missing
+
+Run, from the repository root:
+
+```bash
+grep -rniE 'COPIAR' --include="*.md" . \
+  | grep -vE '^\./(docs/sessions|docs/tasks|node_modules)/' \
+  | grep -iE 'english|inglês'
+```
+
+Historical surfaces are excluded on the same grounds as Edit 10c's sweep;
+`docs/tasks/` covers this brief, which quotes the false wording in order to
+specify its removal.
+
+Verification for Edit 11:
+
+- [ ] The 11c sweep returns **nothing**. Any hit is a **STOP and report** —
+      do not widen the exclusions to make it pass
+- [ ] `docs/PROCESS_MAP.md` §3 and §12 now make the same claim: `grep -c 'payloads are still English' docs/PROCESS_MAP.md` returns `0`
+- [ ] `grep -c 'pt-BR prose wrapping an English' .claude/agents/closer.md`
+      returns `0`
+- [ ] Edit 10c's sweep still returns nothing — this Edit must not reintroduce
+      a chat-Mentor claim
+
+Commit: `docs: fix the last two R9 claims about COPIAR language`
+
 ### Commit sequence
 
 1. `docs(tasks): add brief for 050-mentor-doctrine` — 46 chars *(Orchestrator's, already on the branch)*
@@ -967,6 +1058,7 @@ Commit: `docs: fix the last two chat-Mentor pointers`
 8. `docs: remove the brief 049 migration notices` — 44
 9. `docs(skills): drop npm test from the Mentor read policy` — 55
 10. `docs: fix the last two chat-Mentor pointers` — 43
+11. `docs: fix the last two R9 claims about COPIAR language` — 54
 
 Every verb — `add`, `migrate`, `update`, `fix`, `remove`, `drop` — is in the
 allowlist at `.claude/skills/pre-commit-self-audit/SKILL.md`. Every subject is
@@ -982,7 +1074,7 @@ allowlist at `.claude/skills/pre-commit-self-audit/SKILL.md`. Every subject is
 
 - [ ] Every modified path is in constraint 1's list:
       `git diff --name-only main..HEAD` matched against it, one by one
-- [ ] Exactly 14 files changed, this brief included
+- [ ] Exactly 15 files changed, this brief included
 - [ ] No file was created and none deleted:
       `git diff --name-status main..HEAD | grep -cE '^[AD]'` returns `0` except
       for the brief's own `A` in commit #1
