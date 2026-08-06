@@ -3,8 +3,9 @@
 **Mode:** task modeling via **caminho B** (`docs/AGENT_PLAYBOOK.md` "When NOT to
 use the pipeline" — the task rewrites the pipeline's own doctrine). The
 Orchestrator authored the brief under the owner's write gate; planner NOT
-invoked; `brief-validator` invoked **seven times**; executor invoked once and
-driven through Edits 2 to 11 across eleven relayed continuations.
+invoked; `brief-validator` invoked **eight times**; executor invoked once and
+driven through Edits 2 to 12 across twelve relayed continuations. `@closer`
+Phase A ran once, and its findings became Edit 12.
 **Consumes:** `main@418da64` — PR #119 (`d0c96b8`, task 049), PR #120
 (`330ad29`, the false-P4 correction in the 049 recap) and PR #121 (`418da64`,
 the recalibrated brief size guidance). All three merges confirmed by `git log`
@@ -16,8 +17,8 @@ lives there.
 
 Task 050 shipped on `docs/mentor-doctrine`: the Mentor's doctrine was rewritten
 for a lane that lives in Claude Code, and the brief that specified it accrued
-fourteen authoring defects, every one surfaced by the executor during the run
-rather than after the merge.
+eighteen authoring defects — fourteen surfaced by the executor during the run
+and four more by the closer reading the assembled diff, none after a merge.
 
 ## P4 slot evidence — four sources, as the 049 recap required
 
@@ -54,11 +55,13 @@ Four more were ruled mid-run, as findings arrived: the wrap allowance (E4), the
 constraint 1 (E10), and dropping 11c's predicted count rather than correcting it
 (E13).
 
-## The fourteen authoring defects
+## The eighteen authoring defects
 
-Every one was mine as author. None came from execution. The executor found all
-of them by measuring rather than trusting what was in front of it — including
+Every one was mine as author. None came from execution. The executor found
+fourteen by measuring rather than trusting what was in front of it — including
 E14, which was not in the brief at all but in a continuation message I wrote.
+The closer found the last four by reading the assembled diff against the
+repository, and its own three checks produced none of them.
 
 | # | Defect | Class |
 |---|---|---|
@@ -76,9 +79,13 @@ E14, which was not in the brief at all but in a continuation message I wrote.
 | E12 | 11b replaced a false claim with a different false claim | wrong source: memory, not disk |
 | E13 | 11c predicted a count over a set its own Edit changes | count declared without measuring |
 | E14 | A relayed instruction said thirteen of seventeen commits were Edits and four were amendments; it is ten and six | count declared without measuring |
+| E15 | Edit 7c fixed `setup-cowork.md:56` and left a second chat pointer at `:87`, four lines below | surface enumerated from memory |
+| E16 | `explorations/README.md` claimed the ROADMAP projects the folder; `grep -ciE 'explorat' docs/ROADMAP.md` returns 0 | present tense over a future state |
+| E17 | M-R13 pointed at §8 for four labels Edit 3c removed from §8 | dangling pointer |
+| E18 | Edit 10c's sweep used a proximity window and could not cross a line break | verification that cannot prove its claim |
 
-Five classes, and **not one of them is length**. Every defect here would have
-occurred in a 400-line brief. Five of the fourteen are the same class — a count
+Six classes, and **not one of them is length**. Every defect here would have
+occurred in a 400-line brief. Five of the eighteen are the same class — a count
 declared without measuring — which is why the ledger below treats it as the
 finding rather than as five incidents. The session opened asking whether the 350-650
 range was calibrated; the run answered a different question.
@@ -110,22 +117,46 @@ records the historical false claim. The proof became a directed enumeration
 with each line classified. **One sweep per goal is the floor; a brief with two
 goals and one sweep ships an unproven half.**
 
+## Three sweep designs, three green lights over unclean surfaces
+
+The most transferable finding of the session, and it took all three failures to
+see it.
+
+| Design | Where | Why it returned green anyway |
+|---|---|---|
+| Proximity window, `.{0,20}` | Edit 10c | `grep` without `-z` never crosses a newline; in a hard-wrapped repo a split sentence is invisible. `mentoria` on line 86, `Chat` on line 87 — never matched |
+| Co-occurrence of two terms | Edit 11c, first version | A correct statement of R9 must name both languages in one sentence, so the pattern matched correct text and could not discriminate |
+| Sentence-bounded window, `[^.]{0,60}` | Edit 12d, first version | Written to fix the first, **tested against the unfixed state before being specified**, and it failed too: the two words sit in different sentences |
+
+The generalisation: **a co-occurrence pattern cannot prove a semantic
+assertion.** Proximity breaks on wrapping, sentence bounds break on sentence
+splits, and both break on any claim assembled across two statements. What
+worked, in both 11c and 12d, was the same shape — enumerate every mention with
+a deliberately broad pattern, then classify each hit by judgement, and let the
+brief predict no count.
+
+The cost of learning it late: `setup-cowork.md:87` sat **four lines below** a
+span Edit 7c had already repaired, and three sweep designs plus eight validator
+runs all passed over it. The closer found it by reading.
+
 ## Deviations
 
-- **Seventeen commits against a Commit sequence of eleven.** Seven are brief
-  commits — the original plus six mid-run amendments, each followed by a fresh
-  validation — and ten are Edit commits, items 2 through 11. The ten Edit
-  subjects were used verbatim with zero drift.
+- **Twenty-one commits against a Commit sequence of twelve.** Measured: eight
+  brief commits — the original plus seven mid-run amendments, each followed by a
+  fresh validation — eleven Edit commits for items 2 through 12, and two recap
+  commits. The eleven Edit subjects were used verbatim with zero drift.
 - **Edit 11's commit was mine, not the executor's, and that was a slip.** For
   Edits 2 through 10 the owner's go was relayed and the executor committed and
   posted its own evidence-close. For Edit 11 I ran `git commit` directly after
   the go. The evidence-close exists and matched, but in the Orchestrator's turn
   rather than the executor's — so its execution log carries nine, not ten. The
   pattern should not have changed on the last Edit of the run.
-- **The brief was amended six times after `Verdict: APPROVED`,** every time as a
-  new commit and never an amend, and re-validated every time. Seven APPROVED
-  verdicts: `5b5d88a`, `d322877`, `17a254f`, `e052e38`, `dae5a75`, `8207c0a`,
-  `f6c8a70`.
+- **The brief was amended seven times after `Verdict: APPROVED`,** every time as a
+  new commit and never an amend, and re-validated every time. Eight APPROVED
+  verdicts, one per brief commit: `5b5d88a`, `d322877`, `17a254f`, `e052e38`,
+  `dae5a75`, `8207c0a`, `f6c8a70`, `69caa2a`. Not one of the eighteen defects
+  was caught by any of the eight — the validator's remit is mechanical drift and
+  every defect here was semantic.
 - **Seven of the seventeen commits are the Orchestrator's by authorship** — the
   brief and its six amendments. The executor authored the other ten.
 - **Category L, far above range.** Measured from git at every brief commit:
@@ -150,12 +181,13 @@ goals and one sweep ships an unproven half.**
   read; it belongs in the session-start checklist, not in a new rule. Candidate
   wording: *a brief declares no count it has not measured against the file at
   the moment of writing, and no count over a set its own Edits change.*
-- **Verification that cannot prove what it claims: 2nd and 3rd occurrences**
-  (E6, E11), after 049's Edit 4 sweep. Candidate rule: *a brief with more than
+- **Verification that cannot prove what it claims: 2nd, 3rd and 4th
+  occurrences** (E6, E11, E18), after 049's Edit 4 sweep. Candidate rule: *a brief with more than
   one sweep defines the exclusion set once and references it; a sweep proves an
   assertion only if its pattern can distinguish the assertion from its negation.*
-- **Surface enumerated from memory: 3 occurrences** (E8, E9, E10) plus
-  `setup-cowork.md` caught pre-execution. Candidate rule: *the in-scope file
+- **Surface enumerated from memory: 4 occurrences** (E8, E9, E10, E15) plus
+  `setup-cowork.md`'s first pointer caught pre-execution — and E15 is the same
+  file, four lines below the span that catch produced. Candidate rule: *the in-scope file
   list is derived from a search, and the search is pasted into the brief.*
 - **A "current" quote taken from a context copy rather than disk: 1st
   occurrence** (E5). Worth a line in the checklist now rather than waiting for a
@@ -164,6 +196,35 @@ goals and one sweep ships an unproven half.**
 - **Recap transport in a multi-unit session:** unchanged, still pending an owner
   ruling, carried from the 2026-08-04 parallel session. This session was
   single-task, so it did not bite.
+
+## What the closer found, and why its own checks found none of it
+
+`@closer` Phase A ran on `4c58bec` and returned four findings. **None came from
+its three checks.** Architecture and duplication scaled out — the diff touches
+no `packages/` — and secret/path hygiene passed clean. All four came from
+reading the diff against the repository, which is where 049's only finding came
+from too.
+
+| # | Finding | Became |
+|---|---|---|
+| 1 | `setup-cowork.md:87` still sends the owner to Chat, in the file Edit 7c had already repaired | E15, Edit 12a |
+| 2 | Edit 10c's sweep is structurally incapable of seeing finding 1 | E18, Edit 12d |
+| 3 | `explorations/README.md` asserts a ROADMAP relationship that does not exist | E16, Edit 12b |
+| 4 | M-R13 points at §8 for labels §8 no longer carries | E17, Edit 12c |
+
+Findings 1 and 2 are one finding in two halves, and together they are the
+session's sharpest lesson: the task's headline proof was returning green over a
+surface that still carried the thing it was proving absent.
+
+**Third consecutive branch where checks (a) and (b) scale out** (047, 048, 050).
+The closer said so itself rather than letting three scaled-out checks read as
+three clean ones. Its value on docs-only branches is coming entirely from
+"Examinado e não reportado" and from reading — which is an argument for keeping
+it in the loop on such branches, not against.
+
+It also verified the change to its own contract instead of accepting it,
+measuring pt-BR marker density across every `harness/` COPIAR block before
+agreeing that "pt-BR throughout" holds.
 
 ## An error that was not the brief's
 
@@ -176,10 +237,11 @@ claim was wrong. Every other claim it made survived independent re-measurement.
 
 ## Pending items (queue)
 
-1. **This session's PR** — unopened. `@closer` Phase A has not run. Push and PR
-   are the owner's call, per branch.
-2. **`@closer` Phase A** on `docs/mentor-doctrine`. Note that `closer.md` is
-   itself inside the diff under review, changed by Edit 11b.
+1. **This session's PR** — unopened. Push and PR are the owner's call, per
+   branch.
+2. **`@closer` Phase A, second run.** The first ran on `4c58bec` and produced
+   Edit 12; the diff it audited no longer exists. A re-run on the final state is
+   the owner's call, not a gate that reopens itself.
 3. **Brief-size reformulation** — a Mentor session, ruled this session to be a
    separate session and not this one. Handoff snippet below.
 4. **Brief C (052)** — the identifier cutover, 16 convention files. Order was
@@ -208,8 +270,8 @@ claim was wrong. Every other claim it made survived independent re-measurement.
 
 ## Next concrete action
 
-Run `@closer` Phase A on `docs/mentor-doctrine`, read its report, then decide
-push and PR. After the merge, brief C (052) is the queue front.
+Re-run `@closer` Phase A on the final diff, read its report, then decide push
+and PR. After the merge, brief C (052) is the queue front.
 
 ## Paste-ready snippet for the next Orchestrator session
 
@@ -273,11 +335,14 @@ CINCO DADOS MEDIDOS, todos do 050:
 2. NENHUM DOS 11 CHECKS DO VALIDADOR MEDE TAMANHO. O teto nunca travou nada,
    nos quatro estouros. Ele e conselho lido por quem autora, nao gate.
 
-3. O 050 acumulou 13 defeitos de autoria, e NENHUM tem relacao com
-   comprimento. Cinco classes: contagem declarada sem medir (5x), superficie
-   enumerada de memoria (3x), citacao lida do contexto e nao do disco (2x),
-   verificacao que nao prova o que alega (2x), regra ambigua (1x). Todos
-   teriam ocorrido num brief de 400 linhas.
+3. O 050 acumulou 18 defeitos de autoria, e NENHUM tem relacao com
+   comprimento. Seis classes: contagem declarada sem medir (5x), superficie
+   enumerada de memoria (4x), verificacao que nao prova o que alega (3x),
+   citacao lida do contexto ou da memoria e nao do disco (2x), presente
+   afirmando estado futuro (1x), ponteiro pendurado (1x), regra ambigua (1x).
+   Todos teriam ocorrido num brief de 400 linhas. Catorze foram achados pelo
+   executor medindo; quatro pelo closer lendo; zero pelos oito vereditos do
+   validador.
 
 4. Composicao do 050: ~280 linhas de texto literal (citacao do estado atual +
    prosa de substituicao + tabelas de reparo) e ~120 de checkbox. Uma passada
