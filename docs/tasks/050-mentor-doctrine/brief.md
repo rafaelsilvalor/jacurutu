@@ -28,16 +28,16 @@ correction only a repo-wide sweep could see: `docs/PROCESS_MAP.md` landed
 the chat-Mentor doctrine in nine places — one of them a literal mirror of the
 false R9 sentence this brief fixes.
 
-**Size note — measurement, not justification.** Substance measures **~1073**
+**Size note — measurement, not justification.** Substance measures **~1115**
 against the 350-650 range for a doctrinal caminho B brief
-(`.claude/skills/brief-template/SKILL.md`): 65% over, and the fourth
+(`.claude/skills/brief-template/SKILL.md`): 72% over, and the fourth
 consecutive overrun (047 ~600, 048 ~430, 049 ~480, this one). The owner ruled
 in the authoring session that **the size guidance does not govern this brief**,
 and that the guidance itself is to be reformulated as a separate piece of work.
 This brief is therefore written at full fidelity and the figure is recorded
 here as input to that reformulation, not as a defense.
 
-Two facts the reformulation should have. First, the composition: of the 1073,
+Two facts the reformulation should have. First, the composition: of the 1115,
 ~280 lines are literal text — current wording quoted so the executor can match
 on it, the replacement prose itself, and the repair tables — and ~120 more are
 verification checkboxes. A compression pass over Context, Goal and the decision
@@ -1010,19 +1010,56 @@ blocks are pt-BR; §12 still says English.
 
 #### 11b. `.claude/agents/closer.md`
 
-| Current | Replacement |
-|---|---|
-| `the \`harness/\` pattern (pt-BR prose wrapping an English \`--- COPIAR ---\`` | `the \`harness/\` pattern (English prose wrapping a pt-BR \`--- COPIAR ---\`` |
+**Restore the file first if a previous attempt modified it:**
+`git checkout -- .claude/agents/closer.md`. The "current" block below is the
+text as it stands in `main@418da64`.
 
-The sentence explains why the closer's report template is pt-BR inside an
-English file, by analogy to `harness/`. The analogy was stated backwards
-relative to what `harness/` actually does, and this brief has now made R9 say
-so explicitly. The following line (`payload) for the same reason it exists
-there — the payload is written in the`) is unchanged.
+Current — the four lines beginning `is chat output read by the owner`:
 
-#### 11c. The R9 sweep — the proof that was missing
+```
+is chat output read by the owner, and chat is pt-BR under M-R10. This inverts
+the `harness/` pattern (pt-BR prose wrapping an English `--- COPIAR ---`
+payload) for the same reason it exists there — the payload is written in the
+language of its consumer.
+```
 
-Run, from the repository root:
+Replacement:
+
+```
+is output read by the owner, and owner-facing output is pt-BR under M-R10. The
+`harness/` surface is pt-BR throughout — prose and `--- COPIAR ---` payload
+alike — for the same reason: text is written in the language of its consumer.
+```
+
+Four lines become three. The two preceding lines of the paragraph
+(`Emit exactly this template…` and `agent-consumed surface and therefore
+English…`) are unchanged.
+
+**The analogy is dropped, not flipped** — errata E12, the worst defect of this
+brief's authoring. An earlier version of 11b replaced only the polarity, giving
+`English prose wrapping a pt-BR payload`. That is also false, and it made the
+sentence self-contradictory: `closer.md` *is* English prose wrapping a pt-BR
+payload, so it cannot invert that pattern. Measured on disk, `harness/` is
+pt-BR **throughout** — every workflow's prose (`## Quando usar`, `Abrir sessão
+Mentor no Claude Code`) and every COPIAR payload. It is not a mixed pattern at
+all, so no inversion of it exists to name. Root cause: the polarity was flipped
+from memory instead of measured against the files, inside the Edit whose whole
+purpose is removing claims made that way.
+
+#### 11c. Proving the R9 claim — directed, because it is not sweepable
+
+This assertion cannot be proven by a repo-wide grep, and the attempt to write
+one is errata **E11**. A first version matched any line mentioning both `COPIAR`
+and `English`; it returned five lines, four of which state the *correct* rule —
+because a correct statement of R9 must name both languages in one sentence. A
+narrower version keyed on `COPIAR … are/is/were English` still matches
+`CLAUDE.md:50`, which deliberately records that the old claim was false. Both
+sweeps test co-occurrence, not assertion. Widening the exclusions to force a
+zero would be the E6 defect committed a second time.
+
+The proof is therefore directed. Enumerate every live line that mentions
+`--- COPIAR ---` alongside a language name, and confirm by reading that none
+asserts the blocks are English:
 
 ```bash
 grep -rniE 'COPIAR' --include="*.md" . \
@@ -1030,19 +1067,24 @@ grep -rniE 'COPIAR' --include="*.md" . \
   | grep -iE 'english|inglês'
 ```
 
-Historical surfaces are excluded on the same grounds as Edit 10c's sweep;
-`docs/tasks/` covers this brief, which quotes the false wording in order to
-specify its removal.
+Expected: five lines, and every one of them either states that COPIAR blocks
+are pt-BR or records that the opposite claim used to be made and was wrong.
+Paste the output and say, line by line, which of the two it is. **A sixth line,
+or any line asserting the blocks are English, is a STOP and report.**
 
 Verification for Edit 11:
 
-- [ ] The 11c sweep returns **nothing**. Any hit is a **STOP and report** —
-      do not widen the exclusions to make it pass
-- [ ] `docs/PROCESS_MAP.md` §3 and §12 now make the same claim: `grep -c 'payloads are still English' docs/PROCESS_MAP.md` returns `0`
+- [ ] `grep -c 'payloads are still English' docs/PROCESS_MAP.md` returns `0` —
+      §3 and §12 now make the same claim
 - [ ] `grep -c 'pt-BR prose wrapping an English' .claude/agents/closer.md`
       returns `0`
+- [ ] `grep -c 'English prose wrapping a pt-BR' .claude/agents/closer.md`
+      returns `0` — the flipped-polarity version is also absent (E12)
+- [ ] `grep -c 'pt-BR throughout' .claude/agents/closer.md` returns `1`
+- [ ] The 11c enumeration returns exactly five lines, each classified in the
+      report as stated above
 - [ ] Edit 10c's sweep still returns nothing — this Edit must not reintroduce
-      a chat-Mentor claim
+      a chat-Mentor claim while fixing an R9 one
 
 Commit: `docs: fix the last two R9 claims about COPIAR language`
 
