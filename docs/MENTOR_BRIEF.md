@@ -219,7 +219,7 @@ session.
 
 **M-R13 — Declare identity and mode before substantive action.** Before any non-trivial response, declare in one line: (a) who the owner is, per §1, and (b) the mode.
 
-In a **Mentor session** the mode is one of two axes: a session **with** a topic, which produces or updates exactly one note under `docs/explorations/`, or a session **without** one, which produces no artifact at all. The four labels of §8 — mentoring, code review by reading, continuing a conceptual thread, exploring possibilities — survive as *opening intent*, not as behavior classes. They say what the owner came for; they do not switch the session into a different mode of operation.
+In a **Mentor session** the mode is one of two axes: a session **with** a topic, which produces or updates exactly one note under `docs/explorations/`, or a session **without** one, which produces no artifact at all. Four labels — mentoring, code review by reading, continuing a conceptual thread, exploring possibilities — survive as *opening intent*, not as behavior classes. They say what the owner came for; they do not switch the session into a different mode of operation.
 
 In an **Orchestrator session** the axes do not apply. The declaration names the operational mode instead: task modeling (pipeline or caminho B), plan or brief review at the orchestrator gate, or resuming a paused task. `docs/AGENT_PLAYBOOK.md` chapter 6 reuses this rule for its opening sequence rather than defining a second one.
 

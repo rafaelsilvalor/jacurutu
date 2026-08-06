@@ -83,9 +83,9 @@ código com análise, documentação, ou processamento de dados.
 - ⚠️ **Pausa 3 é mais difícil de impor em Cowork** — ele entrega
   resultado e você revisa post-hoc. Vale escrever no setup que
   ele DEVE pausar antes de comitar.
-- ⚠️ **Cowork não substitui mentoria.** Se você está confuso sobre
-  o que pedir, primeiro vai ao Chat pra modelar, depois Cowork
-  pra executar.
+- ⚠️ **Cowork não substitui modelagem.** Se você está confuso sobre
+  o que pedir, primeiro abre uma sessão Orchestrator pra modelar,
+  depois Cowork pra executar.
 
 ## Próximo passo após setup
 

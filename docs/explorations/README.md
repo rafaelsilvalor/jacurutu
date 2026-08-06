@@ -39,11 +39,15 @@ to research.
 
 ## Status and dispositions
 
-This folder owns the state of each possibility; `docs/ROADMAP.md` projects it.
-The pattern is the product's own doctrine, applied to documentation: one
-surface holds state, the others read from it. A hand-maintained index here
-would be the second registry this contract exists to prevent — the ROADMAP
-points at the folder, not at a list of its files.
+This folder owns the state of each possibility, and `docs/ROADMAP.md` is to
+project it. The pattern is the product's own doctrine, applied to
+documentation: one surface holds state, the others read from it. A
+hand-maintained index here would be the second registry this contract exists to
+prevent — once the projection lands, the ROADMAP points at the folder, not at a
+list of its files. That projection does not exist yet: brief B migrates the
+parking-lot and pending-decision entries into notes and turns both sections
+into pointers, and until it merges the ROADMAP does not reference this folder
+at all.
 
 Every note carries exactly one disposition, at note level, drawn from this
 closed set. **This list is the single source; anything else that names a
