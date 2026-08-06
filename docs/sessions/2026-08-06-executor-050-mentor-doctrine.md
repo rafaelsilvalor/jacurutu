@@ -13,14 +13,16 @@ base `418da64`, executed in the session worktree.
 - Pause transport: STOP-and-return, single-block presentations; owner
   approvals relayed as continuation messages. Zero Pauses crossed without an
   explicit relayed go. Pause 1 skipped (`Plan required: no`); one Pause 2
-  (`docs/MENTOR_BRIEF.md`, after Edit 2) and a Pause 3 before each of the ten
-  Edit commits.
+  (`docs/MENTOR_BRIEF.md`, after Edit 2) and a Pause 3 before each of the
+  eleven Edit commits.
 - Nine commits were executed inside this run, each closed with a verbatim
   `git log --format=%B -1` pasted in the turn's final message block; 9/9
   matched the approved subject. Subject-only throughout, no bodies, zero
-  drift, zero amends. The tenth Edit commit, `7925c2e` (Edit 11), was made
-  outside this run and reported back as done, so no evidence-close for it was
-  pasted here.
+  drift, zero amends. Two Edit commits were made outside this run and reported
+  back as done — `7925c2e` (Edit 11) and `31d6b42` (Edit 12) — so no
+  evidence-close for either is pasted here. Both were staged, audited and
+  presented at a Pause 3 from inside the run; only the `git commit` fell
+  outside it.
 - **No green boundary.** Brief constraint 3 inverts the usual rule: the suite
   is not evidence for this task and must not be run as if it were. `npm test`
   was never executed, not once, in any form. What was reported at every
@@ -189,37 +191,56 @@ base `418da64`, executed in the session worktree.
   → Pause 3 #10 (audit 5/5 PASS) → commit `7925c2e`
   `docs: fix the last two R9 claims about COPIAR language`, made outside this
   run.
+- **`@closer` Phase A** ran on the branch after the recap was committed and
+  returned four findings, none of them produced by its three checks — all four
+  came from reading the diff against the repository. Brief amended a seventh
+  time (`69caa2a`) to carry them as Edit 12.
+- **Edit 12** — three repairs and a replacement proof, all inside constraint 1.
+  `harness/workflows/setup-cowork.md`: the `## Cuidados específicos` bullet
+  rewritten, `mentoria` → `modelagem` and `primeiro vai ao Chat pra modelar` →
+  `primeiro abre uma sessão Orchestrator pra modelar` (pt-BR, stays pt-BR).
+  `docs/explorations/README.md`: the `## Status and dispositions` opening, five
+  lines to nine, moving the ROADMAP projection from present tense to a stated
+  dependency on brief B — `docs/ROADMAP.md` was not opened, the brief forbids
+  it. `docs/MENTOR_BRIEF.md` M-R13: `The four labels of §8 —` → `Four labels —`,
+  two words, nothing else on the line. All three "current" spans matched disk
+  with an occurrence count of 1 before any write. Six checkboxes measured
+  clean; the 11c enumeration re-run and still fully classified.
+  → Pause 3 #11 (audit 5/5 PASS) → commit `31d6b42`
+  `docs: fix the last two chat pointers the sweep could not see`, made outside
+  this run.
 
 ## Evidence summary
 
 - Commits, in order (oldest first): `5b5d88a` · `d322877` · `17a254f` ·
   `116a517` · `8ffd900` · `066f097` · `710993a` · `d975d22` · `c07877c` ·
   `2a6874b` · `e052e38` · `7ddd585` · `cbcfc0e` · `dae5a75` · `8207c0a` ·
-  `f6c8a70` · `7925c2e`.
-- **Seventeen commits, measured: ten Edit commits, one original brief commit,
-  six brief-amendment commits.** The split relayed at recap time was
-  "thirteen, of which four amendments"; `git log --oneline main..HEAD` shows
-  eleven and six. Recorded as measured, in keeping with the rest of this run.
-- pre-commit-self-audit: **50 checks, 50 PASS / 0 WARN / 0 FAIL / 0 STOP**
-  across the ten Pause 3s. Staged scope = edit scope on every one. Pause 3 #9
-  was audited twice, before and after the heading ruling; both PASS, counted
-  once.
-- Constraint 3, reported at all ten Pause 3s in place of a green boundary:
+  `f6c8a70` · `7925c2e` · `9448f6d` · `4c58bec` · `69caa2a` · `31d6b42`.
+- **Twenty-one commits, measured: eleven Edit commits, eight brief commits (one
+  original plus seven amendments), two recap commits.** `brief-validator`
+  returned APPROVED eight times, once per brief commit. Nine of the eleven Edit
+  commits were executed inside this run; `7925c2e` and `31d6b42` were not.
+- pre-commit-self-audit: **55 checks, 55 PASS / 0 WARN / 0 FAIL / 0 STOP**
+  across the eleven Pause 3s. Staged scope = edit scope on every one. Pause 3
+  #9 was audited twice, before and after the heading ruling; both PASS, counted
+  once. The recap commit `9448f6d` was audited as its own Pause 3 and is not
+  counted among the eleven.
+- Constraint 3, reported at all eleven Pause 3s in place of a green boundary:
   `git diff --name-only main..HEAD | grep -c '^packages/'` = 0, and the same
   count against the staged set = 0. The suite was never run as evidence, and
   never run at all.
-- Diff stats: 15 files changed, 1417 insertions(+), 122 deletions(-)
-  (`main...HEAD`). One `A` — the brief itself — and zero `D`. Every path is
-  inside constraint 1's allowed list; nothing outside it appeared in
-  `git status` at any boundary. No commit landed on the `claude/*`
-  scaffolding branch (0 commits).
+- Diff stats: 17 files changed, 2207 insertions(+), 125 deletions(-)
+  (`main...HEAD`, recaps included). One `A` inside the brief's scope — the
+  brief itself — and zero `D`. Every path is inside constraint 1's allowed
+  list, except the two recap files, authorized separately and by path. Nothing
+  else appeared in `git status` at any boundary. No commit landed on the
+  `claude/*` scaffolding branch (0 commits).
 - `git status` clean at run end. **No `git push` executed** (R17 / G-R5) —
   `git log origin/main..HEAD` shows every commit local. **No PR opened.**
 
-## The two proofs
+## The proofs, and the one that was not one
 
-**10c — no live document says the Mentor runs in chat.** Run after Edit 10 and
-again after Edit 11:
+**10c — retracted as proof.** Run after Edit 10 and again after Edit 11:
 
 ```bash
 grep -rniE 'claude\.ai|mentor.{0,20}\bchat\b|\bchat\b.{0,20}mentor' \
@@ -230,6 +251,23 @@ grep -rniE 'claude\.ai|mentor.{0,20}\bchat\b|\bchat\b.{0,20}mentor' \
 ```
 
 Output, both times: no lines (exit status 1).
+
+**That output was true and it was not proof, and I presented it as one.** At
+the time of writing it, `harness/workflows/setup-cowork.md:87` said
+`primeiro vai ao Chat pra modelar` — four lines below the span Edit 7c had
+already repaired in the same file. The sweep could not see it: `mentoria` sits
+on line 86 and `Chat` on line 87, and the pattern's `.{0,20}` proximity window
+never crosses a newline without `grep -z`. In a hard-wrapped repository any
+claim spread over two lines is invisible to it. Edit 12a repaired the line;
+Edit 12d replaced the instrument.
+
+Nothing in the execution was wrong — the command was run exactly as the brief
+specified, and its output was reported exactly as it came back. The lesson is
+about what the output licensed me to say. **An empty sweep is not a clean
+surface; it is a pattern finding nothing, which is a weaker claim and reads
+like a stronger one.** A future executor should treat "the sweep returned
+nothing" as evidence about the sweep, and reach for enumerate-and-classify
+whenever the thing being proven is semantic.
 
 **11c — no live document says the COPIAR blocks are English.** Directed
 enumeration, not a sweep; the brief predicts no count and four lines came
@@ -253,9 +291,38 @@ STOPs. `closer.md:192` was in this set before 11b and dropped out after it,
 because the corrected sentence no longer contains the word `English` — which
 is why a predicted count was the wrong instrument here.
 
+**12d — no live document places the Mentor lane, or task modelling, in chat.**
+The replacement for 10c. Not a sweep: it lists every live file, greps each for
+any mention of the surface, and leaves the judgement to a reader. Two lines
+came back, both class (b), both out of scope:
+
+```bash
+git ls-files '*.md' \
+  | grep -vE '^(docs/sessions|docs/tasks|docs/explorations|harness/init|harness/skills-plan)/' \
+  | grep -v '^harness/README.md' \
+  | while read -r f; do grep -nHE '\bChat\b|claude\.ai' "$f"; done
+```
+
+| Line | Class | Why |
+|---|---|---|
+| `harness/workflows/resume-session.md:6` | (b) | "qualquer interface (Chat, Cowork, Code)" — names session interfaces to say the workflow serves any of them. No claim about the Mentor |
+| `harness/workflows/resume-session.md:89` | (b) | "**Chat:** o passo 2 (comandos git) você roda no terminal e cola" — operational instruction for one interface |
+
+Both are in `harness/workflows/resume-session.md`, which is not in constraint
+1: named and left alone, as Edit 12d directs. Zero class-(a) lines anywhere,
+inside or outside scope. Zero STOPs.
+
+Three sweep designs were written for this brief and all three failed, each
+differently: 10c's proximity window cannot cross a line break; a flattened
+variant bounded by sentence cannot cross a sentence break, and was tested
+against the unfixed state before being specified, which is how it was caught;
+11c's co-occurrence filter cannot distinguish a claim from its refutation. The
+generalisation is one sentence long and it is the run's most transferable
+finding: **a co-occurrence pattern cannot prove a semantic assertion.**
+
 ## Brief defects hit
 
-Thirteen, all in the brief's text and none a consequence of execution. Every
+Eighteen, all in the brief's text and none a consequence of execution. Every
 one was surfaced by measuring rather than trusting the checkbox in front of
 it, and every one was framed at a Pause and ruled on before the run advanced.
 Recorded plainly, because a softened record is worth less than an accurate one
@@ -277,7 +344,7 @@ Four could not be met literally and are recorded as unsatisfiable, not passed:
 4. **The original 11c.** A co-occurrence sweep that a correct text cannot
    satisfy. Replaced by a directed enumeration.
 
-The other nine:
+The other fourteen:
 
 5. **E2 — Edit 3b** says "four are added" over a block enumerating three; the
    checkbox also says three. Three applied.
@@ -304,17 +371,48 @@ The other nine:
 13. **E12 — 11b's first replacement** flipped the polarity of a false claim
     instead of dropping it, producing a second false claim and a
     self-contradictory sentence, inside the Edit whose purpose is deleting
-    claims written from memory. The worst of the thirteen.
+    claims written from memory.
 
-Two root causes account for eleven of them: counts declared without measuring
-(E1, E2, E3, E7, E13's predicted five), and surfaces or quotes enumerated from
-memory instead of derived from a search against disk (E5, E8, items 10–12,
-E12). E6 and the original 11c share a third: a verification written to look
-like proof without being able to produce it.
+The last five arrived after this recap's first commit, from `@closer` Phase A:
 
-## One error of my own
+14. **E15 — `setup-cowork.md:87` left behind.** Edit 7c repaired line 56 of
+    that file and left `primeiro vai ao Chat pra modelar` four lines below it.
+    Its checkbox was `grep -c 'Claude Chat'` = 0, and line 87 says `Chat`
+    without `Claude`, so the checkbox went green over a live assertion. The
+    brief's Goal would have been false at merge. The worst of the eighteen:
+    every other defect was caught before its commit, and this one shipped
+    through nine commits and a closing proof.
+15. **E16 — `docs/explorations/README.md`** claimed in present tense that
+    `docs/ROADMAP.md` projects the folder. `grep -ciE 'explorat' docs/ROADMAP.md`
+    returns 0 — the projection is brief B's work and does not exist. The claim
+    sat inside a contract whose own brief forbids opening the ROADMAP, so it
+    could not have been verified from inside the Edit that wrote it.
+16. **E17 — M-R13's dangling pointer.** It cited "the four labels of §8" for
+    labels Edit 3c had removed from §8 while enumerating them inline itself:
+    two sections citing each other with neither being the source, the exact
+    duplication shape D4 eliminated for the disposition set.
+17. **E18 — Edit 10c's sweep could not see E15.** Proximity across a newline;
+    detailed above under the proofs.
+18. **The second sweep design**, written for Edit 12d and discarded before
+    being specified because the author tested it against the unfixed state and
+    it also missed E15 — sentence-bounded windows cannot cross a sentence
+    break. Counted here because it is the third design failure of the same
+    class, not because it reached disk.
 
-At STOP #2 I reported that a narrower alternative regex —
+Three root causes account for all eighteen. Counts declared without measuring:
+E1, E2, E3, E7, E13's predicted five. Surfaces or quotes enumerated from memory
+instead of derived from a search against disk: E5, E8, E12, E15, E16, and items
+10–12. Verifications written to look like proof without being able to produce
+it: E6, the original 11c, E18, and item 18.
+
+**The transferable finding.** Across twelve Edits, every defect that reached
+disk was caught by reading or measuring — never by a sweep passing. All three
+sweep designs in this brief returned green at least once over a surface that
+was not clean. A green sweep was, in this run, uncorrelated with correctness.
+
+## Two errors of my own
+
+**The alternative regex.** At STOP #2 I reported that a narrower variant —
 `COPIAR … are/is/were English` — returned empty. It does not: it matches
 `CLAUDE.md:50`, the clause Edit 6b wrote to record that the old claim was
 false. I had run it before examining that line closely and generalized from a
@@ -322,14 +420,29 @@ glance, which is the same failure mode I had spent the run flagging in the
 brief. The Orchestrator caught it; I confirmed and corrected it in the Edit 11
 Pause 3. The underlying point survived — both regex variants test
 co-occurrence rather than assertion — but the claim I made about one of them
-was wrong, and it belongs here next to the thirteen.
+was wrong.
+
+**Presenting 10c's empty output as proof.** I ran the sweep as specified, twice,
+and reported the true result. What I then wrote around it — in the Pause 3, in
+the final report, and in the first version of this recap — was that no live
+document says the Mentor runs in chat. That was a claim about the repository
+which the command could not support, and it was false at the time I made it:
+`setup-cowork.md:87` said otherwise. The gap between "the sweep found nothing"
+and "the surface is clean" is exactly where E15 survived nine commits.
+Recorded here next to the eighteen because it is the one defect in this run
+that was mine and reached disk.
 
 ## Notes
 
 - Per the recap policy, this recap cannot cite its own commit or the session
   PR's merge SHA.
-- `7925c2e`, the Edit 11 commit, was executed outside this run; its
-  evidence-close is not in this log.
+- **This file was first committed at `9448f6d`, before `@closer` ran.** That
+  version stopped at Edit 11 and did not cover Edit 12, the four closer
+  findings, or the retraction of 10c as proof. Everything above is the amended
+  text; the amendment is its own commit and, by the same policy, cannot cite
+  itself either.
+- `7925c2e` (Edit 11) and `31d6b42` (Edit 12) were executed outside this run;
+  no evidence-close for either is in this log.
 - The path of this file is outside brief constraint 1 by design — a session
   recap is not a brief Edit, and it was authorized for this one path only.
 - Three rulings from this run live only here and in the Orchestrator recap:
