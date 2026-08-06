@@ -28,16 +28,16 @@ correction only a repo-wide sweep could see: `docs/PROCESS_MAP.md` landed
 the chat-Mentor doctrine in nine places — one of them a literal mirror of the
 false R9 sentence this brief fixes.
 
-**Size note — measurement, not justification.** Substance measures **~1130**
+**Size note — measurement, not justification.** Substance measures **~1264**
 against the 350-650 range for a doctrinal caminho B brief
-(`.claude/skills/brief-template/SKILL.md`): 74% over, and the fourth
+(`.claude/skills/brief-template/SKILL.md`): 94% over, and the fourth
 consecutive overrun (047 ~600, 048 ~430, 049 ~480, this one). The owner ruled
 in the authoring session that **the size guidance does not govern this brief**,
 and that the guidance itself is to be reformulated as a separate piece of work.
 This brief is therefore written at full fidelity and the figure is recorded
 here as input to that reformulation, not as a defense.
 
-Two facts the reformulation should have. First, the composition: of the 1130,
+Two facts the reformulation should have. First, the composition: of the 1264,
 ~280 lines are literal text — current wording quoted so the executor can match
 on it, the replacement prose itself, and the repair tables — and ~120 more are
 verification checkboxes. A compression pass over Context, Goal and the decision
@@ -1103,6 +1103,139 @@ Verification for Edit 11:
 
 Commit: `docs: fix the last two R9 claims about COPIAR language`
 
+### Edit 12 — The closer's findings, and a sweep that can see them
+
+Four findings from `@closer` Phase A on this branch, three of them repairs and
+one a replacement proof. All three files are already in constraint 1; nothing
+new enters scope.
+
+The first two matter together. Edit 7c repaired one chat-Mentor assertion in
+`setup-cowork.md` and left a second one four lines later, and Edit 10c's sweep
+could not see it — so the task's headline proof was passing over a surface that
+still carried the pointer. **Errata E15.**
+
+#### 12a. `harness/workflows/setup-cowork.md`, under `## Cuidados específicos`
+
+Current:
+
+```
+- ⚠️ **Cowork não substitui mentoria.** Se você está confuso sobre
+  o que pedir, primeiro vai ao Chat pra modelar, depois Cowork
+  pra executar.
+```
+
+Replacement:
+
+```
+- ⚠️ **Cowork não substitui modelagem.** Se você está confuso sobre
+  o que pedir, primeiro abre uma sessão Orchestrator pra modelar,
+  depois Cowork pra executar.
+```
+
+Orchestrator, not Mentor: modelling a task is an operational act that M-R12, as
+this brief rewrites it, places outside the Mentor lane. Same reasoning as 10b.
+pt-BR by R9, stays pt-BR.
+
+#### 12b. `docs/explorations/README.md`, the `## Status and dispositions` opening
+
+Current:
+
+```
+This folder owns the state of each possibility; `docs/ROADMAP.md` projects it.
+The pattern is the product's own doctrine, applied to documentation: one
+surface holds state, the others read from it. A hand-maintained index here
+would be the second registry this contract exists to prevent — the ROADMAP
+points at the folder, not at a list of its files.
+```
+
+Replacement:
+
+```
+This folder owns the state of each possibility, and `docs/ROADMAP.md` is to
+project it. The pattern is the product's own doctrine, applied to
+documentation: one surface holds state, the others read from it. A
+hand-maintained index here would be the second registry this contract exists to
+prevent — once the projection lands, the ROADMAP points at the folder, not at a
+list of its files. That projection does not exist yet: brief B migrates the
+parking-lot and pending-decision entries into notes and turns both sections
+into pointers, and until it merges the ROADMAP does not reference this folder
+at all.
+```
+
+**Errata E16.** The original stated a present-tense relationship that measurement
+disproves — `grep -ciE 'explorat' docs/ROADMAP.md` returns `0` — inside a
+contract whose own brief forbids opening `docs/ROADMAP.md`. A reader following
+the claim finds nothing and reads an orphan folder rather than pending work.
+
+#### 12c. `docs/MENTOR_BRIEF.md`, inside M-R13
+
+| Current | Replacement |
+|---|---|
+| `The four labels of §8 —` | `Four labels —` |
+
+**Errata E17.** M-R13 pointed at §8 for four labels that Edit 3c removed from
+§8, while enumerating them inline itself. The pointer was dangling and the two
+sections cited each other with neither being the source — the duplication shape
+D4 eliminated for the disposition set. Dropping the pointer leaves M-R13 as the
+single source; §8's existing `(M-R13)` reference is correct and stays.
+
+#### 12d. The closing proof, rebuilt as enumeration
+
+**Errata E18, and the third sweep design in this brief to fail.** Edit 10c used
+a proximity window, `.{0,20}`, which `grep` without `-z` never matches across a
+newline — in a hard-wrapped repository a wrapped sentence is invisible to it,
+and that is exactly how 12a's assertion survived a sweep returning empty. A
+second design, flattening each file and bounding the window by sentence with
+`[^.]{0,60}`, was written and **tested against the unfixed state before being
+specified here. It also failed**, for a different reason: 12a's two words sit
+in different sentences — `Cowork não substitui mentoria.` then `…vai ao Chat pra
+modelar` — so a sentence-bounded window cannot span them either.
+
+The conclusion generalises, and it is the same one Edit 11c reached from the
+other direction: **a co-occurrence pattern cannot prove a semantic assertion.**
+Proximity fails on wrapping, sentence bounds fail on sentence splits, and both
+fail on any claim assembled across two statements. Enumerate and classify
+instead. Run:
+
+```bash
+git ls-files '*.md' \
+  | grep -vE '^(docs/sessions|docs/tasks|docs/explorations|harness/init|harness/skills-plan)/' \
+  | grep -v '^harness/README.md' \
+  | while read -r f; do grep -nHE '\bChat\b|claude\.ai' "$f"; done
+```
+
+Same exclusion set as 10c, same reasons. The pattern is deliberately broad: it
+catches every mention of the surface, and judgement — not the regex — decides
+whether a mention is an assertion.
+
+For each line returned, classify it as one of:
+
+- **(a)** an assertion that the Mentor lane, or task modelling, lives in
+  chat — **a STOP and report**, unless the file is outside constraint 1, in
+  which case name it as out of scope;
+- **(b)** a reference to chat as a session interface, carrying no claim about
+  where the Mentor runs.
+
+Report the count found; this brief predicts none (E13). Known at authoring
+time: `harness/workflows/resume-session.md` holds two class-(b) lines and is
+**not** in constraint 1, so it is named and left alone.
+
+Verification for Edit 12:
+
+- [ ] `grep -ciE '\bchat\b' harness/workflows/setup-cowork.md` returns `0`
+- [ ] `grep -c 'sessão Orchestrator pra modelar' harness/workflows/setup-cowork.md`
+      returns `1`
+- [ ] `grep -c 'does not exist yet' docs/explorations/README.md` returns `1`
+- [ ] `grep -c 'The four labels of §8' docs/MENTOR_BRIEF.md` returns `0`, and
+      `grep -c 'Four labels —' docs/MENTOR_BRIEF.md` returns `1`
+- [ ] Every line the 12d enumeration returns is classified (a) or (b) in the
+      report, and the count found is stated. Any class-(a) line inside
+      constraint 1 is a **STOP and report** — do not widen the exclusions
+- [ ] Edit 11c's enumeration still classifies every line it returns; this Edit
+      must not reintroduce an R9 claim while fixing a chat-Mentor one
+
+Commit: `docs: fix the last two chat pointers the sweep could not see`
+
 ### Commit sequence
 
 1. `docs(tasks): add brief for 050-mentor-doctrine` — 46 chars *(Orchestrator's, already on the branch)*
@@ -1116,6 +1249,7 @@ Commit: `docs: fix the last two R9 claims about COPIAR language`
 9. `docs(skills): drop npm test from the Mentor read policy` — 55
 10. `docs: fix the last two chat-Mentor pointers` — 43
 11. `docs: fix the last two R9 claims about COPIAR language` — 54
+12. `docs: fix the last two chat pointers the sweep could not see` — 60
 
 Every verb — `add`, `migrate`, `update`, `fix`, `remove`, `drop` — is in the
 allowlist at `.claude/skills/pre-commit-self-audit/SKILL.md`. Every subject is
