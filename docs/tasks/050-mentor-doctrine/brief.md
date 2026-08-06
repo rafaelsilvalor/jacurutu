@@ -28,16 +28,16 @@ correction only a repo-wide sweep could see: `docs/PROCESS_MAP.md` landed
 the chat-Mentor doctrine in nine places — one of them a literal mirror of the
 false R9 sentence this brief fixes.
 
-**Size note — measurement, not justification.** Substance measures **~1115**
+**Size note — measurement, not justification.** Substance measures **~1130**
 against the 350-650 range for a doctrinal caminho B brief
-(`.claude/skills/brief-template/SKILL.md`): 72% over, and the fourth
+(`.claude/skills/brief-template/SKILL.md`): 74% over, and the fourth
 consecutive overrun (047 ~600, 048 ~430, 049 ~480, this one). The owner ruled
 in the authoring session that **the size guidance does not govern this brief**,
 and that the guidance itself is to be reformulated as a separate piece of work.
 This brief is therefore written at full fidelity and the figure is recorded
 here as input to that reformulation, not as a defense.
 
-Two facts the reformulation should have. First, the composition: of the 1115,
+Two facts the reformulation should have. First, the composition: of the 1130,
 ~280 lines are literal text — current wording quoted so the executor can match
 on it, the replacement prose itself, and the repair tables — and ~120 more are
 verification checkboxes. A compression pass over Context, Goal and the decision
@@ -1067,10 +1067,24 @@ grep -rniE 'COPIAR' --include="*.md" . \
   | grep -iE 'english|inglês'
 ```
 
-Expected: five lines, and every one of them either states that COPIAR blocks
-are pt-BR or records that the opposite claim used to be made and was wrong.
-Paste the output and say, line by line, which of the two it is. **A sixth line,
-or any line asserting the blocks are English, is a STOP and report.**
+**This brief does not predict how many lines come back, and that omission is
+deliberate** — errata E13. An earlier version said "exactly five". Five is what
+the enumeration returns *before* 11b runs; afterwards it returns four, because
+the corrected `closer.md` sentence no longer contains the word `English` and
+drops out of the filter. The brief was predicting a count over a set its own
+Edit changes. Thirteen declared counts in this brief have been wrong at some
+point, and correcting the number would fix the instance while leaving the
+generator: **a hardcoded expected count is a defect generator whenever the Edit
+alters what is being counted.**
+
+The proof is classification, not arithmetic. Paste the output, and for every
+line say which of two things it is:
+
+- **(a)** it states that COPIAR blocks are pt-BR, or
+- **(b)** it records that the opposite claim was once made and was wrong.
+
+Report the count you actually find. **Any line that is neither (a) nor (b) —
+any line asserting the blocks are English — is a STOP and report.**
 
 Verification for Edit 11:
 
@@ -1081,8 +1095,9 @@ Verification for Edit 11:
 - [ ] `grep -c 'English prose wrapping a pt-BR' .claude/agents/closer.md`
       returns `0` — the flipped-polarity version is also absent (E12)
 - [ ] `grep -c 'pt-BR throughout' .claude/agents/closer.md` returns `1`
-- [ ] The 11c enumeration returns exactly five lines, each classified in the
-      report as stated above
+- [ ] Every line the 11c enumeration returns is classified (a) or (b) in the
+      report, and the count found is stated. No line is left unclassified, and
+      the brief predicts no count (E13)
 - [ ] Edit 10c's sweep still returns nothing — this Edit must not reintroduce
       a chat-Mentor claim while fixing an R9 one
 
