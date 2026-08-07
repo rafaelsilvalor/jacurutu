@@ -169,3 +169,5 @@ so the planner is not invoked (M-R15).
   window is empty as a result.
 - 2026-08-04 — brief A split into A1 (049, vehicle) and A2 (050,
   doctrine); E3's cutover re-anchored from slot 049 to brief C's merge.
+- 2026-08-06 — brief 051 measured the §5 migration surface at 21 ROADMAP
+  entries (10 parking lot + 11 pending decisions), not 22.

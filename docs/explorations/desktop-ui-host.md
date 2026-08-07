@@ -1,10 +1,13 @@
 # Desktop UI host — browser-served vs. Electron
 
-Status: exploration — possibilities only, NOT a commitment or spec
+Status: exploration — no implementation mandate
+Disposition: open — 2026-08-06
 Origin: mentor session 2026-08-03 (UI host evaluation; mode: exploring
-possibilities). No source documents outside the conversation.
-Roadmap link: pending decision #2 (designer-friendly packaging format);
-Phase 3 packaging item; Phase 5 (Desktop UI on top of CLI)
+possibilities). No source documents outside the conversation. Absorbed
+pending decision #2 at its 2026-08-06 migration (brief 051).
+Roadmap link: absorbed ROADMAP Pending decisions #2 (designer-friendly
+packaging format) — 2026-08-06; Phase 3 packaging item; Phase 5 (Desktop UI
+on top of CLI)
 
 The question this note holds: when the desktop UI phase opens, what
 **hosts** it — a local server the designer's own browser connects to, or
@@ -168,9 +171,15 @@ folder's README). Whether that decision is reclassified from closed to
 open is an owner ruling, executed as a doctrine edit in an Orchestrator
 session.
 
+## Absorbed roadmap entry (2026-08-06, brief 051)
+
+2. **Designer-friendly packaging format.** Installer? Portable? Per-OS variants? Deferred to Phase 3 planning.
+
 ## Changelog
 
 - 2026-08-03 — Created from the 2026-08-03 mentor session (exploring
   possibilities). Records the browser-served versus Electron comparison,
   the localhost-exposure correction to that session's first evaluation,
   and seven open questions. No decision taken.
+- 2026-08-06 — header updated to the 050 contract (disposition `open`);
+  absorbed pending decision #2 at its migration (brief 051).
