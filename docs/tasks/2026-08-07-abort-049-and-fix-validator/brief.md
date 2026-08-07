@@ -156,7 +156,8 @@ the `> **Category:**` frontmatter, in this shape:
 Verification:
 
 - [ ] `git diff --stat` shows `docs/tasks/049-init-six-role-bootstrap/brief.md`
-      added with 253 + 7 lines, no other file
+      added with 253 + 8 lines — seven of prose plus the blank line separating
+      the block from the frontmatter — for 261, and no other file
 - [ ] `grep -c '^> \*\*ABORTED' docs/tasks/049-init-six-role-bootstrap/brief.md`
       returns 1
 - [ ] The original body is untouched: diffing the file against
@@ -173,7 +174,12 @@ In §7's artifact table, add one row after `Task notes`:
 | Aborted task | `docs/tasks/<task-id>-<slug>/brief.md`, `ABORTED` block after line 1 | the block is dated, states the reason, and preserves the brief body verbatim; the folder is never deleted (E4) |
 ```
 
-Then add a fourth naming fact below the existing three:
+Then change the line introducing the naming facts from `Three naming facts
+worth internalizing:` to `Four`, and add a fourth fact below the existing
+three. The count line was missing from this Edit's first draft; adding a
+fourth item to a list introduced as three would have shipped a heading
+disagreeing with its own enumeration, which is the defect brief 050 left in
+`AGENT_PLAYBOOK.md`'s "Recap policy (three recaps)" and 052 fixed as errata.
 
 ```markdown
 - **An aborted task is preserved, not erased.** Its folder lands on `main`
@@ -189,6 +195,8 @@ Verification:
 - [ ] `grep -c 'aborted task is preserved' docs/PROCESS_MAP.md` returns 1
 - [ ] The three existing naming facts are unchanged:
       `grep -c '^- \*\*' docs/PROCESS_MAP.md` is one higher than before
+- [ ] The stated count matches the enumeration: the section says `Four` and
+      four bullets follow it
 - [ ] No other section of the file is touched
 
 Commit: see Commit sequence #3.
