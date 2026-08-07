@@ -181,7 +181,7 @@ Seed list — grow with each substantive session.
 - **P1 — User accepts long, structured responses but reacts faster when proposals are explicitly framed as "your decisions" vs "my proposals (defaults)".** Use that framing when presenting drafts.
 - **P2 — User updates a directive when he realizes the first version was incomplete** (e.g. clarified bilingual UI after agreeing to "English everywhere"). Treat any directive as version 1; expect refinement and ask "does this cover edge cases?" when it sounds binary.
 - **P3 — User prefers committing infrequently and explicitly** rather than streaming many small commits. The Pause-3 moment is where he wants to feel in control.
-- **P4 — Numbering verification protocol for new briefs.** Before picking a brief number, consult three sources: `ls docs/tasks/`, `git log --oneline main` of merged PRs, and reserves declared in prior briefs or in `CLAUDE.md` E* entries. `ls` alone misses forward reserves and unsynced merged work — see session 2026-05-12 for the incident that motivated this protocol. Forward reserves that get superseded should be explicitly burned (gap preserved) or released, with the decision recorded in the brief that supersedes them.
+- **P4 — Slug-collision verification protocol for new tasks.** A task identifier is self-assigned — a birth date, nothing to look up. What must be verified is that the **slug** is free, because global slug uniqueness is what joins a task to its recaps once the task date and the session date diverge. Before fixing a slug, consult four sources: `ls docs/tasks/` for existing task folders under either scheme; `git log --oneline main` for a slug that shipped but is not visible in a stale checkout; a grep for the candidate slug across `CLAUDE.md` and `docs/` for one named in an `E*` reserve or an exploration note; and `git branch -a` plus `git worktree list` for a slug claimed only on an unmerged branch or a live worktree. The fourth source is the one the old three-source numeric protocol structurally lacked: it could not see slot 047 held on an unmerged branch on 2026-08-02, and on 2026-08-07 two tasks were found holding slot 049 at once. Concurrent worktree sessions make that the normal case. If a source shows the slug taken, choose another; if the sources disagree, STOP.
 - **P5 — Session-type separation pays off** (surfaced 2026-05-15). "Hands-on" sessions (modeling tasks, drafting docs, code review) and "clarify vague technical points" sessions (exploratory discussion, sketches, decisions not ripe for a brief) run cleaner when kept apart. When a session drifts between the two, propose a checkpoint: finish the current type or split. Pattern under observation; not yet a behavior rule.
 
 ## 4. Behavior rules
@@ -271,9 +271,9 @@ Caminho B briefs — doctrinal, pipeline-modifying, bootstrap — are authored b
 | `docs/explorations/README.md` | The note authority contract and the disposition set |
 | `docs/AGENT_PLAYBOOK.md` | The user — the Orchestrator role and the role-based pipeline; Chapter 6 defines the six roles |
 | `.claude/agents/` | The orchestration subagents (planner, brief-validator, executor, closer) invoked by the main session acting as Orchestrator |
-| `.claude/skills/brief-template/` | Authoring template for `docs/tasks/<NNN>-<slug>/brief.md`; preloaded by planner and brief-validator |
+| `.claude/skills/brief-template/` | Authoring template for `docs/tasks/<task-id>-<slug>/brief.md`; preloaded by planner and brief-validator |
 | `.claude/skills/pre-commit-self-audit/` | Five mechanical checks run by the executor before every Pause 3 |
-| `docs/tasks/<NNN>-<slug>/` | Per-task artifacts: `brief.md`, optional `notes.md` (per-session recaps live in `docs/sessions/`) |
+| `docs/tasks/<task-id>-<slug>/` | Per-task artifacts: `brief.md`, optional `notes.md` (per-session recaps live in `docs/sessions/`) |
 | `harness/` | The user — workflow prompts to start sessions and tasks (parallel manual surface to `.claude/agents/`) |
 | `README.md` | End users — what Saci is and how to install it |
 
