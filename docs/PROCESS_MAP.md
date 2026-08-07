@@ -154,17 +154,19 @@ Pause 3 additionally has a **green boundary**: run `npx tsc -b` and `npm test`, 
 |---|---|---|
 | Task brief | `docs/tasks/<task-id>-<slug>/brief.md` | `<task-id>` is the birth date `YYYY-MM-DD` for a task born on or after brief 052's merge, and a zero-padded `NNN` for one born before it. `<slug>` is kebab-case, ≤ 30 chars, and globally unique across all of `docs/tasks/`. Same-day collisions take a short ordinal suffix, applied only on collision. Preserved after merge as the historical record |
 | Task notes | `docs/tasks/<task-id>-<slug>/notes.md` | optional; where mid-run owner rulings land |
+| Aborted task | `docs/tasks/<task-id>-<slug>/brief.md`, `ABORTED` block after line 1 | the block is dated, states the reason, and preserves the brief body verbatim; the folder is never deleted (E4) |
 | Session recap | `docs/sessions/<YYYY-MM-DD>-<role>-<slug>.md` | the date is the *session's*, not the task's; `<role>` is `orchestrator` or `executor`. A recap of a pre-cutover task keeps that task's number in the slug position — `<NNN>-<slug>` — for life (E8) |
 | Exploration note | `docs/explorations/<topic>.md` | opens with `Status:` / `Origin:` / `Roadmap link:`, ends with a `## Changelog` |
 | Branch | `<type>/<kebab-description>` | types per `GIT_WORKFLOW.md` G-R2 |
 | Commit | `<type>(<scope>)?: <imperative subject>` | subject ≤ 72 chars, body explains *why*, no trailers |
 | Long-task state | `STATE.md` at repo root | only for multi-session or structurally complex tasks; deleted on close (G-R10) |
 
-Three naming facts worth internalizing:
+Four naming facts worth internalizing:
 
 - **The slug is verified by P4, a four-source check** — `ls docs/tasks/`, `git log --oneline main`, a grep for the candidate slug across `CLAUDE.md` and `docs/`, and `git branch -a` plus `git worktree list`. Only the fourth sees a slug held on an unmerged branch or in a live worktree, which concurrent worktree sessions make routine rather than exceptional. If a source shows the slug taken, choose another and re-run all four; if the sources disagree, STOP. There is no number to resolve: the id is self-assigned, and a task is born under one scheme and dies under it. (`docs/MENTOR_BRIEF.md` P4; `.claude/agents/planner.md` step 2.)
 - **Commit verbs come from an allowlist with one SSOT** — the `ALLOW=` line in `.claude/skills/pre-commit-self-audit/SKILL.md`. Two consumers read it at runtime: that skill's Check 3 and brief-validator's C11. Nothing duplicates it. A verb outside both the allowlist and the denylist is a STOP, not a judgment call — and the choice among allowlisted verbs is semantic, not convenience (`document` ≠ `update` ≠ `add`).
 - **`claude/*` branches are session scaffolding, not work branches.** The desktop harness creates one per worktree. They carry zero commits, are never PR targets, and sit outside R11/G-R2. The real work branch is created inside the session from a verified base SHA with explicit owner approval (`docs/GIT_WORKFLOW.md` "`claude/*` scaffolding branches").
+- **An aborted task is preserved, not erased.** Its folder lands on `main` with a dated `ABORTED` block after the title and its body untouched. There is no sequence left to puncture, so there is no burn to record — the folder itself is the record. First instance: `docs/tasks/049-init-six-role-bootstrap/`.
 
 ## 8. Rule ID namespaces
 
