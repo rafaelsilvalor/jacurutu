@@ -1,6 +1,6 @@
 ---
 name: brief-validator
-description: Audit a task brief at docs/tasks/<NNN>-<slug>/brief.md against 11 mechanical checks. Invoke after the planner has written the brief, before the executor begins. Emits PASS or FAIL per check and a final APPROVED or REJECTED verdict with GitHub deep-links to the violated rules.
+description: Audit a task brief at docs/tasks/<task-id>-<slug>/brief.md against 11 mechanical checks. Invoke after the planner has written the brief, before the executor begins. Emits PASS or FAIL per check and a final APPROVED or REJECTED verdict with GitHub deep-links to the violated rules.
 model: haiku
 tools: [Read, Bash, Grep, Glob]
 disallowedTools: [Write, Edit]
@@ -25,7 +25,7 @@ The main session delegates with a single prompt string identifying the brief
 to audit:
 
 ```
-Audit brief at docs/tasks/<NNN>-<slug>/brief.md on branch <branch>.
+Audit brief at docs/tasks/<task-id>-<slug>/brief.md on branch <branch>.
 ```
 
 You assume the brief exists at the given path and the branch is checked out.
@@ -68,7 +68,7 @@ cannot drift.
 
 | Check | Brief grep (against `<brief>`) | Canonical file / rule for deep-link |
 |---|---|---|
-| C1 | `grep -nE '^# Brief: [0-9]{3} — .+$' <brief> \| head -1` (must match line 1) | `.claude/skills/brief-template/SKILL.md`, template line `# Brief:` |
+| C1 | `grep -nE '^# Brief: ([0-9]{3}\|[0-9]{4}-[0-9]{2}-[0-9]{2}) — .+$' <brief> \| head -1` (must match line 1) | `.claude/skills/brief-template/SKILL.md`, template line `# Brief:` |
 | C2 | `grep -nE '^> \*\*Category:\*\* (M\|L)$' <brief>` (exactly one match) | `.claude/skills/brief-template/SKILL.md` `**Category:**` |
 | C3 | `grep -nE '^> \*\*Plan required:\*\* (yes\|no)' <brief>` | `CLAUDE.md` R15 |
 | C4 | `grep -nE '^> \*\*Branch:\*\* \`(feat\|fix\|refactor\|test\|chore\|docs\|perf\|ci)/[a-z0-9-]+\`$' <brief>` | `CLAUDE.md` R11 and `GIT_WORKFLOW.md` G-R2 |
@@ -79,6 +79,13 @@ cannot drift.
 | C9 | `grep -nE '^## Pause points' <brief>` plus `grep -E 'Pause 1' <brief>`, `grep -E 'Pause 2' <brief>`, `grep -E 'Pause 3' <brief>` | `docs/AGENT_PLAYBOOK.md` Lesson #6 and `.claude/skills/brief-template/SKILL.md`, "Pause points" section. FAIL if pt-BR "Pausa" used on agent-consumed brief (R9) |
 | C10 | Strip fenced code blocks, then grep pt-BR markers: `awk '/^```/ { in_code = !in_code; next } !in_code { print NR ": " $0 }' <brief> \| grep -iE '\b(não\|para\|que\|também\|então\|mas\|porque\|quando\|onde\|apenas\|sempre\|nunca\|deve\|pode)\b'` | `CLAUDE.md` R9 |
 | C11 | Extract the allowlist from the canonical SSOT: `grep -oE 'ALLOW="[^"]+"' .claude/skills/pre-commit-self-audit/SKILL.md \| sed -E 's/^ALLOW="//; s/"$//'`. From each commit subject extracted in C7, extract the verb via `sed -E 's/^[a-z]+(\([a-z0-9-]+\))?: ([a-z]+).*/\2/'`. Cross-check each verb against the allowlist; FAIL if any verb is outside it. STOP if the SSOT extraction returns empty (file structure changed). | `.claude/skills/pre-commit-self-audit/SKILL.md`, "Verb allowlist as canonical source" subsection |
+
+C1 accepts both identifier shapes because brief 052 cut new tasks over to a
+dated `<task-id>` while a task born under the numeric scheme keeps its `NNN`
+for life (E9); the `[0-9]{3}` alternative is removed only when the last
+pre-cutover task merges, which as of 2026-08-07 means
+`049-init-six-role-bootstrap`, still unmerged on branch
+`docs/init-six-role-bootstrap`.
 
 ### Deep-link emission
 
@@ -109,7 +116,7 @@ parseable by `grep -E '^Verdict: (APPROVED|REJECTED)$'`.
 ````
 # Validation report
 
-**Brief audited:** docs/tasks/<NNN>-<slug>/brief.md
+**Brief audited:** docs/tasks/<task-id>-<slug>/brief.md
 **Audited at commit:** <short-sha>
 
 ## Checks
@@ -132,7 +139,7 @@ C11 — Commit verb allowlist (SSOT): <PASS | FAIL>
 
 ### <C-number> — FAIL — <one-line summary>
 
-- **Brief line(s):** `docs/tasks/<NNN>-<slug>/brief.md:<line>`
+- **Brief line(s):** `docs/tasks/<task-id>-<slug>/brief.md:<line>`
 - **Rule:** [<rule ID>](https://github.com/rafaelsilvalor/saci/blob/main/<canonical-file>#L<line>)
 - **Observed:** <verbatim grep output>
 - **Expected:** <what the rule prescribes>

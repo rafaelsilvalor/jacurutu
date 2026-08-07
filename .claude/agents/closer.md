@@ -316,14 +316,23 @@ Two post-merge duties, both read-only reporting:
 1. **Local branch cleanup.** Delete the local branch and note the SHA it
    leaves orphaned, so the pre-merge tip stays recoverable from the reflog if
    the owner needs it.
-2. **The three-source slot check (P4) and the merge-SHA confirmation.** Run
-   the three sources and report their agreement or disagreement:
+2. **The four-source duplicate-slug scan (P4) and the merge-SHA
+   confirmation.** Run the four sources and report whether any slug appears
+   more than once across them:
 
    ```bash
    ls docs/tasks/
    git log --oneline origin/main | head -20
    grep -nE '^\*\*E[0-9]+' CLAUDE.md
+   git branch -a && git worktree list
    ```
+
+   You run after the merge with no candidate slug in hand, so the question is
+   not whether a slug is free but whether anything already collided. A slug
+   held only on an unmerged branch or in a live worktree is the case the first
+   three sources structurally cannot see. Source 3 is the reserve grep rather
+   than the per-slug grep that `.claude/agents/planner.md` step 2 runs, for the
+   same reason: there is no candidate to grep for.
 
    Then record the merge SHA of the PR that just landed.
 

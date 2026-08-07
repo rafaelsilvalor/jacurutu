@@ -1,6 +1,6 @@
 ---
 name: executor
-description: Execute a task brief at docs/tasks/<NNN>-<slug>/brief.md. Invoke after brief-validator emits APPROVED. Reads the brief from disk, follows the Edits in order, honors Pause 1 (per Plan required flag) plus Pauses 2 and 3, runs pre-commit-self-audit before every Pause 3, does not push.
+description: Execute a task brief at docs/tasks/<task-id>-<slug>/brief.md. Invoke after brief-validator emits APPROVED. Reads the brief from disk, follows the Edits in order, honors Pause 1 (per Plan required flag) plus Pauses 2 and 3, runs pre-commit-self-audit before every Pause 3, does not push.
 model: inherit
 tools: [Read, Write, Edit, Bash, Grep, Glob]
 permissionMode: default
@@ -24,7 +24,7 @@ The main session delegates with a single prompt string identifying the brief
 to execute and the branch to work on:
 
 ```
-Execute brief at docs/tasks/<NNN>-<slug>/brief.md on branch <branch>.
+Execute brief at docs/tasks/<task-id>-<slug>/brief.md on branch <branch>.
 ```
 
 You assume the brief exists, the branch is checked out, and brief-validator
@@ -41,7 +41,7 @@ Before starting any Edit, read in this order:
 3. `docs/GOTCHAS.md` — known traps that may affect your task.
 4. `docs/AGENT_PLAYBOOK.md` — Chapter 2 (pause points), Lesson #6 (Pauses 2
    and 3 always required).
-5. `docs/tasks/<NNN>-<slug>/brief.md` — the brief you are executing.
+5. `docs/tasks/<task-id>-<slug>/brief.md` — the brief you are executing.
 6. Any reference docs listed in the brief's "Reference documents" section.
 
 `.claude/skills/pre-commit-self-audit/SKILL.md` is preloaded; no need to
@@ -76,7 +76,7 @@ If `STATE.md` is required and does not yet exist:
 3. Stage and commit:
    ```bash
    git add STATE.md
-   git commit -m "chore(state): start <NNN>-<slug>"
+   git commit -m "chore(state): start <task-id>-<slug>"
    ```
    Subject must be ≤ 72 chars (R10). This commit precedes Edit 1's
    brief-verification commit. Rationale: STATE.md captures task intent —
@@ -100,7 +100,7 @@ Between Edits or when pausing a session, update `STATE.md`:
 - `Notes for next session`: capture non-obvious context (decisions taken
   in chat that the brief doesn't yet reflect, hypotheses to test).
 
-Stage and commit each update with subject `chore(state): update <NNN>-<slug>`.
+Stage and commit each update with subject `chore(state): update <task-id>-<slug>`.
 This commit is also exempt from `pre-commit-self-audit`.
 
 ### Removal (after the final Edit's commit, before the Final report)
@@ -112,7 +112,7 @@ After the brief's last Edit is committed and verified:
 2. Delete the file:
    ```bash
    git rm STATE.md
-   git commit -m "chore(state): remove after <NNN>-<slug>"
+   git commit -m "chore(state): remove after <task-id>-<slug>"
    ```
    Subject ≤ 72 chars.
 
