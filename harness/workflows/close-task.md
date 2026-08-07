@@ -54,11 +54,12 @@ PASSO 5 — Reporta resumo:
 - Observações relevantes pra revisão
 
 Se vai produzir recap da execução, salva em:
-docs/sessions/<YYYY-MM-DD>-executor-<NNN>-<slug>.md
-  - <YYYY-MM-DD>: data do close
+docs/sessions/<YYYY-MM-DD>-executor-<slug>.md
+  - <YYYY-MM-DD>: data do close (data da sessão, não a da tarefa)
   - executor: papel fixo (este workflow roda no executor — Claude Code)
-  - <NNN>: número da tarefa (mesmo do brief)
   - <slug>: slug curto-descritivo do tópico
+  - tarefa anterior ao corte: mantém o número da tarefa na posição do
+    slug, pra vida toda (E8)
 
 PASSO 6 — PARAR:
 - NÃO faz checkout pra main

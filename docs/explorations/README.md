@@ -59,7 +59,7 @@ disposition points here.**
 | `candidate` | shaped enough to become a brief | — |
 | `deferred` | not now | a declared trigger |
 | `discarded` | will not happen | a reason |
-| `promoted to brief <id>` | a brief now carries it | the brief's id |
+| `promoted to brief <id>` | a brief now carries it | the brief's id, or the id range when one note produced a series — `promoted to briefs <id>-<id>` |
 
 Four invariants:
 

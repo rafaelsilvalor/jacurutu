@@ -1,6 +1,6 @@
 ---
 name: brief-template
-description: Authoring template for task briefs in docs/tasks/<NNN>-<slug>/brief.md. Invoke when modeling a new Category M or L task that needs a brief written to disk.
+description: Authoring template for task briefs in docs/tasks/<task-id>-<slug>/brief.md. Invoke when modeling a new Category M or L task that needs a brief written to disk.
 ---
 
 # Skill: brief-template
@@ -9,12 +9,12 @@ description: Authoring template for task briefs in docs/tasks/<NNN>-<slug>/brief
 
 When the user (or a planner agent) is modeling a new task of Category M or L
 that requires a structured brief to be written to
-`docs/tasks/<NNN>-<slug>/brief.md`. Do not invoke for Category S tasks
+`docs/tasks/<task-id>-<slug>/brief.md`. Do not invoke for Category S tasks
 (one-line chat is enough) or Category XL tasks (break into L tasks first).
 
 ## What this skill provides
 
-The canonical template for `docs/tasks/<NNN>-<slug>/brief.md`. Includes:
+The canonical template for `docs/tasks/<task-id>-<slug>/brief.md`. Includes:
 
 - The 4-part structure: Context, Goal, Constraints, Done criteria.
 - The `Plan required: yes | no` flag and when to skip Pause 1.
@@ -41,11 +41,14 @@ preserved verbatim.
 ## Template
 
 ```markdown
-# Brief: [NNN] — [Short task title]
+# Brief: [task-id] — [Short task title]
 
 > **Category:** [M | L]
 > **Plan required:** [yes | no] — see "Plan required justification" below
 > **Branch:** `[type]/[kebab-description]`
+
+[`[task-id]` is defined canonically in `docs/PROCESS_MAP.md` §7. Read it there;
+do not restate the definition in the brief.]
 
 ---
 
@@ -103,14 +106,14 @@ pre-closed — the agent then proposes a plan at Pause 1.]
 
 ### Edit 1 — Verify brief on disk and commit as commit #1
 
-The user pre-saved this brief to `docs/tasks/<NNN>-<slug>/brief.md` before
+The user pre-saved this brief to `docs/tasks/<task-id>-<slug>/brief.md` before
 invoking the executor (caminho B). The executor verifies presence and commits.
 
-- [ ] Directory `docs/tasks/<NNN>-<slug>/` exists
-- [ ] File `docs/tasks/<NNN>-<slug>/brief.md` exists; first line matches the
+- [ ] Directory `docs/tasks/<task-id>-<slug>/` exists
+- [ ] File `docs/tasks/<task-id>-<slug>/brief.md` exists; first line matches the
       title above
-- [ ] `git add docs/tasks/<NNN>-<slug>/brief.md` is staged
-- [ ] Commit #1 created with subject `docs(tasks): add brief for <NNN>-<slug>`
+- [ ] `git add docs/tasks/<task-id>-<slug>/brief.md` is staged
+- [ ] Commit #1 created with subject `docs(tasks): add brief for <task-id>-<slug>`
 
 If the file is missing or the first line does not match, **STOP and report**.
 Do not regenerate the brief from memory.

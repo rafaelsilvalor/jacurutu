@@ -47,7 +47,7 @@ Quando voltar pra projeto que já tem o sistema:
 A partir daí, você tem o sistema vivo. Workflows ficam em
 `docs/workflows/`. Briefs futuros são autorados via o skill
 `brief-template` em `.claude/skills/brief-template/SKILL.md`
-e salvos em `docs/tasks/<NNN>-<slug>/brief.md`.
+e salvos em `docs/tasks/<task-id>-<slug>/brief.md`.
 
 ## Documentos canônicos que esse kit gera
 

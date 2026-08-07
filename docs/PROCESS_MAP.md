@@ -40,7 +40,7 @@ The process here is deliberately heavy for a one-person project. The reason is s
 **Tier 2 — on demand:**
 
 - `docs/ROADMAP.md` — phases and identity shifts. Read before proposing anything forward-looking, together with `docs/explorations/` for parked ideas and open decisions.
-- `docs/tasks/<NNN>-<slug>/brief.md` — the closest prior task to whatever you are doing. The single fastest way to learn the house style is to read two recent briefs.
+- `docs/tasks/<task-id>-<slug>/brief.md` — the closest prior task to whatever you are doing. The single fastest way to learn the house style is to read two recent briefs.
 - `docs/sessions/` — how a session actually went, including what went wrong.
 - `docs/explorations/` — accumulated findings with no implementation mandate. Read `docs/explorations/README.md` first; the authority contract matters.
 - `harness/workflows/<scenario>.md` — the copy-paste prompt for a specific scenario.
@@ -56,7 +56,7 @@ docs/                        canonical documentation + the historical record
   GOTCHAS.md                   stack traps with permanent IDs (G-CAT-N)
   ROADMAP.md                   phases, identity shifts (possibility state: explorations/)
   PROCESS_MAP.md               this file
-  tasks/<NNN>-<slug>/          per-task artifacts, preserved after merge
+  tasks/<task-id>-<slug>/      per-task artifacts, preserved after merge
   sessions/                    one recap per session per role
   explorations/                findings without mandate — lowest authority
 .claude/                     machine-loaded orchestration
@@ -80,7 +80,7 @@ Roles, not surfaces, define who does what. Canonical definition: `docs/AGENT_PLA
 |---|---|---|---|
 | **Mentor** | Claude Code — its own main session | `docs/explorations/` only, via the write gate | task modeling, briefs, operational rulings, code (M-R12, M-R15) |
 | **Orchestrator** | Claude Code main session, Plan mode | `docs/` only, via the write gate | source code — that is the executor's |
-| **planner** | Claude Code subagent | `docs/tasks/<NNN>-<slug>/` only | execute the brief it just wrote |
+| **planner** | Claude Code subagent | `docs/tasks/<task-id>-<slug>/` only | execute the brief it just wrote |
 | **brief-validator** | Claude Code subagent | nothing — read-only | judge semantics, roadmap fit, or whether the task is a good idea |
 | **executor** | Claude Code subagent | code + docs per the brief's Edits | push; fix anything outside the brief's scope |
 | **closer** | Claude Code subagent | nothing in Phase A | merge; infer Phase B from a clean Phase A verdict |
@@ -88,7 +88,7 @@ Roles, not surfaces, define who does what. Canonical definition: `docs/AGENT_PLA
 Two structural facts about subagents that shape everything else:
 
 - **Subagents get fresh context and cannot wait for chat input.** A Pause under subagent transport is a STOP-and-return: the subagent stops, returns the whole Pause presentation as one fenced block, and resumes only when the owner's approval is relayed back as a continuation message. Same semantics, different transport (`docs/AGENT_PLAYBOOK.md` "Subagent Pause transport").
-- **Mid-run owner rulings become files**, not chat pastes — written to `docs/tasks/<NNN>-<slug>/notes.md`. Byte-exact by construction, and a durable record.
+- **Mid-run owner rulings become files**, not chat pastes — written to `docs/tasks/<task-id>-<slug>/notes.md`. Byte-exact by construction, and a durable record.
 
 ## 5. One task, end to end
 
@@ -99,7 +99,7 @@ Two entry points coexist. Both end in the same place.
 ```
 Orchestrator session opens (harness/workflows/setup-orchestrator.md, Plan mode)
   ↓  decisions closed with the owner, one at a time
-@planner            → resolves NNN via P4, creates branch, authors brief, commits it
+@planner            → resolves the slug via P4, creates branch, authors brief, commits it
   ↓
 @brief-validator    → 11 mechanical checks → APPROVED | REJECTED
   ↓  APPROVED
@@ -115,7 +115,7 @@ recaps              → Orchestrator recap + executor recap, docs(sessions): on 
   ↓
 owner squash-merges in the GitHub UI
   ↓
-@closer post-merge  → local branch cleanup, P4 re-check, merge SHA confirmation
+@closer post-merge  → local branch cleanup, P4 duplicate-slug scan, merge SHA confirmation
 ```
 
 **Caminho B** (fallback): the Orchestrator authors the brief itself via the write gate, then invokes `@executor` directly. planner and validator are skipped. Use it when the brief needs judgment a delegation prompt cannot carry — doctrinal briefs, structural edits, or any task that modifies the pipeline itself (a brief that creates the validator cannot be audited by the validator). Conditions and rationale: `docs/AGENT_PLAYBOOK.md` "When to use the pipeline vs. caminho B" and "When NOT to use the pipeline".
@@ -152,9 +152,9 @@ Pause 3 additionally has a **green boundary**: run `npx tsc -b` and `npm test`, 
 
 | Artifact | Path / format | Notes |
 |---|---|---|
-| Task brief | `docs/tasks/<NNN>-<slug>/brief.md` | `<NNN>` zero-padded, `<slug>` kebab-case ≤ 30 chars. Preserved after merge as the historical record |
-| Task notes | `docs/tasks/<NNN>-<slug>/notes.md` | optional; where mid-run owner rulings land |
-| Session recap | `docs/sessions/<YYYY-MM-DD>-<role>-<NNN>-<slug>.md` | `<role>` is `mentor`, `orchestrator`, or `executor` |
+| Task brief | `docs/tasks/<task-id>-<slug>/brief.md` | `<task-id>` is the birth date `YYYY-MM-DD` for a task born on or after brief 052's merge, and a zero-padded `NNN` for one born before it. `<slug>` is kebab-case, ≤ 30 chars, and globally unique across all of `docs/tasks/`. Same-day collisions take a short ordinal suffix, applied only on collision. Preserved after merge as the historical record |
+| Task notes | `docs/tasks/<task-id>-<slug>/notes.md` | optional; where mid-run owner rulings land |
+| Session recap | `docs/sessions/<YYYY-MM-DD>-<role>-<slug>.md` | the date is the *session's*, not the task's; `<role>` is `orchestrator` or `executor`. A recap of a pre-cutover task keeps that task's number in the slug position — `<NNN>-<slug>` — for life (E8) |
 | Exploration note | `docs/explorations/<topic>.md` | opens with `Status:` / `Origin:` / `Roadmap link:`, ends with a `## Changelog` |
 | Branch | `<type>/<kebab-description>` | types per `GIT_WORKFLOW.md` G-R2 |
 | Commit | `<type>(<scope>)?: <imperative subject>` | subject ≤ 72 chars, body explains *why*, no trailers |
@@ -162,7 +162,7 @@ Pause 3 additionally has a **green boundary**: run `npx tsc -b` and `npm test`, 
 
 Three naming facts worth internalizing:
 
-- **The task number is resolved by P4, a three-source check** — `ls docs/tasks/`, `git log --oneline main`, and `grep -nE '^\*\*E[0-9]+' CLAUDE.md` for forward reserves. `ls` alone misses reserves and unsynced merged work. If the sources disagree, STOP. (`docs/MENTOR_BRIEF.md` P4; `.claude/agents/planner.md` step 1.)
+- **The slug is verified by P4, a four-source check** — `ls docs/tasks/`, `git log --oneline main`, a grep for the candidate slug across `CLAUDE.md` and `docs/`, and `git branch -a` plus `git worktree list`. Only the fourth sees a slug held on an unmerged branch or in a live worktree, which concurrent worktree sessions make routine rather than exceptional. If a source shows the slug taken, choose another and re-run all four; if the sources disagree, STOP. There is no number to resolve: the id is self-assigned, and a task is born under one scheme and dies under it. (`docs/MENTOR_BRIEF.md` P4; `.claude/agents/planner.md` step 2.)
 - **Commit verbs come from an allowlist with one SSOT** — the `ALLOW=` line in `.claude/skills/pre-commit-self-audit/SKILL.md`. Two consumers read it at runtime: that skill's Check 3 and brief-validator's C11. Nothing duplicates it. A verb outside both the allowlist and the denylist is a STOP, not a judgment call — and the choice among allowlisted verbs is semantic, not convenience (`document` ≠ `update` ≠ `add`).
 - **`claude/*` branches are session scaffolding, not work branches.** The desktop harness creates one per worktree. They carry zero commits, are never PR targets, and sit outside R11/G-R2. The real work branch is created inside the session from a verified base SHA with explicit owner approval (`docs/GIT_WORKFLOW.md` "`claude/*` scaffolding branches").
 
@@ -240,7 +240,7 @@ If you discover a new rule while working, `CLAUDE.md` says to add it. That does 
 
 ```bash
 git log --oneline -15                       # what just landed
-ls docs/tasks/                              # every task ever, newest number last
+ls docs/tasks/                              # every task ever, in lexical order
 ls -t docs/sessions/ | head -5              # the five most recent recaps
 git branch --show-current                   # am I on claude/* scaffolding?
 ```

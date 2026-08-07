@@ -29,8 +29,8 @@ This section is the one-screen orientation; the detail lives where it already do
 
 - **Phases and identity shifts** — this ROADMAP, below.
 - **Possibility state (parked ideas, open decisions)** — `docs/explorations/`, one note per topic.
-- **Per-task specs / briefs** — `docs/tasks/<NNN>-<slug>/`.
-- **Session recaps (mentor + executor)** — `docs/sessions/`.
+- **Per-task specs / briefs** — `docs/tasks/<task-id>-<slug>/`.
+- **Session recaps (orchestrator + executor)** — `docs/sessions/`.
 - **Doctrine** — `CLAUDE.md` (rules), `MENTOR_BRIEF.md` (mentoring), `docs/GOTCHAS.md` (traps).
 - **Active focus / current architectural decisions** — `MENTOR_BRIEF.md` §2.
 
@@ -334,7 +334,7 @@ Estimates and the M5.x milestone breakdown from the v1 plan are not migrated —
 
 - `CLAUDE.md` — technical rules (TS-specific rules pending; see MENTOR_BRIEF §2).
 - `docs/MENTOR_BRIEF.md` §2 — active architectural decisions, refreshed in sync with this file.
-- `docs/tasks/<NNN>-<slug>/` — per-task briefs; written when a task is about to start.
+- `docs/tasks/<task-id>-<slug>/` — per-task briefs; written when a task is about to start.
 - `docs/explorations/` — possibility state (parked ideas, open decisions); read its README contract first.
 - `docs/GIT_WORKFLOW.md` — operational discipline.
 - `README.md` — current functionality (v1 asset browser side).

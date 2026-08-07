@@ -50,13 +50,15 @@ Regras vigentes nesta sessão:
   base SHA verificado. Push/PR só por instrução explícita minha, por
   branch; nunca main, nunca --force.
 - Rulings meus no meio da run viram arquivo
-  (docs/tasks/<NNN>-<slug>/notes.md), não paste de chat.
+  (docs/tasks/<task-id>-<slug>/notes.md), não paste de chat.
 - Recaps Orchestrator + executor commitam na branch da sessão
   (docs(sessions):) e viajam no PR dela.
 
 Antes de propor qualquer coisa: M-R13 em uma linha (quem eu sou +
-modo da sessão), depois P4 pro slot do brief (ls docs/tasks/ +
-git log --oneline main + reservas em briefs/CLAUDE.md E*).
+modo da sessão), depois P4 pro slug do brief (ls docs/tasks/ +
+git log --oneline main + grep do slug em CLAUDE.md e docs/ +
+git branch -a e git worktree list). Slug ocupado: escolhe outro e
+roda as quatro de novo. Fontes se contradizendo: STOP.
 ```
 
 ## --- FIM COPIAR ---

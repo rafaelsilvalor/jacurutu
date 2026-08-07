@@ -1,7 +1,7 @@
 # Mentor lane in Claude Code, and the task identifier
 
-Status: exploration — possibilities only, NOT a commitment or spec
-Disposition: candidate — 2026-08-03
+Status: exploration — no implementation mandate
+Disposition: promoted to briefs 049-052 — 2026-08-07
 Origin: mentor session 2026-08-03 (harness model; mode: exploring
 possibilities). Consumes the parked "multi-contributor naming package"
 of `docs/tasks/039-orchestrator-doctrine/brief.md` and the fused-model
@@ -171,3 +171,8 @@ so the planner is not invoked (M-R15).
   doctrine); E3's cutover re-anchored from slot 049 to brief C's merge.
 - 2026-08-06 — brief 051 measured the §5 migration surface at 21 ROADMAP
   entries (10 parking lot + 11 pending decisions), not 22.
+- 2026-08-07 — disposition moved from `candidate` to `promoted to briefs
+  049-052`. The arc shipped in four briefs: 049 (the Mentor vehicle,
+  PR #119), 050 (the doctrine, PR #122), 051 (parking lot and pending
+  decisions, PR #123) and 052 (the identifier cutover). 052 is the last
+  task born under the numeric scheme it retired.
