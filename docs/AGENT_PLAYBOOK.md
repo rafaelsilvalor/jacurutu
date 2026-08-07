@@ -281,7 +281,7 @@ The closer is the sixth role and the only one that acts on the assembled result 
 Two entry points coexist:
 
 - **Pipeline (default for new tasks):** the Orchestrator invokes the planner with a task description; planner writes the brief, validator audits it, executor runs it. Use when the task started from a conceptual-surface discussion (Mentor) or a clear single-paragraph delegation.
-- **Caminho B (fallback):** the brief is authored without the planner — under the fused model, the Orchestrator authors it via the write gate, with you closing decisions one at a time — pre-saved to `docs/tasks/<NNN>-<slug>/brief.md`, and the executor is invoked directly. Use when the brief shape needs hand-tuning a delegation prompt cannot carry (large structural edits, doctrinal briefs, bootstrap scenarios where the pipeline itself is being modified).
+- **Caminho B (fallback):** the brief is authored without the planner — under the fused model, the Orchestrator authors it via the write gate, with you closing decisions one at a time — pre-saved to `docs/tasks/<task-id>-<slug>/brief.md`, and the executor is invoked directly. Use when the brief shape needs hand-tuning a delegation prompt cannot carry (large structural edits, doctrinal briefs, bootstrap scenarios where the pipeline itself is being modified).
 
 The pipeline and caminho B are not mutually exclusive: caminho B is what you reach for when the pipeline would loop on its own creation, or when the task carries decisions that didn't fit a delegation prompt.
 
@@ -307,7 +307,7 @@ The Orchestrator then:
 **Caminho B invocation (in the Orchestrator session):**
 
 ```
-Execute brief at docs/tasks/<NNN>-<slug>/brief.md on branch <branch>.
+Execute brief at docs/tasks/<task-id>-<slug>/brief.md on branch <branch>.
 Invoke @executor.
 ```
 
@@ -343,7 +343,7 @@ If you reject at the orchestrator gate, route through the same three responses a
 
 This is operating knowledge, not a numbered rule: subagents cannot wait interactively for chat input, so Pause semantics ride a different transport. A Pause under subagent transport is a STOP-and-return — the executor stops, returns with the whole Pause presentation as one fenced block, and the run resumes only when your approval is relayed back as a continuation message. Zero Pauses may be crossed without an explicit relayed go; the semantics are identical to an interactive Pause, only the transport is swapped.
 
-Mid-run owner rulings become files: instead of relaying a ruling as a chat paste, the Orchestrator writes it to `docs/tasks/<NNN>-<slug>/notes.md` (write gate applies). Byte-exact by construction, and a durable record for free.
+Mid-run owner rulings become files: instead of relaying a ruling as a chat paste, the Orchestrator writes it to `docs/tasks/<task-id>-<slug>/notes.md` (write gate applies). Byte-exact by construction, and a durable record for free.
 
 ### Recap policy (three recaps)
 
@@ -387,7 +387,7 @@ R17 restated for Orchestrator sessions — the letter of the rule holds; the fus
 | Symptom | Diagnosis | Response |
 |---|---|---|
 | Planner STOPs with "ambiguous input" | Delegation prompt lacked clear Goal | Rework the delegation in the Orchestrator session; rewrite it into 1-2 imperative sentences |
-| Planner STOPs with "NNN resolution conflict" | P4 three-source check disagreed | Manually resolve the slot number; pass it explicitly in the next delegation |
+| Planner STOPs with "slug resolution conflict" | P4 four-source slug check disagreed | Resolve the slug by hand — decide which source reflects reality — and pass it explicitly in the next delegation |
 | Validator REJECTED with FAILs you disagree with | Convention vs. intentional deviation tension | Use override path (option 3 above); document the override |
 | Validator REJECTED with FAILs you didn't anticipate | Planner output drifted from brief-template SKILL | Fix on branch (option 2); re-validate |
 | Executor STOPs at Pause 2 with "file outside scope" | Brief's scope didn't predict a required side-effect | Revise the scope in the Orchestrator session; re-execute |
