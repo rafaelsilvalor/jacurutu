@@ -20,7 +20,7 @@ antes do merge.
 
 ### 1. Critério de pronto do brief
 
-Volta no brief original (`docs/tasks/<NNN>-<slug>/brief.md`) e confirma cada item:
+Volta no brief original (`docs/tasks/<task-id>-<slug>/brief.md`) e confirma cada item:
 
 ```
 [ ] Cada item da seção "Critério de pronto" foi atendido?

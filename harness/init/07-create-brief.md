@@ -2,7 +2,7 @@
 
 > **Quando usar:** começo de tarefa M ou L. Você (usuário) descreve
 > o que precisa fazer e este prompt guia a conversa pra produzir um
-> brief adequado em `docs/tasks/<NNN>-<slug>/brief.md`.
+> brief adequado em `docs/tasks/<task-id>-<slug>/brief.md`.
 >
 > **Onde colar:** chat (claude.ai). É discussão, não execução.
 
@@ -13,7 +13,7 @@
 ```
 Preciso criar um brief pra tarefa nova no projeto. Vou te descrever
 o que quero fazer; me ajude a entender as necessidades reais e gerar
-um brief adequado pro projeto em `docs/tasks/<NNN>-<slug>/brief.md`.
+um brief adequado pro projeto em `docs/tasks/<task-id>-<slug>/brief.md`.
 
 Antes de começar a entrevista:
 
@@ -59,22 +59,29 @@ Procura ativamente armadilhas no que descrevi:
 Levanta as armadilhas como perguntas, não como acusações.
 
 PASSO 5 — Compilação do brief:
-- Determina o próximo número livre em `docs/tasks/` (NNN com
-  zero-padding, ex.: 001, 002) e um slug curto descritivo em
-  kebab-case
+- Escolhe um slug curto descritivo em kebab-case e verifica que ele
+  está livre em quatro fontes: `ls docs/tasks/`,
+  `git log --oneline main`, um grep pelo slug em `CLAUDE.md` e
+  `docs/`, e `git branch -a` mais `git worktree list`. Num repo
+  recém-criado ainda não existe `docs/tasks/` nem histórico, então a
+  primeira tarefa só escolhe o slug — a verificação passa a valer da
+  segunda em diante. Se alguma fonte mostrar o slug ocupado, escolhe
+  outro e roda as quatro de novo
+- O id da tarefa é a data de hoje em `YYYY-MM-DD`; não tem número
+  pra calcular
 - Determina `Plan required: yes | no` baseado no critério em
   `.claude/skills/brief-template/SKILL.md` (seção "Pause points"
   e "Plan required justification")
 - Gera o brief seguindo o template de
   `.claude/skills/brief-template/SKILL.md`. Use as decisões
   da entrevista pra preencher cada seção
-- Caminho de saída: `docs/tasks/<NNN>-<slug>/brief.md`
+- Caminho de saída: `docs/tasks/<task-id>-<slug>/brief.md`
 
 PASSO 6 — Revisão final:
 Mostra o brief gerado. Pergunta se há algo a ajustar. Quando
-aprovado, salva como `docs/tasks/<NNN>-<slug>/brief.md`. Sugere
+aprovado, salva como `docs/tasks/<task-id>-<slug>/brief.md`. Sugere
 próximo passo: commitar o brief com mensagem
-`docs(tasks): add brief for <NNN>-<slug>` e iniciar a tarefa
+`docs(tasks): add brief for <task-id>-<slug>` e iniciar a tarefa
 invocando o executor agent no Claude Code (caminho B — brief já
 está salvo; ver `docs/AGENT_PLAYBOOK.md` Capítulo 6).
 
@@ -92,7 +99,7 @@ Princípios:
 
 A conversa vai durar 15-30 min dependendo do tamanho da tarefa.
 
-Resultado: `docs/tasks/<NNN>-<slug>/brief.md`, pronto pra ser
+Resultado: `docs/tasks/<task-id>-<slug>/brief.md`, pronto pra ser
 referenciado pelo agente executor. O `plan.md` (se
 `Plan required: yes`) e quaisquer `notes.md` ficam na mesma pasta.
 

@@ -22,8 +22,8 @@ basta uma checada visual no `git log` e no diff.
 Auditoria pós-merge da PR <NNN>. Modo: code review.
 
 PASSO 1 — Carrega contexto:
-  - Brief: docs/tasks/<NNN>-<slug>/brief.md
-  - Recap do executor: docs/sessions/<date>-executor-<NNN>-<slug>.md
+  - Brief: docs/tasks/<task-id>-<slug>/brief.md
+  - Recap do executor: docs/sessions/<date>-executor-<slug>.md
   - git log da branch: git log --oneline main..<merge-commit>^2
   - Diff total: git diff main~1..main -- <paths-tocados>
 
