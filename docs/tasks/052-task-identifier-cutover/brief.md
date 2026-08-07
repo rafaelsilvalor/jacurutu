@@ -110,6 +110,16 @@ Every one is enumerated, because a green sweep proves nothing:
   `harness/workflows/close-mentor-session.md` — grepped explicitly, **zero**
   convention hits. Their only matches are bare `docs/tasks/**` and
   `docs/sessions/` paths, which survive the cutover unchanged.
+- `docs/explorations/mentor-lane-and-task-identity.md` lines 78, 79, 96, 101
+  and 121 — the note's own body. Structural check 3's exclusion is anchored on
+  `docs/tasks/`, `docs/sessions/`, `node_modules` and `.git/`, so
+  `docs/explorations/` is in the swept set and these five lines are returned by
+  design. They stay: the note is a historical record of what was decided on
+  2026-08-03, and Edit 6 scopes this brief to its header block and changelog
+  while explicitly forbidding body edits. Lines 78-79 describe the recap
+  foreign key under the old scheme, 96 and 101 are E3 and E8 stating the rule
+  in terms of `NNN`, and 121 is the dated migration-surface measurement.
+  Rewriting any of them would falsify the record rather than migrate it.
 
 ### Size note
 

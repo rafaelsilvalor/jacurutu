@@ -176,9 +176,10 @@ Run this gate before writing the brief's commit subjects and before any commit.
    exists, STOP and report.
 2. **P4 evidence (slug).** Record the four-source slug check in the brief (in
    the P4 constraint or Edit 1): the relevant lines of `ls docs/tasks/`, the
-   relevant `git log --oneline main` entry, the `CLAUDE.md` E* reserve
-   check, and the `git branch -a` / `git worktree list` output. Do not assert
-   the slug is free without the recorded evidence.
+   relevant `git log --oneline main` entry, the `grep -rn '<slug>' CLAUDE.md
+   docs/` result — which covers both an `E*` reserve and a slug named only in
+   an exploration note — and the `git branch -a` / `git worktree list` output.
+   Do not assert the slug is free without the recorded evidence.
 3. **Judgment flags.** Convert each `## Judgment flags` entry from the
    delegation into a STOP-and-confirm guard at its named location (see Inputs).
 
