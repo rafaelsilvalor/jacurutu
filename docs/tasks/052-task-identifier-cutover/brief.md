@@ -410,7 +410,7 @@ Steps 3-5 keep their numbers and text. Then:
   open
 - `description`, Inputs, and the two Output-format paths use `<task-id>`
 
-**3c. `.claude/agents/executor.md`.** Five `<NNN>` sites become `<task-id>`:
+**3c. `.claude/agents/executor.md`.** Six `<NNN>` sites become `<task-id>`:
 `description`, the Inputs delegation string, reading-order item 5, and the three
 `chore(state):` subjects (`start`, `update`, `remove after`).
 
@@ -484,13 +484,16 @@ disagreed | ... |` becomes the slug-conflict row against the four-source check.
 Verification:
 
 - [ ] `grep -rn '<NNN>' CLAUDE.md docs/PROCESS_MAP.md docs/AGENT_PLAYBOOK.md docs/ROADMAP.md`
-      returns nothing
+      returns only `docs/PROCESS_MAP.md` §7's Session recap row, whose
+      `<NNN>-<slug>` is the E8 carve-out this same Edit prescribes verbatim
 - [ ] `grep -n 'task-id' docs/PROCESS_MAP.md` shows the §7 definition
 - [ ] `grep -n 'burned reserves' docs/PROCESS_MAP.md` still returns the §8 `En`
       row, unchanged
 - [ ] `grep -n 'mentor' docs/PROCESS_MAP.md | grep -i recap` shows no `mentor`
       in the recap role set
-- [ ] `git diff --stat docs/ROADMAP.md` shows 2 changed lines, not more
+- [ ] `git diff --stat docs/ROADMAP.md` shows 3 changed lines, not more: the
+      two path pointers, plus the recap role set (`mentor + executor` ->
+      `orchestrator + executor`) bundled here by owner ruling during the run
 
 Commit: see Commit sequence #4.
 
@@ -519,9 +522,10 @@ Verification:
 - [ ] `grep -rn '<NNN>' harness/` returns only `audit-merge.md` line ~22, the
       PR number
 - [ ] `grep -n 'worktree list' harness/workflows/setup-orchestrator.md` hits
-- [ ] `grep -rniE '\b(the|and|with|before|after)\b' harness/workflows/close-task.md`
-      returns nothing inside the `--- COPIAR ---` block — no accidental
-      translation to English
+- [ ] `grep -niE '\b(the|and|with|before|after)\b' harness/workflows/close-task.md`
+      returns, inside the `--- COPIAR ---` block, only the quoted English
+      commit subject `chore(state): remove after completion` — which R9
+      requires to be English. Anything else is accidental translation
 
 Commit: see Commit sequence #5.
 

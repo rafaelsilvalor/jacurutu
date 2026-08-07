@@ -345,7 +345,7 @@ This is operating knowledge, not a numbered rule: subagents cannot wait interact
 
 Mid-run owner rulings become files: instead of relaying a ruling as a chat paste, the Orchestrator writes it to `docs/tasks/<task-id>-<slug>/notes.md` (write gate applies). Byte-exact by construction, and a durable record for free.
 
-### Recap policy (three recaps)
+### Recap policy (two recaps)
 
 Two roles produce session recaps; four produce none:
 
