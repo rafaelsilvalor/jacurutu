@@ -126,7 +126,7 @@ Do not translate piecemeal during unrelated PRs.
 - `docs/GIT_WORKFLOW.md` — branching, PRs, hooks, release tags
 - `docs/GOTCHAS.md` — known traps: worker pool timeouts, PSD binary parser, cache versioning, cross-platform pitfalls
 - `docs/AGENT_PLAYBOOK.md` — the Orchestrator role and the role-based pipeline (Orchestrator → planner → brief-validator → executor → closer)
-- `docs/ROADMAP.md` — product roadmap (phases, milestones, parking lot, pending decisions); ages in sync with `MENTOR_BRIEF.md` §2
+- `docs/ROADMAP.md` — product roadmap (phases, milestones; parked ideas and open decisions live as notes in `docs/explorations/`); ages in sync with `MENTOR_BRIEF.md` §2
 - `docs/tasks/<NNN>-<slug>/` — per-task artifacts: `brief.md`, optional `plan.md`, optional `notes.md`. Created when a task starts; preserved after merge as the historical record
 - `harness/` — workflow prompts (`setup-code.md`, `pause-task.md`, etc.) for new sessions; parallel manual surface to `.claude/agents/`
 - `.claude/agents/` — orchestration subagents: `planner.md`, `brief-validator.md`, `executor.md`, `closer.md` (reviews the assembled diff); invoked by the main session acting as Orchestrator (`docs/AGENT_PLAYBOOK.md` Chapter 6)

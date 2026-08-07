@@ -39,7 +39,7 @@ The process here is deliberately heavy for a one-person project. The reason is s
 
 **Tier 2 — on demand:**
 
-- `docs/ROADMAP.md` — phases, parking lot, pending decisions. Read before proposing anything forward-looking.
+- `docs/ROADMAP.md` — phases and identity shifts. Read before proposing anything forward-looking, together with `docs/explorations/` for parked ideas and open decisions.
 - `docs/tasks/<NNN>-<slug>/brief.md` — the closest prior task to whatever you are doing. The single fastest way to learn the house style is to read two recent briefs.
 - `docs/sessions/` — how a session actually went, including what went wrong.
 - `docs/explorations/` — accumulated findings with no implementation mandate. Read `docs/explorations/README.md` first; the authority contract matters.
@@ -54,7 +54,7 @@ docs/                        canonical documentation + the historical record
   MENTOR_BRIEF.md              who the owner is, how the Mentor lane behaves (M-R*)
   GIT_WORKFLOW.md              branches, commits, hooks, PRs, recovery (G-R*/G-A*)
   GOTCHAS.md                   stack traps with permanent IDs (G-CAT-N)
-  ROADMAP.md                   phases, parking lot, pending decisions
+  ROADMAP.md                   phases, identity shifts (possibility state: explorations/)
   PROCESS_MAP.md               this file
   tasks/<NNN>-<slug>/          per-task artifacts, preserved after merge
   sessions/                    one recap per session per role
@@ -283,7 +283,7 @@ Each of these has happened and is documented. They are process failures, not cod
 | `docs/MENTOR_BRIEF.md` | who the owner is; Mentor-lane behavior (`M-R*`) |
 | `docs/GIT_WORKFLOW.md` | branches, commits, hooks, PRs, releases, recovery |
 | `docs/GOTCHAS.md` | stack traps (`G-CAT-N`) |
-| `docs/ROADMAP.md` | phases, parking lot, pending decisions |
+| `docs/ROADMAP.md` | phases, identity shifts; possibility state lives in `docs/explorations/` |
 | `docs/explorations/README.md` | the authority contract for notes |
 | `.claude/agents/*.md` | the four subagent contracts |
 | `.claude/skills/brief-template/SKILL.md` | how a brief is structured |

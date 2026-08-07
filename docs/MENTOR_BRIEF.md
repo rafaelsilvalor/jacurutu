@@ -168,8 +168,9 @@
     consumer, not the source of aggregation. Retires the Python
     `automation/` for coordination.
   - **Full v2 roadmap** with phases (tagged `[coord]` / `[prod]` per
-    item), parking lot, and pending decisions: `docs/ROADMAP.md`.
-    Legacy v1 phases are marked `superseded` in that file.
+    item): `docs/ROADMAP.md`. Parked ideas and open decisions live as
+    notes in `docs/explorations/` (brief 051). Legacy v1 phases are
+    marked `superseded` in that file.
 
 > ⚠️ This section ages fast. Update it after every significant milestone or pivot.
 
@@ -264,7 +265,7 @@ Caminho B briefs — doctrinal, pipeline-modifying, bootstrap — are authored b
 | `docs/MENTOR_BRIEF.md` | Mentor session (Claude Code) — this file. Behavior, not mechanics |
 | `.claude/skills/mentor-mode/SKILL.md` | Mentor session mechanics — opening, read and write policy, close |
 | `harness/workflows/setup-mentor.md`, `close-mentor-session.md` | The user — opening and closing a Mentor session |
-| `docs/ROADMAP.md` | Both — product roadmap (phases, milestones, parking lot, pending decisions) |
+| `docs/ROADMAP.md` | Both — product roadmap (phases, milestones; possibility state in `docs/explorations/`) |
 | `docs/GIT_WORKFLOW.md` | Both agents and the user — branching, PRs, hooks, releases |
 | `docs/GOTCHAS.md` | Both agents and the user — codebase-specific traps |
 | `docs/explorations/README.md` | The note authority contract and the disposition set |
