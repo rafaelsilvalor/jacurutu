@@ -1,11 +1,12 @@
 # Google Drive automation via OAuth — Estratégia environment
 
-Status: exploration — possibilities only, NOT a commitment or spec
-Promotion: promoted to brief 046 — 2026-07-27
+Status: exploration — no implementation mandate
+Disposition: promoted to brief 046 — 2026-07-27
 Origin: Python-era `automation/` guide (owner-supplied); absorbed in the
 mentor session 2026-07-27 (`ship` semantics exploration)
-Roadmap link: pending decision #11 (Google Drive JS library); feeds the
-adapter-drive spike (slot 046 candidate)
+Roadmap link: absorbed ROADMAP Pending decisions #11 (Google Drive JS
+library, resolved 2026-07-27) — 2026-08-06; fed the adapter-drive spike
+(brief 046)
 
 Context document for AI agents building or maintaining Google Drive
 automation in this environment (account rafael.silva@estrategia.com).
@@ -151,7 +152,7 @@ sharing.
 — if the parked Sheets projection ever promotes in v2, adding the
 `spreadsheets` scope to the designer's existing OAuth is configuration,
 not new infrastructure. The Python pipeline's Service Account stays
-untouched (ROADMAP pending decision #4 default).
+untouched (the [[v1-v2-overlap]] note's default).
 
 ## 8. Known environment constraint
 
@@ -189,6 +190,15 @@ equivalents live in the ship decision set (mentor recap 2026-07-27):
 - Before destructive Drive operations (move, delete, overwrite), run in
   `--dry-run` mode and show the plan to the user
 
+## Absorbed roadmap entry (2026-08-06, brief 051)
+
+11. ~~**Google Drive JS library.** Equivalent for Drive read / write
+    (templates, manifests, ship uploads). Not yet researched.
+    Required before Phase 3 `adapter-drive` work; not blocking
+    Phase 2.~~ — *resolved 2026-07-27: googleapis + google-auth-library
+    with scopes drive.file + drive.metadata.readonly (brief 046, see
+    `docs/tasks/046-spike-adapter-drive/notes.md`)*
+
 ## Changelog
 
 - 2026-07-27 — Translated to English from the owner's Python-era guide;
@@ -197,3 +207,6 @@ equivalents live in the ship decision set (mentor recap 2026-07-27):
   `docs/explorations/`.
 - 2026-07-27 — Promoted to brief 046 (adapter-drive spike); promotion status
   line added.
+- 2026-08-06 — header updated to the 050 contract (`Promotion:` line renamed
+  to `Disposition:`, same value); absorbed the resolved pending decision #11
+  at its migration (brief 051).
