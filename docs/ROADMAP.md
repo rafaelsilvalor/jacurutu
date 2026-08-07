@@ -27,7 +27,8 @@ One distinction the map keeps straight: the loop's own task-state is **local** (
 
 This section is the one-screen orientation; the detail lives where it already does.
 
-- **Phases, pending decisions, identity shifts** — this ROADMAP, below.
+- **Phases and identity shifts** — this ROADMAP, below.
+- **Possibility state (parked ideas, open decisions)** — `docs/explorations/`, one note per topic.
 - **Per-task specs / briefs** — `docs/tasks/<NNN>-<slug>/`.
 - **Session recaps (mentor + executor)** — `docs/sessions/`.
 - **Doctrine** — `CLAUDE.md` (rules), `MENTOR_BRIEF.md` (mentoring), `docs/GOTCHAS.md` (traps).
@@ -288,58 +289,21 @@ Beyond the desktop reconnect, the next directions are open. See **Parking lot** 
 
 ## Parking lot
 
-Ideas anchored but unscheduled. Each evaluates against the current phase's goal before promotion.
-
-- **Multi-source adapters** — Figma (read), Drive (read/write), other input sources. Generalizing a `Source` interface beyond Jira.
-- **Asset browser (v1 feature)** — preserved as a candidate view inside v2 if it earns its place; not migrated automatically.
-- **PSD diagnostics, mass audit, favorites** (from v1 roadmap) — preserved in case the asset browser view is restored.
-- **Plugin system** — dev-authored (Neovim-style), not end-user marketplace. Surfaces when a second concrete extension case appears.
-- **Central catalog API** — when Estratégia central infrastructure exists and volume justifies it (tens of thousands of files).
-- **Tags, comments, versioning** — depend on central catalog.
-- **Direct Jira write-back** — currently parked; the coordination pipeline reads Jira but doesn't write. Evaluate after Phase 4 ships.
-- **Docs site (Astro Starlight)** — post-Phase-1 tooling task; enters as a workspace, same npm/TS ecosystem as v2 monorepo.
-- **Sheets one-way push** — publish a flat projection tab for a downstream
-  reader; named future consumer: Looker Studio. Was the Phase 4 `adapter-sheets`
-  item; demoted by the 2026-06-12 pivot. Promotes when a concrete consumer
-  exists.
-- **XLSX export format** — a second export format beyond CSV + JSON, gated on a
-  separate runtime-dependency (R2) decision. Promotes when demanded.
+Ideas anchored but unscheduled live as exploration notes in
+`docs/explorations/` — since brief 051 (2026-08-06) that folder owns each
+possibility's state (disposition, trigger, changelog) under the contract in
+`docs/explorations/README.md`; this file only points. New ideas start as a
+note there, not as a line here.
 
 ## Pending decisions
 
-Open questions that will gate or shape upcoming phases.
-
-1. **JS libraries for Jira REST and Google Sheets.** Equivalents to Python's `requests` and `gspread` not yet researched. Required before Phase 4 starts; not blocking Phases 1-3. The Google Sheets (gspread-equivalent) half is no longer pre-Phase-4: after the 2026-06-12 pivot, Sheets is a parking-lot consumer, so its library choice is gated on that promotion, not on Phase 4 start.
-2. **Designer-friendly packaging format.** Installer? Portable? Per-OS variants? Deferred to Phase 3 planning.
-3. **`ProductionFlow` / `Workspace` exact abstraction.** Likely surfaces during Phase 2 port; refined in Phase 3 design.
-4. **Coordination of v1 ↔ v2 during overlap.** While v2's Phase 4 is unfinished, Python `automation/` runs coord mode. Decide: keep automation untouched, or accept small patches? Default: untouched.
-5. **Estratégia central infrastructure** (carried from previous ROADMAP) — open item from MENTOR_BRIEF §2; tracked outside code.
-6. **CLI library — final choice.** Phase 1 uses the `node:util` `parseArgs`
-   builtin (D4). Revisit at the Phase 2→3 transition when production flow
-   brings real commands — choice between `commander`, `citty`, or
-   continuing with the builtin will be informed by real usage data.
-7. **Versioning policy.** Phase 1–3 use `"version": "0.0.0"` on every
-   `package.json` plus git tags on the root (D5). Decide single vs.
-   independent vs. continued defer in Phase 4 when adapter stability
-   provides input.
-8. **`TaskManifest` format.** Exact JSON shape of the manifest file
-   that lives in each task's Drive folder: required fields, optional
-   fields, versioning strategy, file name convention (`.saci.json`
-   or similar). Designed in Phase 2 (type) and finalized in Phase 3
-   (serialization).
-9. **Local storage format.** On-disk layout for the two data
-   categories (Jira mirror — overwritable; production state — never
-   overwritten by fetch). SQLite, JSON files per task, or a hybrid.
-   Decided at Phase 3 start.
-10. **Sheets aggregation granularity.** Per-event push, daily
-    rollup, or point-in-time snapshot. Decided during Phase 4
-    modeling when real usage data from Phase 3 informs the choice.
-11. ~~**Google Drive JS library.** Equivalent for Drive read / write
-    (templates, manifests, ship uploads). Not yet researched.
-    Required before Phase 3 `adapter-drive` work; not blocking
-    Phase 2.~~ — *resolved 2026-07-27: googleapis + google-auth-library
-    with scopes drive.file + drive.metadata.readonly (brief 046, see
-    `docs/tasks/046-spike-adapter-drive/notes.md`)*
+Open questions that gate or shape upcoming phases live in the same
+`docs/explorations/` notes: each question carries its disposition and its
+resolution history. Resolutions are recorded as dated disposition transitions
+in the note's changelog, never by deletion. The numbered list that lived here
+(decisions #1–#11) migrated into notes on 2026-08-06; the D1 table of
+`docs/tasks/051-parking-pending-migration/brief.md` maps each number to its
+note.
 
 ## Legacy / superseded — Saci-Electron-v1 phases
 
@@ -348,9 +312,9 @@ The following phases were planned under the Electron-v1 codebase. With v1 enteri
 - ~~**Phase 1 — Storage layer foundation**~~ — superseded; in v2, persistence is per-adapter, not a single seam.
 - ~~**Phase 2 — Registry foundations**~~ — superseded; v2 doesn't have the dispatch-table problem R19 was solving.
 - ~~**Phase 3 — Command palette**~~ — superseded; revisit if the desktop UI requires it (v2 Phase 5).
-- ~~**Phase 4 — Multi-source abstraction**~~ — superseded; the `Source` interface idea survives in the v2 Parking lot.
+- ~~**Phase 4 — Multi-source abstraction**~~ — superseded; the `Source` interface idea survives in `docs/explorations/multi-source-adapters.md`.
 - ~~**Phase 5 — Production workflow**~~ — superseded by **v2 Phase 3** (promoted in priority).
-- ~~**Phase 6 — Plugin maturation & central API**~~ — superseded; survives in v2 Parking lot.
+- ~~**Phase 6 — Plugin maturation & central API**~~ — superseded; survives in `docs/explorations/plugin-system.md` and `docs/explorations/central-catalog.md`.
 
 Estimates and the M5.x milestone breakdown from the v1 plan are not migrated — v2 starts with new estimates, set at each phase's start.
 
@@ -358,8 +322,8 @@ Estimates and the M5.x milestone breakdown from the v1 plan are not migrated —
 
 - This file ages alongside MENTOR_BRIEF §2; treat them as a pair.
 - After each merged PR that closes a milestone or phase: update the relevant section's status line in the same PR.
-- New ideas → **Parking lot** with a one-line rationale. Do not enrich parking-lot entries beyond a line until they are nominated for promotion.
-- Resolved pending decisions → strike through with date and a one-line resolution (`~~Decision text~~ — *resolved 2026-XX-XX: <outcome>*`). Do not delete; they form the history.
+- New ideas and new open decisions → a note in `docs/explorations/` under its README contract (header, disposition, changelog). This file is not the surface for them; the two pointer sections above list nothing.
+- Resolving a decision → a dated disposition transition in the note's changelog (`docs/explorations/README.md`). Do not delete notes; they form the history.
 - Identity-level shifts get a dated subsection in `## Identity shifts`; do not silently rewrite earlier ones.
 - Phase-level shifts (a phase being superseded by another, like the v1 → v2 pivot) move the old phases to `## Legacy / superseded` with a one-line rationale per phase; do not delete them.
 - The **Product map at a glance** section is single-source — it points, it does not restate. Phase/decision/identity content lives in the body below and in the pointed-to docs; never duplicate it into the map.
@@ -371,5 +335,6 @@ Estimates and the M5.x milestone breakdown from the v1 plan are not migrated —
 - `CLAUDE.md` — technical rules (TS-specific rules pending; see MENTOR_BRIEF §2).
 - `docs/MENTOR_BRIEF.md` §2 — active architectural decisions, refreshed in sync with this file.
 - `docs/tasks/<NNN>-<slug>/` — per-task briefs; written when a task is about to start.
+- `docs/explorations/` — possibility state (parked ideas, open decisions); read its README contract first.
 - `docs/GIT_WORKFLOW.md` — operational discipline.
 - `README.md` — current functionality (v1 asset browser side).
