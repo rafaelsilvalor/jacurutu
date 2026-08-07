@@ -168,6 +168,7 @@ Classification of every hit (line numbers as of `main@26272cb`):
 | `docs/MENTOR_BRIEF.md:171,267` | repair (Edit 6c) |
 | `README.md:32` | repair (Edit 6d, pt-BR file) |
 | `docs/explorations/README.md:48,83` | repair (Edit 4a) |
+| `docs/explorations/README.md:11` | repair (errata commit) — stale present-tense parking-lot clause, found at the Edit 6 D6 re-run |
 | `docs/explorations/desktop-ui-host.md:6` | repair (Edit 4b) |
 | `docs/explorations/drive-oauth.md:7,154` | repair (Edit 4c) |
 | `docs/ROADMAP.md:30,289–343,351,353,361–362` | repair (Edit 5) |
@@ -560,8 +561,14 @@ Verification:
 - [ ] Twelve files exist; each first line matches its `# ` title above
 - [ ] `ls docs/explorations/ | wc -l` returns 19 (15 new + 3 pre-existing
       notes + README.md)
-- [ ] `grep -L "Disposition:" docs/explorations/*.md` returns only
-      `docs/explorations/README.md`
+- [ ] `grep -L "Disposition:" docs/explorations/*.md` returns only the two
+      legacy notes (`desktop-ui-host.md`, `drive-oauth.md`) — at Edit 3 time
+      they still lack a `Disposition:` line; they gain it in Edit 4.
+      `README.md` is not returned because its contract template block
+      contains a `Disposition:` line. Only after Edit 4 does the command
+      return empty. (Errata 2026-08-06: this checkbox originally claimed
+      "returns only `README.md`" — a post-Edit-4 expectation that also
+      missed the template match.)
 - [ ] `grep -cL "## Changelog" docs/explorations/*.md` — every note file has
       one (README excluded from the requirement)
 
@@ -843,10 +850,13 @@ Verification:
       returns 0
 - [ ] `awk '/^## Pending decisions/,/^## Legacy/' docs/ROADMAP.md | grep -cE '^[0-9]+\. '`
       returns 0
-- [ ] `grep -c 'docs/explorations/' docs/ROADMAP.md` returns 6 (pointer
-      index, both section bodies, two update-protocol bullets counted as
-      written, references) — recount against the final text and report the
-      actual number with the command output
+- [ ] `grep -c 'docs/explorations/' docs/ROADMAP.md` returns 9 (pointer
+      index; both section bodies, including the `README.md` contract mention
+      in 5b; the two 5e legacy lines; two update-protocol bullets;
+      references) — recount against the final text and report the
+      actual number with the command output (errata 2026-08-06: originally
+      estimated 6, undercounting 5e and the 5b `README.md` mention;
+      measured 9)
 - [ ] Lines classified `keep` in D6 (`docs/ROADMAP.md:77,111,269,287` at old
       numbering) are untouched
 
@@ -970,6 +980,13 @@ Commit: `docs: update the parking-lot pointers across the doc surface`
 
 All subjects ≤ 72 chars; verbs `add` / `update` / `migrate` are on the
 allowlist SSOT (`.claude/skills/pre-commit-self-audit/SKILL.md`).
+
+7. `docs: fix the brief errata and the stale contract clause` — errata
+   commit added mid-run by owner ruling (2026-08-06), not part of the
+   original sequence. Bundles: the Edit 3 `Disposition:` checkbox rewording,
+   the Edit 5 reference-count correction (6 → 9), the
+   `docs/explorations/README.md:11` stale-clause repair and its D6 table
+   row.
 
 ### Automated checks (run before each commit)
 

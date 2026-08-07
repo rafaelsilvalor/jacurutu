@@ -8,9 +8,10 @@
 
 ## What this folder is
 
-A knowledge type between the ROADMAP parking lot (one line per idea, by
-protocol) and session recaps (session state): **rich, agent-consumable
-insight with no implementation mandate**. Possibilities discussed,
+A knowledge type between the ROADMAP's former parking lot (one line per
+idea, by the old protocol; migrated here by brief 051) and session recaps
+(session state): **rich, agent-consumable insight with no implementation
+mandate**. Possibilities discussed,
 findings validated, traps discovered — accumulated so that when a topic
 activates, the planner starts from evidence instead of from zero.
 
