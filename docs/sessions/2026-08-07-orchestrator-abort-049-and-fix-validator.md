@@ -132,9 +132,12 @@ Two findings rode in on the correction. C11, now discriminating, surfaces 20
 out-of-allowlist verbs across briefs 000 to 016 — `record`, `adopt`, `align`,
 `refine`, `translate`, `introduce`, `route` — all predating the allowlist and
 all in merged briefs that are never re-validated. And C7's length rule now
-trips six merged briefs, five with genuinely long subjects and one (050) whose
-Commit sequence line carries an annotation after the subject rather than the
-subject alone.
+trips six subjects across five merged briefs — 008 contributes two. Five are
+genuinely long, spread over four briefs; the sixth is 050, whose Commit
+sequence line carries an annotation after the subject, so C7 measures 98 where
+the subject is 46. The closer caught that this sentence first said "six merged
+briefs", which in a recap arguing that the session miscounted by not measuring
+was the argument undermining itself.
 
 The lesson is not about backticks. It is that **an agent auditing its own work
 converges on its own blind spot**, and the only thing that broke the loop was a
