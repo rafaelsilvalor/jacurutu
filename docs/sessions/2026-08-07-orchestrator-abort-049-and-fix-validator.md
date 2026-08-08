@@ -144,6 +144,50 @@ converges on its own blind spot**, and the only thing that broke the loop was a
 role with a separate context reading the artifact rather than the intent. Six
 gates, thirty-five self-audit checks and a written recap all passed over this.
 
+## Four closer rounds, and why they were not one
+
+Defect 5 was the first of four rounds, not the last. Each round's findings were
+**created by the previous round's fix**, so the closer could not have found
+them earlier — they did not exist when it looked. The rounds, with what each
+fix broke one layer out:
+
+| Fix | What it corrected | What it created |
+|---|---|---|
+| `ada36e9` | the dead `awk` range | backticks now reached C8/C11, failing both on every brief |
+| `a67bd6b` | the backtick strip and the anchor | the strip's own backtick closed the markdown code span, publishing a truncated `sed` |
+| `292cd14` | the code span and a length clause | the clause forbade a phrase the FAIL condition still used, and cited a rule `brief-template/SKILL.md` does not carry |
+| `f640aec` | the diagnostic, the citation, the container | — |
+
+Each fix was correct at the layer I was editing and wrong one layer out:
+extraction, then publication, then emission. The closer found 4, then 3, then
+3 — never one at a time. What repeated was not its thoroughness but my depth
+of view.
+
+**The cost, stated plainly.** The task's deliverables — 049 preserved, the
+abort procedure defined, C1 dated, the three checks alive — were done and
+verified at `ada36e9`. Everything after it is the quality of one table row,
+across two calendar days and six commits.
+
+**What actually inflated it was the response, not the review.** The closer
+grades severity: `trava`, `precisa da sua decisão`, `observação`. Round 3
+returned three findings, all `precisa da sua decisão`, and all three became a
+commit. That was a choice, and the wrong one. The branch-wide review is what
+caught the `trava` and is worth keeping; converting every finding into a commit
+is what has no natural floor.
+
+The rule this session earns, adopted by the owner on 2026-08-08:
+
+- **`trava`** — fix now; it blocks the push.
+- **`precisa da sua decisão`** — the owner rules, and the default is the queue.
+  It becomes a commit only if it changes what ships.
+- **`observação`** — queue, never a commit.
+
+The queue is `notes.md` in the task folder, the same file that holds mid-run
+owner rulings: it is born with the task, merges with it, and gives whoever
+picks the subject up a list instead of a rediscovery. Under this rule the task
+would have closed at `a67bd6b` and the six findings after it would be three
+lines in a file.
+
 ## What the repaired check caught, immediately
 
 C7's extraction was repaired in this task, and the repair paid for itself
@@ -170,11 +214,16 @@ inert.
 
 ## Run facts
 
-- Branch `docs/abort-049-and-fix-validator` from `3e829a0`; 8 commits
+- Branch `docs/abort-049-and-fix-validator` from `3e829a0`; 11 commits
   (`8983bd4`, `a92a6eb`, `1a0b416`, `ada36e9`, `ad2913c`, `e2a0c5f`,
-  `a67bd6b`, plus this recap update); 5 files, +782 −9 as of `a67bd6b` —
-  this file cannot count its own commit, the same self-reference that stops a
-  recap citing its own merge SHA.
+  `a67bd6b`, `903dddc`, `292cd14`, `f640aec`, plus this recap update); 5 files,
+  +868 −9 as of `f640aec` — this file cannot count its own commit, the same
+  self-reference that stops a recap citing its own merge SHA.
+- The task spans two calendar days. Ten commits landed 2026-08-07 between
+  17:17 and 22:10; `f640aec` landed 2026-08-08. The task id stays `2026-08-07`
+  because an id is a birth date and the task was born at `8983bd4` — a task is
+  born under one day and dies under it, the same rule E3 applies to schemes.
+  The recap keeps the session's opening date for the same reason.
 - The four task files match the brief's in-scope list exactly. The fifth,
   this recap under `docs/sessions/`, is **outside** it: the brief's
   non-negotiable constraint 1 enumerated four paths and omitted the recap,
