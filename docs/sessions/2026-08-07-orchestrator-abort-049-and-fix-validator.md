@@ -170,8 +170,9 @@ across two calendar days and six commits.
 
 **What actually inflated it was the response, not the review.** The closer
 grades severity: `trava`, `precisa da sua decisão`, `observação`. Round 3
-returned three findings, all `precisa da sua decisão`, and all three became a
-commit. That was a choice, and the wrong one. The branch-wide review is what
+returned two `precisa da sua decisão` and one `observação`, and all three
+became a commit — including the one the closer had already graded as never
+worth a commit. That was a choice, and the wrong one. The branch-wide review is what
 caught the `trava` and is worth keeping; converting every finding into a commit
 is what has no natural floor.
 
@@ -185,8 +186,13 @@ The rule this session earns, adopted by the owner on 2026-08-08:
 The queue is `notes.md` in the task folder, the same file that holds mid-run
 owner rulings: it is born with the task, merges with it, and gives whoever
 picks the subject up a list instead of a rediscovery. Under this rule the task
-would have closed at `a67bd6b` and the six findings after it would be three
-lines in a file.
+would have closed at `a67bd6b` and the six findings after it — three
+`precisa da sua decisão` and three `observação` — would be six entries in a
+file rather than four commits.
+
+The closer caught both counts in this paragraph on its final pass. In a recap
+whose thesis is that the session miscounted by not measuring, that is the
+thesis holding for the recap itself.
 
 ## What the repaired check caught, immediately
 
