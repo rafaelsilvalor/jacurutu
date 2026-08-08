@@ -31,12 +31,13 @@ this repo's own briefs on 2026-08-07:
 $ awk '/^### Commit sequence/,/^### /' docs/tasks/052-task-identifier-cutover/brief.md \
     | grep -cE '^[0-9]+\. '
 0
-$ grep -cE '^[0-9]+\. `docs' docs/tasks/052-task-identifier-cutover/brief.md
-11
+$ awk '/^### Commit sequence$/{f=1;next} f&&/^#{2,3} /{exit} f' \
+    docs/tasks/052-task-identifier-cutover/brief.md | grep -cE '^[0-9]+\. '
+7
 ```
 
-Eleven numbered commit lines present, zero extracted. Every brief this repo
-has validated was validated with three of eleven checks inert.
+Seven numbered commit lines present in the section, zero extracted. Every
+brief this repo has validated was validated with three of eleven checks inert.
 
 ## Goal
 
@@ -233,8 +234,10 @@ their input stops being empty.
 
 Verification — run against real briefs and paste the output, do not assert:
 
-- [ ] The repaired extraction returns 11 subjects from
-      `docs/tasks/052-task-identifier-cutover/brief.md`, not 0
+- [ ] The repaired extraction returns 7 subjects from
+      `docs/tasks/052-task-identifier-cutover/brief.md`, not 0 — 7 is the
+      count inside the `### Commit sequence` section; a whole-file grep for
+      numbered lines returns 11 and is the wrong measurement
 - [ ] It returns a non-zero count for at least two other merged briefs
 - [ ] Every extracted subject from 052 is ≤ 72 chars (C7 would now pass it)
 - [ ] Every extracted verb is in the `ALLOW=` SSOT (C11 would now pass it)
