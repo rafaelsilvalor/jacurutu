@@ -68,24 +68,55 @@ cannot drift.
 
 | Check | Brief grep (against `<brief>`) | Canonical file / rule for deep-link |
 |---|---|---|
-| C1 | `grep -nE '^# Brief: ([0-9]{3}\|[0-9]{4}-[0-9]{2}-[0-9]{2}) — .+$' <brief> \| head -1` (must match line 1) | `.claude/skills/brief-template/SKILL.md`, template line `# Brief:` |
+| C1 | `grep -nE '^# Brief: [0-9]{4}-[0-9]{2}-[0-9]{2} — .+$' <brief> \| head -1` (must match line 1) | `.claude/skills/brief-template/SKILL.md`, template line `# Brief:` |
 | C2 | `grep -nE '^> \*\*Category:\*\* (M\|L)$' <brief>` (exactly one match) | `.claude/skills/brief-template/SKILL.md` `**Category:**` |
 | C3 | `grep -nE '^> \*\*Plan required:\*\* (yes\|no)' <brief>` | `CLAUDE.md` R15 |
 | C4 | `grep -nE '^> \*\*Branch:\*\* \`(feat\|fix\|refactor\|test\|chore\|docs\|perf\|ci)/[a-z0-9-]+\`$' <brief>` | `CLAUDE.md` R11 and `GIT_WORKFLOW.md` G-R2 |
 | C5 | Four greps in order; line numbers must be strictly increasing: `grep -nE '^## Context$' <brief>`, `grep -nE '^## Goal$' <brief>`, `grep -nE '^## Constraints$' <brief>`, `grep -nE '^## Done criteria$' <brief>` | `.claude/skills/brief-template/SKILL.md` template sections |
 | C6 | `grep -nE '^### Edit [0-9]+ — .+$' <brief>` (at least one) | `.claude/skills/brief-template/SKILL.md`, "Edit blocks numbering" subsection |
-| C7 | Extract commit subjects via `awk '/^### Commit sequence/,/^### /' <brief> \| grep -E '^[0-9]+\. ' \| sed -E 's/^[0-9]+\. //'`; check each ≤ 72 chars via `wc -L` | `CLAUDE.md` R10, `GIT_WORKFLOW.md` G-R3, and `.claude/skills/brief-template/SKILL.md`, "Commit sequence heading" subsection. FAIL if heading is non-canonical or any subject > 72 chars |
+| C7 | Extract commit subjects via `` awk '/^### Commit sequence$/{f=1;next} f&&/^#{2,3} /{exit} f' <brief> \| grep -E '^[0-9]+\. ' \| sed -E 's/^[0-9]+\. //; s/`//g' ``; measure each with `wc -L`. See "How C7 extracts" below | `CLAUDE.md` R10, `GIT_WORKFLOW.md` G-R3, and `.claude/skills/brief-template/SKILL.md`, "Commit sequence heading" subsection. FAIL if the heading is non-canonical, or if any measured string exceeds 72 chars — quote the measured string in the finding rather than calling it "the subject" |
 | C8 | Apply to extracted subjects from C7: each must match `^(feat\|fix\|refactor\|test\|chore\|docs\|perf\|ci)(\([a-z0-9-]+\))?: ` | `CLAUDE.md` R10 |
 | C9 | `grep -nE '^## Pause points' <brief>` plus `grep -E 'Pause 1' <brief>`, `grep -E 'Pause 2' <brief>`, `grep -E 'Pause 3' <brief>` | `docs/AGENT_PLAYBOOK.md` Lesson #6 and `.claude/skills/brief-template/SKILL.md`, "Pause points" section. FAIL if pt-BR "Pausa" used on agent-consumed brief (R9) |
 | C10 | Strip fenced code blocks, then grep pt-BR markers: `awk '/^```/ { in_code = !in_code; next } !in_code { print NR ": " $0 }' <brief> \| grep -iE '\b(não\|para\|que\|também\|então\|mas\|porque\|quando\|onde\|apenas\|sempre\|nunca\|deve\|pode)\b'` | `CLAUDE.md` R9 |
 | C11 | Extract the allowlist from the canonical SSOT: `grep -oE 'ALLOW="[^"]+"' .claude/skills/pre-commit-self-audit/SKILL.md \| sed -E 's/^ALLOW="//; s/"$//'`. From each commit subject extracted in C7, extract the verb via `sed -E 's/^[a-z]+(\([a-z0-9-]+\))?: ([a-z]+).*/\2/'`. Cross-check each verb against the allowlist; FAIL if any verb is outside it. STOP if the SSOT extraction returns empty (file structure changed). | `.claude/skills/pre-commit-self-audit/SKILL.md`, "Verb allowlist as canonical source" subsection |
 
-C1 accepts both identifier shapes because brief 052 cut new tasks over to a
-dated `<task-id>` while a task born under the numeric scheme keeps its `NNN`
-for life (E9); the `[0-9]{3}` alternative is removed only when the last
-pre-cutover task merges, which as of 2026-08-07 means
-`049-init-six-role-bootstrap`, still unmerged on branch
-`docs/init-six-role-bootstrap`.
+### How C7 extracts
+
+Four things about that command, each of which was wrong at some point during
+the task that repaired it (`docs/tasks/2026-08-07-abort-049-and-fix-validator/`).
+
+The command is delimited by **double** backticks because it contains one. A
+single-backtick span closes on the `` ` `` inside `s/` and publishes a `sed`
+cut mid-expression, so a reader copying the rendered cell gets a broken command
+— or one that strips nothing, which is the defect this check exists to avoid.
+
+The **backtick strip** is load-bearing. Briefs write each item as
+`` 1. `type(scope): subject` ``, so without it C8 and C11 receive a leading
+backtick, their `^` anchors never match, and both FAIL on every valid brief.
+
+The **heading pattern is anchored at both ends**. Unanchored it also matches
+`### Commit sequence heading`, the subsection `brief-template/SKILL.md`
+defines and that briefs quote, and the range would then capture the wrong
+section and report a confident answer about it.
+
+The **measurement is of the line**, not of a parsed subject: whatever survives
+prefix and backtick removal is what `wc -L` sees. That equals the subject only
+when the line carries nothing else, which is what the Commit sequence format
+intends — `brief-template/SKILL.md` says each item carries the exact subject
+the executor will use, and that each *subject* is verified ≤ 72 per R10. It
+does not spell out that the line may carry nothing but the subject, so a brief
+that appends an annotation (brief 050 does) measures long while its subject
+fits. Failing it is right and the diagnostic must name the measured string, not
+assert the subject is too long. Closing that gap properly belongs in the SKILL,
+not here — a check may not invent the rule it claims to enforce.
+
+C1 accepted both identifier shapes between 2026-08-03 and 2026-08-07. Brief
+052 cut new tasks over to a dated `<task-id>` while E9 kept the numeric shape
+valid for any pre-cutover task still alive. Exactly one was —
+`049-init-six-role-bootstrap` — and it was aborted on 2026-08-07, so the
+window closed and the three-digit alternative was removed. Merged briefs keep
+their numeric folders; C1 audits a brief in flight, and every brief in flight
+from here is dated.
 
 ### Deep-link emission
 
