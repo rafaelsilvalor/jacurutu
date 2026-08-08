@@ -18,7 +18,7 @@ Packages:
 - **`@saci/adapter-sheets`** — parking lot. A package shell exists, but a Sheets projection is built only when a concrete consumer (e.g. Looker Studio) exists. Not on the active path.
 - **`@saci/cli`** — the composition root and the only package with a `bin` (`saci`). Wires adapters into `core`. Composition functions live in `run-fetch.ts` / `run-export.ts`; `cli.ts` is the entry point.
 
-The Python `automation/` codebase is the **seed reference** of v2's core (its `lib_transform.py` was ported into `core` in Phase 2). It carries no behavior-preserving mandate — there are no production users — and `sync.py` / `lib_sheets.py` are legacy reference only; the sync diff engine is never ported.
+The Python `automation/` codebase is both the **seed reference** of v2's core (its `lib_transform.py` was ported into `core` in Phase 2) and a **permanent laboratory lane** — it does not migrate. Proven mechanisms are absorbed here one at a time, as briefs; the lab stays Python (decided 2026-08-08, `docs/explorations/python-laboratory-lane.md`). It carries no behavior-preserving mandate — there are no production users — and `sync.py` / `lib_sheets.py` are legacy reference only; the sync diff engine is never ported.
 
 Build: each workspace compiles via `tsc -p .` into its own `dist/`; tests are `*.test.ts` colocated with source, run via `node:test` against compiled `dist/`. No transpilation shortcut, no bundler.
 
