@@ -223,6 +223,13 @@ from its Drive manifest. This is the core of the product after the
 - `[prod]` State and history accumulation — the app owns production state over
   time (not just point-in-time snapshots). This is the precondition for any
   throughput/history view; export snapshots alone cannot produce it.
+- Credential guard on `fetch`. Jira's `POST /rest/api/3/search/jql` answers
+  `200` with an empty list when the token has expired, not `401`, and
+  `runFetch` writes the payload unconditionally — so an expired token silently
+  overwrites a good payload with zero entries and the next export ships empty.
+  The Python lab added two guards after a run went blind in production; this
+  repo has neither. Evidence and the lab's shape:
+  `docs/explorations/python-laboratory-lane.md`.
 
 **Exit criterion:** Rafael's designers can install Saci-desktop, run
 their daily production flow end-to-end on three or more machines, and
