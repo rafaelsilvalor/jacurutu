@@ -65,9 +65,12 @@ Slug: `abort-049-and-fix-validator`, 27 chars.
    and stays out. The repair protects forward; looking backward is a separate
    decision with its own cost.
 
-## The four authoring defects
+## The five authoring defects
 
-All mine, all in the brief I wrote, all caught before or during execution.
+All mine. Four are in the brief I wrote and were caught before or during
+execution. The fifth is in the artifact that shipped, was caught by nothing I
+ran, and is described in its own section below because it is a different kind
+of mistake.
 
 1. **Edit 3 omitted the count line.** It prescribed a new table row and a
    fourth naming fact without the sentence introducing them as three. Shipping
@@ -96,6 +99,48 @@ The generative error behind all four, and behind the `close` verb I handed the
 executor earlier in the day, is one thing: **writing against remembered
 context instead of against the file.**
 
+## Defect 5 — the one my own checks could not catch
+
+Six commits in, with the task declared executed and the recap written, the
+closer's Phase A returned a **trava**. The C7 repair had left C8 and C11
+broken in a worse state than it found them.
+
+Briefs write each Commit sequence line as `` 1. `type(scope): subject` ``. The
+repaired C7 stripped the numeric prefix and nothing else, so what reached C8
+and C11 still began with a backtick, and the `^` anchors in both could never
+match. Before the repair the two checks passed vacuously over an empty set;
+after it they failed on every valid brief in the repository — measured, 7 of 7
+subjects in 052 and 4 of 4 in this task's own brief. The next brief through the
+pipeline would have been REJECTED for nothing.
+
+Why nothing I ran caught it: **my verification used a different pipeline than
+the one I shipped.** The ad-hoc command I tested with carried `s/\`//g`; the
+validator I wrote did not. Every check I ran passed, and every one of them
+tested an artifact that does not exist. This is not the same class as defects
+1 through 4 — those were checkboxes written against an Edit's theme while the
+prose beside them created an exception, which careful reading catches. This one
+survives careful reading, because the thing read and the thing shipped were
+different objects.
+
+The correction is commit `a67bd6b`: C7 strips backticks, and its heading
+pattern is anchored at both ends so it stops matching the
+`### Commit sequence heading` subsection that `brief-template/SKILL.md` defines
+and that briefs quote. After it, C8 passes on every subject of all 41 briefs
+carrying the section.
+
+Two findings rode in on the correction. C11, now discriminating, surfaces 20
+out-of-allowlist verbs across briefs 000 to 016 — `record`, `adopt`, `align`,
+`refine`, `translate`, `introduce`, `route` — all predating the allowlist and
+all in merged briefs that are never re-validated. And C7's length rule now
+trips six merged briefs, five with genuinely long subjects and one (050) whose
+Commit sequence line carries an annotation after the subject rather than the
+subject alone.
+
+The lesson is not about backticks. It is that **an agent auditing its own work
+converges on its own blind spot**, and the only thing that broke the loop was a
+role with a separate context reading the artifact rather than the intent. Six
+gates, thirty-five self-audit checks and a written recap all passed over this.
+
 ## What the repaired check caught, immediately
 
 C7's extraction was repaired in this task, and the repair paid for itself
@@ -122,10 +167,18 @@ inert.
 
 ## Run facts
 
-- Branch `docs/abort-049-and-fix-validator` from `3e829a0`; 5 commits
-  (`8983bd4`, `a92a6eb`, `1a0b416`, `ada36e9`, `ad2913c`); 4 files,
-  +612 −9. `git diff --name-only origin/main...HEAD` equals the brief's
-  in-scope list exactly.
+- Branch `docs/abort-049-and-fix-validator` from `3e829a0`; 8 commits
+  (`8983bd4`, `a92a6eb`, `1a0b416`, `ada36e9`, `ad2913c`, `e2a0c5f`,
+  `a67bd6b`, plus this recap update); 5 files, +782 −9 as of `a67bd6b` —
+  this file cannot count its own commit, the same self-reference that stops a
+  recap citing its own merge SHA.
+- The four task files match the brief's in-scope list exactly. The fifth,
+  this recap under `docs/sessions/`, is **outside** it: the brief's
+  non-negotiable constraint 1 enumerated four paths and omitted the recap,
+  even though every task produces one and doctrine puts it on the session
+  branch (`docs/AGENT_PLAYBOOK.md` "Recap policy"). The scope list was wrong,
+  not the recap's location — worth fixing in the brief template's guidance
+  rather than in this brief.
 - Green boundary before every commit: `npx tsc -b` clean, `npm test` at
   305 tests / 304 pass / 0 fail / 1 skipped, unchanged throughout.
 - Every commit message verified byte-for-byte against its approved file after
