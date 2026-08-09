@@ -38,6 +38,7 @@
 | `G-I18N` | Internationalization — i18n layer, locale detection, fallbacks |
 | `G-PROC` | Process/orchestration traps when working with AI agents on briefs |
 | `G-DRIVE` | Google Drive adapter — OAuth scopes, tokens, Drive API semantics |
+| `G-JIRA` | Jira adapter — REST semantics, auth, search endpoint behavior |
 
 Categories grow as needed. New category: lowercase shortcode, all-caps in IDs.
 
@@ -244,6 +245,18 @@ If folder sizes grow into thousands of files and the hitch becomes user-visible,
 **Workaround:** Never let a library error travel whole out of the adapter — concretely, never write `new Error(message, { cause: error })` with the library's own error. `toDriveError` and `toConsentError` (`packages/adapter-drive/src/errors.ts`) build a sanitized stand-in carrying the message, the classified status and the original stack string, and nothing else; nothing that leaves the module holds a reference to the library's error, and the library's error is never mutated. `errors.test.ts` (l) and (n) assert that a placeholder refresh token and a placeholder authorization code do not appear in `util.inspect(wrapped, { depth: null })`, each with an inline non-vacuity guard. Do not treat the redactor as the boundary — it is a helpful default, not a contract, and its coverage is where this trap lives.
 
 **Evidence:** Brief 047's fourth remediation round — commits `1426950`, `6a3f99c`, `fbe46bc`; full account, including the false access-token claim this corrected, in `docs/tasks/047-adapter-drive/notes.md` §7. Verified 2026-08-03 against **real request errors** (a hand-built `GaxiosError` bypasses the pipeline that installs the redactor and proves nothing) on both installed gaxios copies — `7.1.3` nested under `googleapis-common`, `7.3.0` at the root — and `google-auth-library@10.5.0`, the copy that executes (G-DRIVE-2). Redactor source: `gaxios/build/cjs/src/common.js`, `defaultErrorRedactor`.
+
+---
+
+### G-JIRA-1 — Jira error messages are localized; key a guard on the status code
+
+**Symptom:** A guard that classifies a Jira failure by reading its error text works on your machine and fails on someone else's. The check looks sound — the message it matches is right there in the response you captured — but on another machine, or another day, the same failure arrives worded in another language and the branch never fires. There is no error and no log: the guard silently answers "not that case" and the caller proceeds as if the request had succeeded.
+
+**Cause:** Not established — and that is exactly the point. What Jira keys the message language on was never determined, and this entry deliberately does not guess. What *was* observed (2026-08-09, `https://estrategia.atlassian.net`): the request asked for no language at all — the headers sent were `Accept`, `Authorization` and `Content-Type`, and this adapter sends no `Accept-Language` anywhere — and `POST /rest/api/3/search/jql` with an unbounded JQL answered `400` with its message in **Chinese** regardless. The status code was stable; only the prose moved. The obvious hypothesis is that the language follows the Atlassian account's own preference, but it is **unverified and this measurement cannot support it**: the probe ran with an invalid credential and, in one case, with no `Authorization` header at all, so there was no authenticated account for the response to follow. Treat the language of a Jira error as a value this codebase neither sets, nor reads, nor has any established way to predict. Anything downstream of `.includes(...)`, `.match(...)` or a regex over a Jira message body inherits that unpredictability as a control-flow decision.
+
+**Workaround:** Key on HTTP status codes; never branch on response-body text. The live example is `packages/adapter-jira/src/http.ts`: it declares `CREDENTIAL_REJECTED_STATUSES = new Set([401, 403])` at module top, and `verifyCredentials` decides on set membership alone — it does not even parse the success body, precisely so no message-text dependency can grow there later. Response text is still fine in the message you *throw* (`Jira API error ${status}: ${detail}` carries it for the operator to read); it is never the thing you *test*. Enforce it with a test rather than prose alone: `http.test.ts` sends a `401` whose body is a Chinese `errorMessages` array and asserts the thrown message is still the English credential message.
+
+**Evidence:** Measured live on 2026-08-09 by the Orchestrator against `https://estrategia.atlassian.net`, with an invalid Basic credential and, in one case, with no `Authorization` header at all. The raw fact: `POST /rest/api/3/search/jql` with the unbounded JQL `order by created DESC` answered `400`, **and that `400`'s message came back in Chinese**, on a request that carried only `Accept`, `Authorization` and `Content-Type` — no `Accept-Language`, nothing asking for a language. The machine's own locale was not recorded, so it is not offered here as an explanation either. The same measurement recorded that a *bounded* JQL answers `200 {"issues":[],"isLast":true}` to an unauthenticated caller while `GET /rest/api/3/myself` answers `401`, which is why the credential pre-flight exists at all. Adopted by brief `2026-08-09-fetch-credential-guard` as its constraint 4.
 
 ---
 
