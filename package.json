@@ -8,7 +8,9 @@
   "scripts": {
     "start": "electron .",
     "build": "tsc -b",
-    "test": "node --test packages/*/dist/**/*.test.js",
+    "test": "npm run test:packages && npm run test:hooks",
+    "test:packages": "node --test packages/*/dist/**/*.test.js",
+    "test:hooks": "node --test .claude/hooks/lib/*.test.mjs",
     "build:electron": "electron-builder",
     "build:win": "electron-builder --win"
   },
