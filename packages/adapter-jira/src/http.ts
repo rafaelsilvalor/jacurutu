@@ -10,8 +10,18 @@
 
 const SEARCH_JQL_PATH = "/rest/api/3/search/jql";
 const FIELD_CATALOG_PATH = "/rest/api/3/field";
+const MYSELF_PATH = "/rest/api/3/myself";
 const PAGE_SIZE_CAP = 100;
 const REQUEST_TIMEOUT_MS = 30_000;
+
+/**
+ * Statuses that mean "Jira rejected this credential". `403` joins `401` because
+ * on Atlassian it also covers a blocked or CAPTCHA-challenged account, which is
+ * still an operator credential problem. Status codes ONLY: Jira returns its
+ * error messages in the operator's Atlassian locale (a `400` came back in
+ * Chinese on 2026-08-09), so keying on message text would break per-operator.
+ */
+const CREDENTIAL_REJECTED_STATUSES: ReadonlySet<number> = new Set([401, 403]);
 
 /**
  * The injectable transport. Structurally a subset of the global `fetch`
@@ -71,8 +81,9 @@ function basicAuthHeader(email: string, apiToken: string): string {
 }
 
 /**
- * Typed wrapper over the Jira Cloud JQL-search endpoint. One method, `searchJql`,
- * reproduces the seed's cursor pagination loop. The transport is injected at
+ * Typed wrapper over the three Jira Cloud endpoints this adapter reaches: the
+ * credential pre-flight, the JQL search (whose cursor pagination loop is ported
+ * from the seed), and the field catalog. The transport is injected at
  * construction so the gateway and its tests share one seam.
  */
 export class JiraHttpClient {
@@ -86,6 +97,47 @@ export class JiraHttpClient {
     // The global `fetch` matches FetchLike structurally (Response is a superset
     // of the narrowed return type); cast through the shared port shape.
     this.fetchImpl = config.fetchImpl ?? (globalThis.fetch as unknown as FetchLike);
+  }
+
+  /**
+   * Verify the configured Basic credentials against `GET /rest/api/3/myself`,
+   * the one Jira endpoint that answers `401` to an anonymous caller. Resolves on
+   * success, throws naming the credential on rejection (R4).
+   *
+   * Exists because a bounded JQL search does NOT fail on a bad token — it
+   * answers `200` with an empty issue list (measured 2026-08-09), so the caller
+   * cannot tell a revoked token from a quiet day.
+   *
+   * The decision is taken on `response.status` alone and the success body is not
+   * parsed: nothing here needs the account record, and reading it would invite a
+   * dependency on message text that the operator's Atlassian locale can break.
+   *
+   * No `body` key is set: this is a GET, and Node `fetch` rejects a GET carrying
+   * any body (see `FetchLike`).
+   */
+  async verifyCredentials(): Promise<void> {
+    const url = `${this.baseUrl}${MYSELF_PATH}`;
+    const response = await this.fetchImpl(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: this.authHeader,
+        Connection: "close",
+      },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+
+    if (CREDENTIAL_REJECTED_STATUSES.has(response.status)) {
+      throw new Error(
+        `Jira rejected the configured credentials (HTTP ${response.status} on ${MYSELF_PATH}). ` +
+          "The email / API token pair is invalid, expired, or revoked.",
+      );
+    }
+
+    if (!response.ok) {
+      const detail = (await response.text()).slice(0, 500);
+      throw new Error(`Jira API error ${response.status}: ${detail}`);
+    }
   }
 
   /**

@@ -33,6 +33,9 @@ function sampleIssue(key: string): Issue {
  */
 function fakeMakeGateway(): (dropLog: IssueDropLog, warningLog: IssueWarningLog) => JiraGateway {
   return (dropLog, warningLog) => ({
+    // Port ripple: the pre-flight the composition root now runs before every
+    // search. This fake models a good credential, so it resolves.
+    async verifyCredentials(): Promise<void> {},
     async fetchIssues(): Promise<Issue[]> {
       dropLog("MCA-99", "Template");
       warningLog("MCA-42", "vertical_raw", "vertical missing");

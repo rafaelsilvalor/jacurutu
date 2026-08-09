@@ -94,6 +94,16 @@ export class JiraGateway implements JiraGatewayPort {
   }
 
   /**
+   * Port pre-flight (D1): verify the injected credentials before any search.
+   * Deliberately NOT called from `fetchIssues` — the composition root owns the
+   * call, so the guard is visible at the wiring layer and the future `start`
+   * wiring inherits it rather than re-implementing it.
+   */
+  async verifyCredentials(): Promise<void> {
+    await this.http.verifyCredentials();
+  }
+
+  /**
    * Fetch the current design issues as payload-v2.0 `Issue` records. Reproduces
    * the seed's `main()` flow (D3 — minus the envelope): the result is the kept
    * `Issue[]`; drops and warnings are logged, never serialized.
