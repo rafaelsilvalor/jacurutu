@@ -54,10 +54,11 @@ hook has no brief to read.
 
 ## Why this file still exists
 
-Nineteen references across eight doctrine files point here. Two of the heaviest
-referrers — `.claude/agents/executor.md` and `.claude/agents/brief-validator.md`
-— are themselves queued for retirement, so sweeping every reference now would
-mean sweeping them twice. This tombstone keeps each reference resolving to
-something true until that sweep happens once.
+The doctrine sweep ran later the same day, so the live references are gone and
+what points here now is history: the recaps and task notes that recorded the
+skill while it was in use, which are never rewritten. `brief-validator` and
+`closer` were retired alongside it and carry their own tombstones. The
+executor survives — it still carries docs work, which the `@test`/`@code` pair
+cannot — and no longer preloads any skill.
 
 See `docs/explorations/gate-economics.md` for the measurement behind the change.

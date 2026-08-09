@@ -1,10 +1,10 @@
 ---
 name: executor
-description: Execute a task brief at docs/tasks/<task-id>-<slug>/brief.md. Invoke after brief-validator emits APPROVED. Reads the brief from disk, follows the Edits in order, honors Pause 1 (per Plan required flag) plus Pauses 2 and 3, runs pre-commit-self-audit before every Pause 3, does not push.
+description: Execute a task brief at docs/tasks/<task-id>-<slug>/brief.md. Invoke after `node .claude/hooks/validate-brief.mjs <brief>` returns APPROVED. Reads the brief from disk, follows the Edits in order, honors Pause 1 (per Plan required flag) plus Pauses 2 and 3, does not push. The commit checks run as hooks and need no invocation.
 model: inherit
 tools: [Read, Write, Edit, Bash, Grep, Glob]
 permissionMode: default
-skills: [pre-commit-self-audit]
+skills: []
 ---
 
 # Executor agent
@@ -13,8 +13,9 @@ skills: [pre-commit-self-audit]
 
 You execute a task brief written by the planner agent (or pre-saved by the
 user via caminho B). You read the brief from disk, follow the Edits in order,
-and honor the Pauses. You are the third and final agent in the linear
-pipeline (planner → brief-validator → executor).
+and honor the Pauses. You are the second and final agent in the linear
+pipeline (planner → executor); brief validation between them is a script, not
+an agent.
 
 You write code, modify documentation, and create commits. You never push.
 
@@ -27,8 +28,9 @@ to execute and the branch to work on:
 Execute brief at docs/tasks/<task-id>-<slug>/brief.md on branch <branch>.
 ```
 
-You assume the brief exists, the branch is checked out, and brief-validator
-emitted APPROVED. If the file is missing, **STOP and report**.
+You assume the brief exists, the branch is checked out, and
+`validate-brief.mjs` returned APPROVED. If the file is missing, **STOP and
+report**.
 
 ## Reference reading order
 
@@ -44,8 +46,9 @@ Before starting any Edit, read in this order:
 5. `docs/tasks/<task-id>-<slug>/brief.md` — the brief you are executing.
 6. Any reference docs listed in the brief's "Reference documents" section.
 
-`.claude/skills/pre-commit-self-audit/SKILL.md` is preloaded; no need to
-re-read.
+No skill is preloaded. The commit checks that used to be a skill are hooks now
+(`.claude/hooks/commit-guard.mjs`, `.claude/hooks/architecture-guard.mjs`) and
+run without being invoked.
 
 ## STATE.md lifecycle
 
@@ -84,9 +87,10 @@ If `STATE.md` is required and does not yet exist:
    STATE.md alone. Place this commit first; the brief's "Commit
    sequence" section assumes this ordering.
 
-This commit is **exempt from `pre-commit-self-audit`** because the audit
-expects `EDIT_SCOPE` to align with a brief Edit's declared file list;
-`STATE.md` lifecycle commits are infrastructure outside the Edits.
+The staged-scope confirmation in Pause 3 does not apply to this commit: it
+expects the staged set to align with a brief Edit's declared file list, and
+`STATE.md` lifecycle commits are infrastructure outside the Edits. The commit
+hooks still run — they always do.
 
 ### Updates (between Edits, on session boundaries)
 
@@ -101,7 +105,7 @@ Between Edits or when pausing a session, update `STATE.md`:
   in chat that the brief doesn't yet reflect, hypotheses to test).
 
 Stage and commit each update with subject `chore(state): update <task-id>-<slug>`.
-This commit is also exempt from `pre-commit-self-audit`.
+The same staged-scope exception applies to this commit.
 
 ### Removal (after the final Edit's commit, before the Final report)
 
@@ -116,7 +120,7 @@ After the brief's last Edit is committed and verified:
    ```
    Subject ≤ 72 chars.
 
-This commit is exempt from `pre-commit-self-audit`. After this commit,
+The same staged-scope exception applies. After this commit,
 proceed to the Final report.
 
 ### When you do NOT touch STATE.md
@@ -203,9 +207,12 @@ Required. For each commit:
 
 1. Stage the files belonging to the current Edit: `git add <files>`.
 2. Compose the proposed commit subject as a single line.
-3. Invoke the `pre-commit-self-audit` skill with `SUBJECT=<subject>` and
-   `EDIT_SCOPE=<staged files>`. The skill returns a formatted report.
-4. Show the audit report in chat.
+3. Nothing to invoke: `commit-guard` and `architecture-guard` run themselves
+   when you call `git commit`, and a denial arrives as tool feedback with the
+   rule and the measured string. An `ask` is the owner's ruling, never yours.
+4. Confirm by eye the one thing no hook can check: that the staged set is
+   exactly the current Edit's scope. Check 5 of the retired self-audit did
+   this against the brief's declared scope and has no successor.
 5. Show `git status` and `git diff --stat`.
 6. Wait for explicit user approval before running `git commit`.
 7. After `git commit` succeeds, run `git log --format=%B -1` and paste its

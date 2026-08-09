@@ -170,8 +170,8 @@ Commit: `[type](<scope>): <imperative subject>`
       (always required)
 - [ ] Pause 3 — `git status` + `git diff --stat` + proposed commit message
       shown before each commit (always required)
-- [ ] `pre-commit-self-audit` skill output reported in chat before each
-      Pause 3 submission
+- [ ] Staged set confirmed to match the current Edit's scope before each
+      Pause 3 submission (the one commit check with no hook)
 - [ ] If any criterion could not be met, it was reported explicitly
 
 ## Pause points
@@ -190,7 +190,7 @@ From `docs/AGENT_PLAYBOOK.md` Chapter 2:
 - **Pause 2 (after the first modified file):** show the result and wait
   for review. **Always required.**
 - **Pause 3 (before each commit):** show `git status` + `git diff --stat`
-  + proposed message + `pre-commit-self-audit` output.
+  + proposed message. The commit hooks run themselves.
   **Always required.**
 
 In case of:
@@ -222,7 +222,7 @@ In priority order:
 3. `docs/GOTCHAS.md` — known traps
 4. `docs/AGENT_PLAYBOOK.md` — Chapter 2 (pause points), Lesson #6
 5. `.claude/skills/brief-template/SKILL.md` — this skill (template reference)
-6. `.claude/skills/pre-commit-self-audit/SKILL.md` — self-audit skill (Pause 3)
+6. `.claude/hooks/` — the commit-time checks (they run without invocation)
 7. [Other specific relevant files]
 
 ## Expected output (end of session)
