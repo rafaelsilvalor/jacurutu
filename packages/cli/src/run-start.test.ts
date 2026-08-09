@@ -39,22 +39,63 @@ function sampleIssue(overrides: Partial<Issue> = {}): Issue {
   };
 }
 
-/** A gateway factory whose single-key lookup returns a canned issue; `fetchIssues` is never hit. */
-function fakeMakeGateway(issue: Issue): MakeGateway {
+/** Gateway method names, recorded in call order — the pre-flight ordering proof. */
+const VERIFY_CREDENTIALS = "verifyCredentials";
+const FETCH_ISSUE_BY_KEY = "fetchIssueByKey";
+
+/** Env prefix the Jira credentials live under; the offline path must read none of them. */
+const JIRA_ENV_PREFIX = "SACI_JIRA_";
+
+/**
+ * A gateway factory whose single-key lookup returns a canned issue and which
+ * appends every method it is asked for to `calls`; `fetchIssues` is never hit.
+ * `verify` scripts the pre-flight — omitted, it models a good credential and
+ * resolves. The previous fake threw here on purpose (D3 of the 2026-08-09
+ * credential-guard brief, which left `runStart` without a pre-flight); the
+ * wiring moved into `runStart`, so the fixture moved with it.
+ */
+function fakeMakeGateway(
+  issue: Issue,
+  calls: string[] = [],
+  verify?: () => Promise<void>,
+): MakeGateway {
   return () => ({
-    // Port ripple: the start run does not call the pre-flight (D3 — `runStart`
-    // is untouched by the credential-guard brief). Explicit throw, matching
-    // `fetchIssues` below, so a future silent call is caught (R4).
     async verifyCredentials(): Promise<void> {
-      throw new Error("verifyCredentials is not exercised by the start run");
+      calls.push(VERIFY_CREDENTIALS);
+      if (verify) {
+        await verify();
+      }
     },
     async fetchIssues(): Promise<Issue[]> {
       throw new Error("fetchIssues is not exercised by the start run");
     },
     async fetchIssueByKey(): Promise<Issue> {
+      calls.push(FETCH_ISSUE_BY_KEY);
       return issue;
     },
   });
+}
+
+/**
+ * Run `body` with every `SACI_JIRA_*` var removed, restoring them afterwards.
+ * A run that survives this consulted no credential — the observable stand-in
+ * for "constructed no gateway" at this layer.
+ */
+async function withoutJiraEnv(body: () => Promise<void>): Promise<void> {
+  const saved = new Map<string, string>();
+  for (const [key, value] of Object.entries(process.env)) {
+    if (key.startsWith(JIRA_ENV_PREFIX) && value !== undefined) {
+      saved.set(key, value);
+      delete process.env[key];
+    }
+  }
+  try {
+    await body();
+  } finally {
+    for (const [key, value] of saved) {
+      process.env[key] = value;
+    }
+  }
 }
 
 /**
@@ -229,6 +270,58 @@ test("jira-born start returns localKey null (D12)", async () => {
   }
 });
 
+// WHEN runStart runs, the composition root shall await the credential pre-flight
+// BEFORE the single-key fetch. Asserted on the recorded call order rather than on
+// a thrown message, so the good-credential path is pinned too — a bad token
+// answers the single-key lookup with "issue not found", which names the wrong cause.
+test("start runs the credential pre-flight before fetchIssueByKey", async () => {
+  const { base, workspaceRoot } = makeSandbox(["banner.psd"]);
+  const calls: string[] = [];
+  try {
+    await runStart(
+      fakeMakeGateway(sampleIssue(), calls),
+      "MCA-101",
+      workspaceRoot,
+      undefined,
+      false,
+      undefined,
+      FIXED_NOW,
+    );
+
+    assert.deepStrictEqual(calls, [VERIFY_CREDENTIALS, FETCH_ISSUE_BY_KEY]);
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+// WHEN the pre-flight rejects, runStart shall reject with THAT error unwrapped,
+// never reach the fetch, and scaffold nothing. No new exit code: the credential
+// error propagates to main()'s catch exactly as it does for run-fetch.
+test("start propagates the pre-flight rejection and never fetches the issue", async () => {
+  const { base, workspaceRoot } = makeSandbox(["banner.psd"]);
+  const calls: string[] = [];
+  const credentialError = new Error("credentials rejected by the pre-flight");
+  try {
+    const makeGateway = fakeMakeGateway(sampleIssue(), calls, async () => {
+      throw credentialError;
+    });
+
+    await assert.rejects(
+      runStart(makeGateway, "MCA-101", workspaceRoot, undefined, false, undefined, FIXED_NOW),
+      (error: unknown) => {
+        assert.strictEqual(error, credentialError, "the pre-flight error must propagate unwrapped");
+        return true;
+      },
+    );
+
+    assert.deepStrictEqual(calls, [VERIFY_CREDENTIALS]);
+    // Fail-loud before any mutation: the scaffold never started.
+    assert.ok(!existsSync(path.join(workspaceRoot, SEGMENTS[0])));
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
 // ---------------------------------------------------------------------------
 // Local-born path (brief 036). The sandbox reuses makeSandbox's templates/EC
 // layout and adds an identity file seeded at nextSeq 1.
@@ -301,6 +394,23 @@ test("start --local scaffolds offline, mints the key, and increments the counter
 
     // D7: the counter persisted as nextSeq + 1.
     assert.strictEqual(nextSeqOnDisk(identityFilePath), 2);
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+// WHEN runStartLocal runs, it shall scaffold with every SACI_JIRA_* var absent:
+// the local path takes no gateway, so the pre-flight added to runStart must not
+// leak into the shared pipeline. A gateway built here would need credentials
+// that are not there.
+test("start --local scaffolds with no credential in the environment (no pre-flight)", async () => {
+  const { base, workspaceRoot, identityFilePath } = makeLocalSandbox(["banner.psd"]);
+  try {
+    await withoutJiraEnv(async () => {
+      const result = await runStartLocal(localOptions(workspaceRoot, identityFilePath));
+      assert.strictEqual(result.localKey, "RAF-1");
+      assert.ok(existsSync(path.join(result.folderPath, ".saci.json")));
+    });
   } finally {
     rmSync(base, { recursive: true, force: true });
   }
