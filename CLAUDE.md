@@ -104,7 +104,11 @@ The dev surface splits by *audience*, not by directory.
 
 ## Documented Exceptions
 
-**Note on v1 freeze:** all exceptions below apply to the Electron-v1 codebase, currently in freeze (`MENTOR_BRIEF.md` §2). No new work resolves them; they remain documented for historical context and any critical-bug-only v1 maintenance. New v2 exceptions take fresh numbering. `E6` and `E7` were claimed on 2026-08-09 and are the first in this list that are not about the v1 freeze — they are live, not legacy debt. **The next free number is `E10`:** `E8` and `E9` are cited as live exceptions elsewhere (`docs/PROCESS_MAP.md` §7 for recap naming, and the task-identifier cutover for the pre-cutover numeric shape) without ever being defined in this list. Reconciling that is its own task; until then, do not reuse them.
+**Note on v1 freeze:** all exceptions below apply to the Electron-v1 codebase, currently in freeze (`MENTOR_BRIEF.md` §2). No new work resolves them; they remain documented for historical context and any critical-bug-only v1 maintenance. New v2 exceptions take fresh numbering. `E6` and `E7` were claimed on 2026-08-09 and are the first in this list that are not about the v1 freeze — they are live, not legacy debt.
+
+**Numbers not in this list, reconciled 2026-08-09.** `E4` was "persistent state not yet routed through `storage/` (R18)", defined in briefs 000 and 002 and burned in the v1→v2 pivot. `E9` kept the three-digit task identifier valid for pre-cutover briefs still in flight; it closed on 2026-08-07 when task 049 was aborted (`357cc43`). Burned and closed numbers are never reused, so **the next free number is `E8`**.
+
+`E4` and `E8` were also being cited in `docs/PROCESS_MAP.md` §7 — for the aborted-task folder and for recap naming — against entries that never existed here. Both citations were removed rather than turned into entries: neither is an exception. "An aborted task's folder is never deleted" is a rule, stated in full where it belongs, and giving it an `En` would inflate this namespace to justify a parenthesis. **A bare `(En)` anywhere with no entry in this list is a bug.**
 
 **E1 — Renderer state in module globals (`renderer/app.js`).** The current renderer keeps state in module-level variables (`allGroups`, `activeGroupName`, `searchQuery`, `rootPath`). Tolerated until `refactor/renderer-into-modules`. New renderer code must not add to this pattern.
 

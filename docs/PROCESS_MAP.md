@@ -187,8 +187,8 @@ Pause 3 additionally has a **green boundary**: run `npx tsc -b` and `npm test`, 
 |---|---|---|
 | Task brief | `docs/tasks/<task-id>-<slug>/brief.md` | `<task-id>` is the birth date `YYYY-MM-DD` for a task born on or after brief 052's merge, and a zero-padded `NNN` for one born before it. `<slug>` is kebab-case, ≤ 30 chars, and globally unique across all of `docs/tasks/`. Same-day collisions take a short ordinal suffix, applied only on collision. Preserved after merge as the historical record |
 | Task notes | `docs/tasks/<task-id>-<slug>/notes.md` | optional; where mid-run owner rulings land |
-| Aborted task | `docs/tasks/<task-id>-<slug>/brief.md`, `ABORTED` block after line 1 | the block is dated, states the reason, and preserves the brief body verbatim; the folder is never deleted (E4) |
-| Session recap | `docs/sessions/<YYYY-MM-DD>-<role>-<slug>.md` | the date is the *session's*, not the task's; `<role>` is `orchestrator` or `executor`. A recap of a pre-cutover task keeps that task's number in the slug position — `<NNN>-<slug>` — for life (E8) |
+| Aborted task | `docs/tasks/<task-id>-<slug>/brief.md`, `ABORTED` block after line 1 | the block is dated, states the reason, and preserves the brief body verbatim; the folder is never deleted |
+| Session recap | `docs/sessions/<YYYY-MM-DD>-<role>-<slug>.md` | the date is the *session's*, not the task's; `<role>` is `orchestrator` or `executor`. A recap of a pre-cutover task keeps that task's number in the slug position — `<NNN>-<slug>` — for life |
 | Exploration note | `docs/explorations/<topic>.md` | opens with `Status:` / `Origin:` / `Roadmap link:`, ends with a `## Changelog` |
 | Branch | `<type>/<kebab-description>` | types per `GIT_WORKFLOW.md` G-R2 |
 | Commit | `<type>(<scope>)?: <imperative subject>` | subject ≤ 72 chars, body explains *why*, no trailers |
@@ -209,7 +209,7 @@ Knowing which file owns an ID saves a search every time one is cited.
 |---|---|---|
 | `R1`–`R25` | mandatory code rules | `CLAUDE.md` "Hard Rules" |
 | `A1`–`A8` | forbidden code anti-patterns | `CLAUDE.md` "Anti-patterns" |
-| `En` | tolerated violations, with a migration plan | `CLAUDE.md` "Documented Exceptions" — currently E1–E3 and E5; gaps are burned reserves, kept deliberately. New v2 exceptions start at E6 |
+| `En` | tolerated violations, with a migration plan | `CLAUDE.md` "Documented Exceptions" — currently E1–E3, E5, E6, E7. `E4` is burned and `E9` was closed on 2026-08-07; burned and closed numbers are never reused. Next free: `E8`. **Every live `En` is defined in `CLAUDE.md`** — a bare `(En)` citation elsewhere with no entry there is a bug, and two were removed from §7 on 2026-08-09 |
 | `G-R1`–`G-R11` | git operational rules | `docs/GIT_WORKFLOW.md` |
 | `G-A1`–`G-A8` | git anti-patterns | `docs/GIT_WORKFLOW.md` |
 | `G-CAT-N` | a stack trap, e.g. `G-DRIVE-1`, `G-NODE-2` | `docs/GOTCHAS.md` catalog |
@@ -232,7 +232,7 @@ Some IDs are deliberate mirrors of one principle across audiences. Changing one 
 - never bypass the hook → `R13` = `G-R8` = `G-A4`
 - PR-only integration → `R12` = `G-R7`
 
-Note the collision: `D1`–`D5` means drift signals in the playbook, and `D1`, `D2`, … means closed decisions inside a brief. Context disambiguates; if you cite one, say which.
+Two collisions, both live. `D1`–`D5` means drift signals in the playbook, and `D1`, `D2`, … means closed decisions inside a brief. `E1`–`E5` means documented exceptions in `CLAUDE.md`, and `E1`–`E5` **also** means the items of symptom group E ("Scope blur") in `docs/AGENT_PLAYBOOK.md` chapter 3 — same notation, unrelated meanings. Context disambiguates; if you cite one, say which.
 
 ## 9. Authority hierarchy
 

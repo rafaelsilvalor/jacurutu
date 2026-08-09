@@ -59,7 +59,7 @@ docs/sessions/<YYYY-MM-DD>-executor-<slug>.md
   - executor: papel fixo (este workflow roda no executor — Claude Code)
   - <slug>: slug curto-descritivo do tópico
   - tarefa anterior ao corte: mantém o número da tarefa na posição do
-    slug, pra vida toda (E8)
+    slug, pra vida toda
 
 PASSO 6 — PARAR:
 - NÃO faz checkout pra main
