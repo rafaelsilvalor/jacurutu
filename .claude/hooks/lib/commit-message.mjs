@@ -21,9 +21,33 @@ const COAUTHOR_TRAILER = /^\s*co-authored-by:/im;
 const MESSAGE_FLAG = /(?:^|\s)(?:-m|--message)(?:=|\s+)("(?:[^"\\]|\\.)*"|'[^']*'|[^\s'"]+)/g;
 const POWERSHELL_HEREDOC = /(?:-m|--message)\s+@'\r?\n([\s\S]*?)\r?\n'@/;
 const POSIX_HEREDOC = /<<-?\s*'?(\w+)'?\r?\n([\s\S]*?)\r?\n\1/;
-const ALLOWLIST_IN_SSOT = /^ALLOW="([^"]+)"/m;
-const DENYLIST_IN_SSOT = /^DENY="([^"]+)"/m;
 const SHELL_TOOLS = new Set(["Bash", "PowerShell"]);
+
+/**
+ * The commit-subject verb lists. **This is the SSOT.**
+ *
+ * They previously lived as `ALLOW=`/`DENY=` lines inside
+ * `.claude/skills/pre-commit-self-audit/SKILL.md`, and two consumers scraped
+ * them out of that prose at runtime. A list that a regex has to recover from a
+ * markdown file is a list that breaks when the file is reformatted; here it is
+ * data, and the tests below pin it.
+ *
+ * Verbs are imperative mood (R10 / G-R3). A verb on neither list is a STOP, not
+ * a judgment call: see `decideCommitMessage`.
+ */
+export const VERB_ALLOWLIST = [
+  "add", "fix", "update", "remove", "refactor", "rename", "document", "migrate",
+  "port", "bump", "drop", "restore", "revert", "support", "deprecate", "promote",
+  "wire", "declare", "canonicalize", "start",
+];
+
+export const VERB_DENYLIST = [
+  "added", "fixing", "updates", "fixes", "adding", "updating", "removed",
+  "refactored", "renamed", "documented", "migrated", "ported", "bumped",
+  "dropped", "restored", "reverted", "supported",
+];
+
+const DEFAULT_VERB_LISTS = { allow: VERB_ALLOWLIST, deny: VERB_DENYLIST };
 
 /**
  * Tools that can run a commit. Matching `Bash` alone leaves a hole: this
@@ -74,29 +98,13 @@ function unquote(token) {
 }
 
 /**
- * Read the verb allowlist and denylist from their single source of truth.
- *
- * The lists stay in the skill file so the pipeline keeps one canonical copy
- * (PROCESS_MAP.md §7). Returning empty lists is a caller-handled contract:
- * an empty allowlist means the SSOT moved and the check must not silently pass.
- */
-export function parseVerbLists(skillSource) {
-  const allow = ALLOWLIST_IN_SSOT.exec(skillSource ?? "");
-  const deny = DENYLIST_IN_SSOT.exec(skillSource ?? "");
-  return {
-    allow: allow ? allow[1].trim().split(/\s+/) : [],
-    deny: deny ? deny[1].trim().split(/\s+/) : [],
-  };
-}
-
-/**
  * Apply checks 1-4 to a commit message.
  *
  * `decision` is one of "allow", "deny" or "ask". The first failure wins: a
  * subject that is both overlong and misspelled only needs one round trip to
  * learn that, and stacking findings makes the feedback harder to act on.
  */
-export function decideCommitMessage(message, verbLists) {
+export function decideCommitMessage(message, verbLists = DEFAULT_VERB_LISTS) {
   if (message === null || message === undefined) {
     return { decision: "allow", reason: "no inline commit message to inspect" };
   }
@@ -129,13 +137,11 @@ export function decideCommitMessage(message, verbLists) {
     };
   }
 
+  // Defensive on the injection path only: the default lists are module
+  // constants and cannot be empty. A caller that supplies its own empty list
+  // must not have every verb silently pass.
   if (verbLists.allow.length === 0) {
-    return {
-      decision: "ask",
-      reason:
-        "The verb allowlist could not be read from its SSOT " +
-        "(.claude/skills/pre-commit-self-audit/SKILL.md). Check 3 cannot run.",
-    };
+    return { decision: "ask", reason: "The verb allowlist is empty; check 3 cannot run." };
   }
 
   const verbMatch = SUBJECT_VERB.exec(subject);
