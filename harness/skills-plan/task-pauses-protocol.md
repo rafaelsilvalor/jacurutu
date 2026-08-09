@@ -42,8 +42,9 @@ Apresenta plano numerado de passos commitáveis. Cada passo deve:
 
 Aguarda aprovação explícita do humano antes de tocar código.
 
-**Pulável** se o brief declara `Plan required: no` — ver seção
-"Quando pular Pausa 1" em `harness/prompts/task-brief-template.md`.
+**Pulável** se o brief declara `Plan required: no` — ver
+`.claude/skills/brief-template/SKILL.md`, que substituiu o antigo
+`harness/prompts/task-brief-template.md` (removido em 2026-05-23).
 
 ## Pausa 2 — Após primeiro arquivo significativo
 
