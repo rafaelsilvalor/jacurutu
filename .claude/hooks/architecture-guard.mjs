@@ -25,6 +25,12 @@ const cwd = input.cwd ?? process.cwd();
 const staged = git(["diff", "--cached", "--name-only", "--diff-filter=ACM"]);
 if (staged === null) allow();
 
+// E6 asks whether a test file has a 1:1 subject module. The index is the right
+// source: a subject added in this same commit counts, and one deleted in it
+// does not.
+const tracked = new Set((git(["ls-files"]) ?? "").split(/\r?\n/).filter(Boolean));
+const io = { exists: (path) => tracked.has(path) };
+
 const findings = staged
   .split(/\r?\n/)
   .map((line) => line.trim())
@@ -34,7 +40,7 @@ const findings = staged
     // A file that cannot be read from the index (binary, or removed under a
     // race) is skipped rather than reported: this hook has no opinion it can
     // defend about content it never saw.
-    return content === null ? [] : inspectFile(file, content);
+    return content === null ? [] : inspectFile(file, content, io);
   });
 
 const verdict = summarize(findings);

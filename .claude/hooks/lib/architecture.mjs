@@ -16,6 +16,8 @@
 const V2_SOURCE = /^packages\/.+\.(ts|mts|cts)$/;
 const TEST_SOURCE = /\.test\.(ts|mts|cts)$/;
 const MAX_FILE_LINES = 400;
+// E6: the ceiling a test file may not pass even when it maps 1:1 to a subject.
+const TEST_CEILING = 800;
 const ADAPTER_IMPORT = /\bfrom\s+["'][^"']*adapter[^"']*["']/;
 const CORE_SOURCE = /^packages\/core\/src\//;
 const RELATIVE_IMPORT = /\bfrom\s+["'](\.[^"']*)["']|^\s*import\s+["'](\.[^"']*)["']/;
@@ -82,23 +84,41 @@ export function checkNoAny(filePath, lines) {
 }
 
 /**
- * R5 — source file size budget. Scoped to the v2 packages, so E2 never applies.
+ * R5 — source file size budget, with E6 for tests.
  *
- * Implementation denies; a test file asks. R5 is written for source generally,
- * but the measured reality on 2026-08-09 was that no implementation file came
- * near the budget (largest: 363) while two test files had drifted past it
- * unnoticed. Splitting a spec by line count fragments it, so this is a rule
- * question the owner has to settle — the guard surfaces it rather than either
- * silently exempting tests or blocking work on a pre-existing violation.
+ * R5 instructs "split by responsibility" when a file exceeds the budget. For a
+ * test file already scoped to one subject module that instruction has no valid
+ * move: the responsibility is "test this module", and splitting by line count
+ * fragments the spec. E6 re-anchors the limit rather than waiving it —
+ * 1:1 with a subject module is the precondition, and 800 lines is a ceiling
+ * that says "your subject does too much", which is a defect with a remedy.
+ *
+ * Below the budget nothing applies. Above it, a test that is not 1:1 is denied,
+ * because there the original instruction does have a valid move.
  */
-export function checkFileSize(filePath, lines) {
+export function checkFileSize(filePath, lines, io) {
   if (!V2_SOURCE.test(filePath) || lines.length <= MAX_FILE_LINES) return [];
-  const isTest = TEST_SOURCE.test(filePath);
-  return [finding("R5", filePath, lines.length - 1, "", isTest ? "ask" : "deny",
-    `file is ${lines.length} lines, over the ${MAX_FILE_LINES} budget; ` +
-      (isTest
-        ? "R5 does not carve out tests, and no exception is recorded — your call"
-        : "split by responsibility"))];
+
+  if (!TEST_SOURCE.test(filePath)) {
+    return [finding("R5", filePath, lines.length - 1, "", "deny",
+      `file is ${lines.length} lines, over the ${MAX_FILE_LINES} budget; split by responsibility`)];
+  }
+
+  const subject = filePath.replace(/\.test\.(ts|mts|cts)$/, ".$1");
+  if (io?.exists && !io.exists(subject)) {
+    return [finding("R5", filePath, lines.length - 1, "", "deny",
+      `test file is ${lines.length} lines and has no 1:1 subject module (${subject}), ` +
+      `so E6 does not apply; split by responsibility`)];
+  }
+
+  if (lines.length > TEST_CEILING) {
+    return [finding("R5", filePath, lines.length - 1, "", "ask",
+      `test file is ${lines.length} lines, over the E6 ceiling of ${TEST_CEILING}. ` +
+      `E6 covers the budget, not this: a spec this large usually means the subject ` +
+      `does too much. Split the subject, not the test`)];
+  }
+
+  return [];
 }
 
 /**
@@ -134,10 +154,15 @@ const CHECKS = [
   scanSecrets,
 ];
 
-/** Run every check over one file's staged content. */
-export function inspectFile(filePath, content) {
+/**
+ * Run every check over one file's staged content.
+ *
+ * `io.exists` is consulted only by the E6 test-file rule; without it, a test
+ * file over budget is treated as 1:1 rather than denied on missing information.
+ */
+export function inspectFile(filePath, content, io) {
   const lines = content.split(/\r?\n/);
-  return CHECKS.flatMap((check) => check(filePath, lines));
+  return CHECKS.flatMap((check) => check(filePath, lines, io));
 }
 
 /**
