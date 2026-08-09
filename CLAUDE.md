@@ -34,7 +34,7 @@ Detailed domain notes and known traps live in `docs/GOTCHAS.md`; product roadmap
 
 **R4 — No silent `catch`.** Every `catch` block either logs the error with context or rethrows. Returning `null`/`undefined` on failure is allowed only when the caller documents and handles that contract.
 
-**R5 — File size budget: source file ≤ 400 lines.** When exceeded, split by responsibility. Files currently over budget are listed in `E2` — split during a `refactor:` PR, not while doing feature work.
+**R5 — File size budget: source file ≤ 400 lines.** When exceeded, split by responsibility. Files currently over budget are listed in `E2` — split during a `refactor:` PR, not while doing feature work. Test files are measured differently, per `E6`.
 
 **R6 — Function size budget: ≤ 50 lines.** Exception: top-level orchestration handlers (e.g. `ipcMain.handle` callbacks) may exceed when they are mostly sequential calls to other functions.
 
@@ -104,7 +104,7 @@ The dev surface splits by *audience*, not by directory.
 
 ## Documented Exceptions
 
-**Note on v1 freeze:** all exceptions below apply to the Electron-v1 codebase, currently in freeze (`MENTOR_BRIEF.md` §2). No new work resolves them; they remain documented for historical context and any critical-bug-only v1 maintenance. New v2 exceptions, if needed, take fresh numbering starting at E6.
+**Note on v1 freeze:** all exceptions below apply to the Electron-v1 codebase, currently in freeze (`MENTOR_BRIEF.md` §2). No new work resolves them; they remain documented for historical context and any critical-bug-only v1 maintenance. New v2 exceptions take fresh numbering; `E6` was claimed on 2026-08-09, so the next is `E7`. `E6` is the first exception in this list that is not about the v1 freeze — it applies to the v2 packages and is live, not legacy debt.
 
 **E1 — Renderer state in module globals (`renderer/app.js`).** The current renderer keeps state in module-level variables (`allGroups`, `activeGroupName`, `searchQuery`, `rootPath`). Tolerated until `refactor/renderer-into-modules`. New renderer code must not add to this pattern.
 
@@ -118,6 +118,12 @@ The dev surface splits by *audience*, not by directory.
 Do not translate piecemeal during unrelated PRs.
 
 **E5 — Dispatch tables in v1 codebase violate R19.** Format dispatch is hardcoded in `main.js`; the renderer is monolithic in `renderer/app.js`; file actions are ad-hoc. Originally scheduled migrations (`refactor/format-registry`, `refactor/renderer-views`, `refactor/action-registry` — slots 004-006) burned in v1→v2 pivot (`MENTOR_BRIEF.md` §2, recorded 2026-05-15). No new work against these violations during v1 freeze.
+
+**E6 — Test files are measured against a subject, not against R5's 400-line budget.** A test file that maps 1:1 to a subject module (`x.test.ts` beside `x.ts`) may exceed 400 lines. Two further conditions hold: the 1:1 mapping is the *precondition* — an over-budget test with no subject module is denied, because there "split by responsibility" does have a valid axis — and a ceiling of **800 lines** still applies, escalating to the owner with a finding that points at the subject rather than the test.
+
+Rationale, recorded because the exception inverts the rule's own remedy: R5 says "when exceeded, split by responsibility". For a test file already scoped to one subject that instruction has no valid move — the responsibility *is* "test this module", and splitting by line count fragments the spec across files, so reading what a function guarantees would mean opening three of them. A check whose finding has no available remedy is worse than no check: it trains you to ignore checks.
+
+Measured on 2026-08-09 before adopting this: no implementation file in `packages/` came near the budget (largest 363 of 400), while two test files had drifted past it unnoticed — the limit works where it was designed to work and fails where it was extrapolated. All 27 test files map 1:1 today. Enforced by `.claude/hooks/lib/architecture.mjs`; the ceiling is `TEST_CEILING`.
 
 ## Related Documents
 

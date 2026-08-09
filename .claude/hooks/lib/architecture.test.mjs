@@ -81,15 +81,43 @@ test("R5 applies to v2 packages only", () => {
   assert.equal(checkFileSize("renderer/app.js", big).length, 0);
 });
 
-// WHEN the overlong file is an implementation file, R5 shall deny; WHEN it is a
-// test, it shall ask. No implementation file was near the budget on
-// 2026-08-09 while two test files had drifted past it, and R5 records no
-// exception for tests — so the guard escalates rather than deciding.
-test("R5 denies implementation and asks on tests", () => {
+// WHEN an implementation file passes the budget it shall be denied; WHEN a test
+// file passes it and maps 1:1 to a subject module, E6 applies and nothing is
+// reported — splitting a spec by line count fragments it, and "split by
+// responsibility" has no valid move on a file already scoped to one subject.
+test("E6 lets a 1:1 test file past the budget", () => {
   const big = new Array(MAX_FILE_LINES + 1).fill("const x = 1;");
-  assert.equal(checkFileSize("packages/cli/src/a.ts", big)[0].decision, "deny");
-  assert.equal(checkFileSize("packages/cli/src/a.test.ts", big)[0].decision, "ask");
-  assert.match(checkFileSize("packages/cli/src/a.test.ts", big)[0].reason, /your call/);
+  const io = { exists: (p) => p === "packages/cli/src/a.ts" };
+  assert.equal(checkFileSize("packages/cli/src/a.ts", big, io)[0].decision, "deny");
+  assert.deepEqual(checkFileSize("packages/cli/src/a.test.ts", big, io), []);
+});
+
+// WHEN a test file passes the budget with no 1:1 subject module, E6's
+// precondition fails and the original instruction applies again — there the
+// split does have a valid axis.
+test("E6 does not cover a test with no subject module", () => {
+  const big = new Array(MAX_FILE_LINES + 1).fill("const x = 1;");
+  const verdict = checkFileSize("packages/cli/src/orphan.test.ts", big, { exists: () => false });
+  assert.equal(verdict[0].decision, "deny");
+  assert.match(verdict[0].reason, /no 1:1 subject module/);
+});
+
+// WHEN a 1:1 test file passes the E6 ceiling, it shall ask — and the finding
+// shall point at the subject, not at the test. A spec that large is a signal
+// about what it covers.
+test("the E6 ceiling points at the subject, not the test", () => {
+  const huge = new Array(801).fill("const x = 1;");
+  const io = { exists: () => true };
+  const verdict = checkFileSize("packages/cli/src/a.test.ts", huge, io);
+  assert.equal(verdict[0].decision, "ask");
+  assert.match(verdict[0].reason, /Split the subject, not the test/);
+});
+
+// WHEN no existence oracle is supplied, an over-budget test shall not be denied
+// on missing information.
+test("E6 does not deny for want of an oracle", () => {
+  const big = new Array(MAX_FILE_LINES + 1).fill("const x = 1;");
+  assert.deepEqual(checkFileSize("packages/cli/src/a.test.ts", big, undefined), []);
 });
 
 // WHEN a credential-shaped literal is staged, the scan shall ASK rather than
