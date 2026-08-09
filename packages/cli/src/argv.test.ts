@@ -13,6 +13,7 @@ test("fetch with --jql parses jql and defaults out to DEFAULT_OUT", () => {
     kind: "fetch",
     jql: "project = MCA",
     out: DEFAULT_OUT,
+    allowEmpty: false,
     fieldConfig: undefined,
     project: undefined,
   });
@@ -24,9 +25,31 @@ test("fetch with --jql and --out overrides the default out", () => {
     kind: "fetch",
     jql: "project = MCA",
     out: "custom.json",
+    allowEmpty: false,
     fieldConfig: undefined,
     project: undefined,
   });
+});
+
+// WHEN --allow-empty is absent, the destructive write shall be opt-in: the
+// parser reports false so a forgotten flag can never destroy a good payload.
+test("fetch without --allow-empty yields allowEmpty false", () => {
+  const result = parseArgv(["fetch", "--jql", "project = MCA"]);
+  assert.strictEqual(result.kind, "fetch");
+  assert.strictEqual(result.allowEmpty, false);
+});
+
+// WHEN --allow-empty is given, the escape hatch shall reach the composition root.
+test("fetch with --allow-empty yields allowEmpty true", () => {
+  const result = parseArgv(["fetch", "--jql", "project = MCA", "--allow-empty"]);
+  assert.strictEqual(result.kind, "fetch");
+  assert.strictEqual(result.allowEmpty, true);
+});
+
+// The flag is discoverable: an operator who hits the refusal message reads
+// `--allow-empty` there, and `saci fetch` with no args shall confirm it exists.
+test("USAGE advertises the --allow-empty flag on fetch", () => {
+  assert.ok(USAGE.includes("[--allow-empty]"), "usage text must advertise --allow-empty");
 });
 
 test("fetch with both --field-config and --project carries the override flags", () => {
@@ -43,6 +66,7 @@ test("fetch with both --field-config and --project carries the override flags", 
     kind: "fetch",
     jql: "project = MCA",
     out: DEFAULT_OUT,
+    allowEmpty: false,
     fieldConfig: "fields.json",
     project: "MC",
   });

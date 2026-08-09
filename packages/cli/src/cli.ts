@@ -116,7 +116,7 @@ async function runCommand(command: ParsedCommand): Promise<void> {
           ? await loadFieldMapping(command.fieldConfig, command.project)
           : undefined;
       const makeGateway = makeGatewayFactory(command.jql, mapping);
-      const payload = await runFetch(makeGateway, command.out);
+      const payload = await runFetch(makeGateway, command.out, new Date(), command.allowEmpty);
       process.stdout.write(renderFetch(payload, command.out));
       return;
     }

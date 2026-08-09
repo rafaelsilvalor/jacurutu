@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -33,6 +33,9 @@ function sampleIssue(key: string): Issue {
  */
 function fakeMakeGateway(): (dropLog: IssueDropLog, warningLog: IssueWarningLog) => JiraGateway {
   return (dropLog, warningLog) => ({
+    // Port ripple: the pre-flight the composition root now runs before every
+    // search. This fake models a good credential, so it resolves.
+    async verifyCredentials(): Promise<void> {},
     async fetchIssues(): Promise<Issue[]> {
       dropLog("MCA-99", "Template");
       warningLog("MCA-42", "vertical_raw", "vertical missing");
@@ -45,6 +48,52 @@ function fakeMakeGateway(): (dropLog: IssueDropLog, warningLog: IssueWarningLog)
     },
   });
 }
+
+/**
+ * A gateway factory with the pre-flight and the search independently scripted.
+ * `verify` and `issues` are supplied per test so ordering, refusal and the
+ * escape hatch can each be driven without a bespoke fake apiece.
+ */
+function gatewayWith(options: {
+  verify?: () => Promise<void>;
+  issues: Issue[] | (() => Promise<Issue[]>);
+}): (dropLog: IssueDropLog, warningLog: IssueWarningLog) => JiraGateway {
+  return () => ({
+    async verifyCredentials(): Promise<void> {
+      if (options.verify) {
+        await options.verify();
+      }
+    },
+    async fetchIssues(): Promise<Issue[]> {
+      return typeof options.issues === "function" ? options.issues() : options.issues;
+    },
+    async fetchIssueByKey(): Promise<Issue> {
+      throw new Error("fetchIssueByKey is not exercised by the fetch run");
+    },
+  });
+}
+
+/** Run `body` with console.warn captured, returning everything it emitted. */
+async function captureWarnings(body: () => Promise<void>): Promise<string[]> {
+  const captured: string[] = [];
+  const original = console.warn;
+  console.warn = (...args: unknown[]): void => {
+    captured.push(args.map((arg) => String(arg)).join(" "));
+  };
+  try {
+    await body();
+  } finally {
+    console.warn = original;
+  }
+  return captured;
+}
+
+function sandbox(): { dir: string; outputPath: string } {
+  const dir = mkdtempSync(path.join(tmpdir(), "saci-runfetch-"));
+  return { dir, outputPath: path.join(dir, "payload.json") };
+}
+
+const FIXED_NOW = new Date("2026-06-05T12:25:43-03:00");
 
 test("runFetch writes a payload with seed-order keys and the stamped clock", async () => {
   const dir = mkdtempSync(path.join(tmpdir(), "saci-runfetch-"));
@@ -107,6 +156,158 @@ test("runFetch serialization is indent=2, preserves non-ASCII, and has no traili
     assert.ok(!/\\u00/.test(written), "non-ASCII must not be escaped as \\uXXXX");
     // No trailing newline (matches automation/payload.json).
     assert.ok(!written.endsWith("\n"), "serialized payload must not end with a newline");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// The two tests above are also the "pre-flight passes" case: their fake resolves
+// verifyCredentials, and the happy path is unchanged by this brief.
+
+// WHEN the credentials are rejected, runFetch shall fail with THAT error before
+// the search runs. The fake's fetchIssues throws a distinguishable error, so the
+// assertion proves ordering rather than merely that something threw.
+test("runFetch runs the credential pre-flight before fetchIssues", async () => {
+  const { dir, outputPath } = sandbox();
+  try {
+    const makeGateway = gatewayWith({
+      verify: async () => {
+        throw new Error("credentials rejected by the pre-flight");
+      },
+      issues: async () => {
+        throw new Error("fetchIssues must not run after a failed pre-flight");
+      },
+    });
+
+    await assert.rejects(
+      () => runFetch(makeGateway, outputPath, FIXED_NOW),
+      /credentials rejected by the pre-flight/,
+    );
+    assert.ok(!existsSync(outputPath), "a failed pre-flight must not create the output file");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// WHEN the fetch returns zero issues over a payload that holds issues, runFetch
+// shall refuse. This is the failure the brief exists to remove: an expired token
+// or a wrong JQL silently replacing a good payload with an empty one.
+test("runFetch refuses to overwrite a non-empty payload with an empty result", async () => {
+  const { dir, outputPath } = sandbox();
+  try {
+    const seed = JSON.stringify({ schema_version: "2.0", issues: [sampleIssue("MCA-7")] }, null, 2);
+    writeFileSync(outputPath, seed, "utf8");
+
+    await assert.rejects(
+      () => runFetch(gatewayWith({ issues: [] }), outputPath, FIXED_NOW),
+      (error: unknown) => {
+        assert.ok(error instanceof Error);
+        assert.match(error.message, /Refusing to overwrite/);
+        assert.ok(
+          error.message.includes("--allow-empty"),
+          "the refusal must name the escape hatch that unblocks the operator",
+        );
+        return true;
+      },
+    );
+
+    assert.strictEqual(readFileSync(outputPath, "utf8"), seed, "the prior payload must be byte-identical");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// WHEN the operator opts in, the empty payload shall be written: some days the
+// answer really is zero, and the guard must not become unbypassable.
+test("runFetch with allowEmpty overwrites a non-empty payload", async () => {
+  const { dir, outputPath } = sandbox();
+  try {
+    writeFileSync(
+      outputPath,
+      JSON.stringify({ schema_version: "2.0", issues: [sampleIssue("MCA-7")] }, null, 2),
+      "utf8",
+    );
+
+    await runFetch(gatewayWith({ issues: [] }), outputPath, FIXED_NOW, true);
+
+    const parsed = JSON.parse(readFileSync(outputPath, "utf8")) as Payload;
+    assert.deepStrictEqual(parsed.issues, []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// WHEN there is no prior file, there is nothing to protect: a first run must not
+// be blocked by a guard aimed at destruction.
+test("runFetch writes an empty payload when no prior file exists", async () => {
+  const { dir, outputPath } = sandbox();
+  try {
+    const payload = await runFetch(gatewayWith({ issues: [] }), outputPath, FIXED_NOW);
+    assert.deepStrictEqual(payload.issues, []);
+    assert.ok(existsSync(outputPath), "the empty payload must be written");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// WHEN the prior file cannot be parsed, there is nothing to protect — but the
+// reason is logged rather than swallowed (R4 / A1), because an unreadable
+// payload is itself worth an operator's attention.
+test("runFetch writes over an unparseable prior file and logs why", async () => {
+  const { dir, outputPath } = sandbox();
+  try {
+    writeFileSync(outputPath, "not json at all", "utf8");
+
+    const warnings = await captureWarnings(async () => {
+      await runFetch(gatewayWith({ issues: [] }), outputPath, FIXED_NOW);
+    });
+
+    const parsed = JSON.parse(readFileSync(outputPath, "utf8")) as Payload;
+    assert.deepStrictEqual(parsed.issues, []);
+    assert.ok(
+      warnings.some((line) => line.includes("not valid JSON")),
+      `expected a warning naming the cause, got ${JSON.stringify(warnings)}`,
+    );
+    assert.ok(warnings.some((line) => line.includes(outputPath)), "the warning must name the path");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// WHEN the prior payload is valid but already empty, nothing is lost by writing.
+test("runFetch writes when the prior payload has an empty issues array", async () => {
+  const { dir, outputPath } = sandbox();
+  try {
+    writeFileSync(outputPath, JSON.stringify({ schema_version: "2.0", issues: [] }), "utf8");
+
+    const payload = await runFetch(gatewayWith({ issues: [] }), outputPath, FIXED_NOW);
+
+    assert.deepStrictEqual(payload.issues, []);
+    const parsed = JSON.parse(readFileSync(outputPath, "utf8")) as Payload;
+    assert.deepStrictEqual(parsed.issues, []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// WHEN the fetch returns issues, the prior file is irrelevant: the happy path
+// overwrites exactly as it did before this brief.
+test("runFetch overwrites a prior file unchanged when the fetch returns issues", async () => {
+  const { dir, outputPath } = sandbox();
+  try {
+    writeFileSync(
+      outputPath,
+      JSON.stringify({ schema_version: "2.0", issues: [sampleIssue("MCA-7")] }, null, 2),
+      "utf8",
+    );
+
+    await runFetch(gatewayWith({ issues: [sampleIssue("MCA-42")] }), outputPath, FIXED_NOW);
+
+    const parsed = JSON.parse(readFileSync(outputPath, "utf8")) as Payload;
+    assert.deepStrictEqual(
+      parsed.issues.map((issue) => issue.key),
+      ["MCA-42"],
+    );
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

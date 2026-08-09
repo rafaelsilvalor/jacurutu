@@ -11,6 +11,17 @@ import type { Issue } from "./payload.js";
  * mapping is the future Jira adapter's `build_issue_entry` equivalent, not core.
  */
 export interface JiraGateway {
+  /**
+   * Verify the configured credentials before any search. Fail-loud (R4): a
+   * rejected credential throws naming the credential as the cause; success
+   * returns void. Exists because a bad token does not make a bounded JQL
+   * search fail — it answers 200 with an empty issue list (measured
+   * 2026-08-09), which would otherwise reach the caller as "no work today".
+   * The composition root calls this before any search; the adapter must not
+   * fold it into `fetchIssues`.
+   */
+  verifyCredentials(): Promise<void>;
+
   /** Fetch the current design issues as payload-v2.0 `Issue` records. */
   fetchIssues(): Promise<Issue[]>;
 

@@ -13,7 +13,8 @@ export const DEFAULT_OUT = "payload.json";
 
 /** Usage text owned by the parser (it owns argv defaults and the usage string). */
 export const USAGE = `Usage:
-  saci fetch --jql <string> [--out <path>] [--field-config <path> --project <KEY>]
+  saci fetch --jql <string> [--out <path>] [--allow-empty]
+             [--field-config <path> --project <KEY>]
   saci export --payload <path> --config <path> --profile <name>
   saci start <KEY> --workspace-root <path> [--templates-root <path>]
              [--variation <text>] [--blank] [--open]
@@ -29,7 +30,14 @@ export const USAGE = `Usage:
  */
 export type ParsedCommand =
   | { kind: "version" }
-  | { kind: "fetch"; jql: string; out: string; fieldConfig?: string; project?: string }
+  | {
+      kind: "fetch";
+      jql: string;
+      out: string;
+      allowEmpty: boolean;
+      fieldConfig?: string;
+      project?: string;
+    }
   | { kind: "export"; payload: string; config: string; profile: string }
   | {
       kind: "start";
@@ -62,6 +70,7 @@ export type ParsedCommand =
 const CLI_OPTIONS = {
   jql: { type: "string" },
   out: { type: "string" },
+  "allow-empty": { type: "boolean" },
   "field-config": { type: "string" },
   project: { type: "string" },
   payload: { type: "string" },
@@ -83,6 +92,7 @@ const CLI_OPTIONS = {
 type CliValues = {
   jql?: string;
   out?: string;
+  "allow-empty"?: boolean;
   "field-config"?: string;
   project?: string;
   payload?: string;
@@ -217,7 +227,16 @@ function routeCommand(values: CliValues, positionals: string[]): ParsedCommand {
           message: `--field-config and --project must be provided together for fetch.\n\n${USAGE}`,
         };
       }
-      return { kind: "fetch", jql: values.jql, out: values.out ?? DEFAULT_OUT, fieldConfig, project };
+      return {
+        kind: "fetch",
+        jql: values.jql,
+        out: values.out ?? DEFAULT_OUT,
+        // Opt-in: the default refuses to overwrite a non-empty payload with an
+        // empty result, so forgetting the flag can never destroy data.
+        allowEmpty: values["allow-empty"] ?? false,
+        fieldConfig,
+        project,
+      };
     }
     case "export": {
       if (

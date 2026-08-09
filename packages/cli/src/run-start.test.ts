@@ -42,6 +42,12 @@ function sampleIssue(overrides: Partial<Issue> = {}): Issue {
 /** A gateway factory whose single-key lookup returns a canned issue; `fetchIssues` is never hit. */
 function fakeMakeGateway(issue: Issue): MakeGateway {
   return () => ({
+    // Port ripple: the start run does not call the pre-flight (D3 — `runStart`
+    // is untouched by the credential-guard brief). Explicit throw, matching
+    // `fetchIssues` below, so a future silent call is caught (R4).
+    async verifyCredentials(): Promise<void> {
+      throw new Error("verifyCredentials is not exercised by the start run");
+    },
     async fetchIssues(): Promise<Issue[]> {
       throw new Error("fetchIssues is not exercised by the start run");
     },
