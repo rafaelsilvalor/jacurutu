@@ -121,16 +121,16 @@ Do not translate piecemeal during unrelated PRs.
 
 ## Related Documents
 
-- `docs/PROCESS_MAP.md` — entry point to *how work happens here*: reading order, the six roles, the gates, artifact naming, rule-ID namespaces, authority hierarchy. Read it after this file, before acting
+- `docs/PROCESS_MAP.md` — entry point to *how work happens here*: reading order, the roles, the gates, artifact naming, rule-ID namespaces, authority hierarchy. Read it after this file, before acting
 - `docs/MENTOR_BRIEF.md` — the Mentor lane, its own Claude Code main session: who the owner is and how the conceptual surface behaves (M-R*)
 - `docs/GIT_WORKFLOW.md` — branching, PRs, hooks, release tags
 - `docs/GOTCHAS.md` — known traps: worker pool timeouts, PSD binary parser, cache versioning, cross-platform pitfalls
-- `docs/AGENT_PLAYBOOK.md` — the Orchestrator role and the role-based pipeline (Orchestrator → planner → brief-validator → executor → closer)
+- `docs/AGENT_PLAYBOOK.md` — the Orchestrator role and the role-based pipeline (Orchestrator → planner → executor), plus the `@test`/`@code` pair for work that carries tests
 - `docs/ROADMAP.md` — product roadmap (phases, milestones; parked ideas and open decisions live as notes in `docs/explorations/`); ages in sync with `MENTOR_BRIEF.md` §2
 - `docs/tasks/<task-id>-<slug>/` — per-task artifacts: `brief.md`, optional `plan.md`, optional `notes.md`. Created when a task starts; preserved after merge as the historical record
 - `harness/` — workflow prompts (`setup-code.md`, `pause-task.md`, etc.) for new sessions; parallel manual surface to `.claude/agents/`
-- `.claude/agents/` — orchestration subagents: `planner.md`, `brief-validator.md`, `executor.md`, `closer.md` (reviews the assembled diff); invoked by the main session acting as Orchestrator (`docs/AGENT_PLAYBOOK.md` Chapter 6)
-- `.claude/skills/brief-template/` — authoring template for `docs/tasks/<task-id>-<slug>/brief.md`; preloaded by planner and brief-validator
-- `.claude/skills/pre-commit-self-audit/` — five mechanical checks run by the executor before every Pause 3
+- `.claude/agents/` — orchestration subagents: `planner.md`, `executor.md`, and the `test.md`/`code.md` pair; invoked by the main session acting as Orchestrator (`docs/AGENT_PLAYBOOK.md` Chapter 6). `brief-validator.md` and `closer.md` are retired tombstones — do not invoke them
+- `.claude/skills/brief-template/` — authoring template for `docs/tasks/<task-id>-<slug>/brief.md`; preloaded by planner
+- `.claude/hooks/` — the executable checks. They run in the harness, not the model, so they fire on every commit and every write whether or not anyone remembers them: commit message, architecture rules, test/code file ownership, the green boundary, and `validate-brief.mjs` for C1–C11
 - `.claude/skills/mentor-mode/` — session mechanics for the Mentor lane; invoked at the open of a Mentor session
 - `README.md` — user-facing project description

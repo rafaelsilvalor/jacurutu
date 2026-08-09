@@ -139,11 +139,14 @@
     margin for Phase 3 production. Pinned in three places: root
     `package.json` `engines`, `.nvmrc` at repo root, and
     `packages/cli/package.json` `engines`.
-  - **Verb allowlist as SSOT (canonicalized 2026-05-28).** The
-    allowlist consumed by `pre-commit-self-audit` Check 3 and
-    `brief-validator` Check C11 lives in
-    `.claude/skills/pre-commit-self-audit/SKILL.md`. The validator
-    greps it at runtime; it does not duplicate. Five verbs added on
+  - **Verb allowlist as SSOT (canonicalized 2026-05-28; relocated
+    2026-08-09).** The allowlist now lives in
+    `.claude/hooks/lib/commit-message.mjs` as `VERB_ALLOWLIST`, data
+    pinned by tests. It previously sat as an `ALLOW=` line inside the
+    self-audit skill, which two consumers scraped out of markdown with
+    a regex at runtime — a list a regex must recover from prose breaks
+    when the prose is reformatted. Both consumers read the module; it
+    does not duplicate. Five verbs added on
     this date (`deprecate`, `promote`, `wire`, `declare`,
     `canonicalize`); four rejected with substitutions
     (`record`→`document`, `ignore`→`add`, `clean`→`remove`,
@@ -261,7 +264,7 @@ Caminho B briefs — doctrinal, pipeline-modifying, bootstrap — are authored b
 | File | Audience |
 |---|---|
 | `CLAUDE.md` | Executor agent (Claude Code) — technical rules for code |
-| `docs/PROCESS_MAP.md` | Any agent arriving cold — reading order, the six roles, the gates, artifact naming, rule-ID namespaces, authority hierarchy |
+| `docs/PROCESS_MAP.md` | Any agent arriving cold — reading order, the roles, the gates, artifact naming, rule-ID namespaces, authority hierarchy |
 | `docs/MENTOR_BRIEF.md` | Mentor session (Claude Code) — this file. Behavior, not mechanics |
 | `.claude/skills/mentor-mode/SKILL.md` | Mentor session mechanics — opening, read and write policy, close |
 | `harness/workflows/setup-mentor.md`, `close-mentor-session.md` | The user — opening and closing a Mentor session |
@@ -269,10 +272,10 @@ Caminho B briefs — doctrinal, pipeline-modifying, bootstrap — are authored b
 | `docs/GIT_WORKFLOW.md` | Both agents and the user — branching, PRs, hooks, releases |
 | `docs/GOTCHAS.md` | Both agents and the user — codebase-specific traps |
 | `docs/explorations/README.md` | The note authority contract and the disposition set |
-| `docs/AGENT_PLAYBOOK.md` | The user — the Orchestrator role and the role-based pipeline; Chapter 6 defines the six roles |
-| `.claude/agents/` | The orchestration subagents (planner, brief-validator, executor, closer) invoked by the main session acting as Orchestrator |
-| `.claude/skills/brief-template/` | Authoring template for `docs/tasks/<task-id>-<slug>/brief.md`; preloaded by planner and brief-validator |
-| `.claude/skills/pre-commit-self-audit/` | Five mechanical checks run by the executor before every Pause 3 |
+| `docs/AGENT_PLAYBOOK.md` | The user — the Orchestrator role and the role-based pipeline; Chapter 6 defines the roles |
+| `.claude/agents/` | The orchestration subagents (planner, executor, and the test/code pair) invoked by the main session acting as Orchestrator. `brief-validator` and `closer` are retired tombstones |
+| `.claude/skills/brief-template/` | Authoring template for `docs/tasks/<task-id>-<slug>/brief.md`; preloaded by planner |
+| `.claude/hooks/` | The executable checks — commit message, architecture rules, file ownership, green boundary, and `validate-brief.mjs` for C1–C11 |
 | `docs/tasks/<task-id>-<slug>/` | Per-task artifacts: `brief.md`, optional `notes.md` (per-session recaps live in `docs/sessions/`) |
 | `harness/` | The user — workflow prompts to start sessions and tasks (parallel manual surface to `.claude/agents/`) |
 | `README.md` | End users — what Saci is and how to install it |

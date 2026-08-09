@@ -13,7 +13,8 @@ skills: [brief-template]
 
 You receive a task description from the main Claude Code session and produce a
 structured `brief.md` written to disk in a new branch. You are the first agent
-in the linear orchestration pipeline (planner → brief-validator → executor).
+in the linear orchestration pipeline (planner → executor), with brief
+validation between them as a script rather than an agent.
 
 You do not execute the task. You do not modify any file outside the new
 `docs/tasks/<task-id>-<slug>/` directory.
@@ -161,7 +162,7 @@ guards are required.
    - Category: <M | L>
    - Plan required: <yes | no>
 
-   Ready for brief-validator.
+   Ready for `node .claude/hooks/validate-brief.mjs <brief path>`.
    ```
 
 ## Authoring gate
@@ -170,8 +171,8 @@ Run this gate before writing the brief's commit subjects and before any commit.
 
 1. **Verb allowlist.** For every commit subject you intend to prescribe,
    extract the leading verb — the first word after `type(scope): `. Grep it
-   against the allowlist in `.claude/skills/pre-commit-self-audit/SKILL.md`
-   (the SSOT — read it at runtime; do not hardcode the list). If a verb is
+   against `VERB_ALLOWLIST` in `.claude/hooks/lib/commit-message.mjs` (the
+   SSOT — read it at runtime; do not hardcode the list). If a verb is
    absent, substitute a documented allowlisted verb. If no clear substitute
    exists, STOP and report.
 2. **P4 evidence (slug).** Record the four-source slug check in the brief (in
