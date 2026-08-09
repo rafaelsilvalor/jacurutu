@@ -10,9 +10,10 @@
 // deterministic in tests.
 //
 // Fail-loud, no partial scaffold (D2/D5, constraint 4): every validation that
-// can fail — the live fetch, the collision check, and (when not --blank) the
-// template-source resolution — runs BEFORE any filesystem mutation. A failure
-// throws and nothing is written; cli.ts maps the throw to a non-zero exit.
+// can fail — the credential pre-flight, the live fetch, the collision check,
+// and (when not --blank) the template-source resolution — runs BEFORE any
+// filesystem mutation. A failure throws and nothing is written; cli.ts maps the
+// throw to a non-zero exit.
 //
 // `runStartLocal` (brief 036) is the keyless sibling: it mints `<prefix>-<seq>`
 // from the identity file instead of fetching Jira — fully offline, no gateway —
@@ -276,9 +277,10 @@ async function executeScaffold(
 }
 
 /**
- * Run `start`: fetch the issue, derive its folder, validate (collision +
- * template source) fully before any write, then scaffold, copy the template,
- * and write the manifest. Returns the created paths for the display layer.
+ * Run `start`: verify the credential, fetch the issue, derive its folder,
+ * validate (collision + template source) fully before any write, then scaffold,
+ * copy the template, and write the manifest. Returns the created paths for the
+ * display layer.
  */
 export async function runStart(
   makeGateway: MakeGateway,
@@ -290,6 +292,10 @@ export async function runStart(
   now: Date = new Date(),
 ): Promise<StartRunResult> {
   const gateway = makeGateway(dropLogSink, warningLogSink);
+  // Pre-flight before the single-key lookup: a bad token answers that lookup
+  // with "issue not found", which names the wrong cause. No try — a rejected
+  // credential propagates unwrapped to main()'s catch, same as run-fetch.
+  await gateway.verifyCredentials();
   const issue = await gateway.fetchIssueByKey(key);
 
   const segments = derivePath(toDerivePathInput(issue));
