@@ -223,7 +223,9 @@ from its Drive manifest. This is the core of the product after the
 - `[prod]` State and history accumulation — the app owns production state over
   time (not just point-in-time snapshots). This is the precondition for any
   throughput/history view; export snapshots alone cannot produce it.
-- Credential guard on `fetch`. Jira's `POST /rest/api/3/search/jql` answers
+- Credential guard on `fetch` (shipped in brief
+  2026-08-09-fetch-credential-guard). Jira's `POST /rest/api/3/search/jql`
+  answers
   `200` with an empty list when the token has expired, not `401`, and
   `runFetch` writes the payload unconditionally — so an expired token silently
   overwrites a good payload with zero entries and the next export ships empty.
