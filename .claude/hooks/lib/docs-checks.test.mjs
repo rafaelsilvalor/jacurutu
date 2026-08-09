@@ -82,6 +82,16 @@ test("R9 applies by surface, not by directory depth", () => {
   assert.equal(checkLanguage("harness/README.md", ptbr).length, 0);
 });
 
+// WHEN the file is the root README, E7 exempts it: it is the product's front
+// door for a Brazilian team, not an agent-consumed document. WHEN it is any
+// other README, the surface still decides — `docs/explorations/README.md` is
+// doctrine and stays English. The exception is one file, not a filename.
+test("E7 exempts the root README and nothing else named README", () => {
+  const ptbr = "esta linha nao deveria passar porque esta em portugues";
+  assert.equal(checkLanguage("README.md", ptbr).length, 0);
+  assert.equal(checkLanguage("docs/explorations/README.md", ptbr).length, 1);
+});
+
 // WHEN pt-BR sits inside a fenced block, it shall be ignored: quoted pt-BR is
 // evidence, and harness prompts are quoted in the doctrine on purpose.
 test("fenced pt-BR is quotation, not authorship", () => {

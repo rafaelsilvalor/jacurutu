@@ -19,7 +19,12 @@ const PATH_REFERENCE = /`([A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.*-]+)+\.(?:md|ts|mts|c
 const PLACEHOLDER_SEGMENT = /[*<>]/;
 // R9: `harness/` is the human-edited surface and may be pt-BR, including the
 // COPIAR payloads. Everything else agent-consumed is English-only.
-const ENGLISH_ONLY = [/^CLAUDE\.md$/, /^README\.md$/, /^docs\//, /^\.claude\//];
+//
+// The root `README.md` is absent by E6's sibling, E7: it is the product's front
+// door for a Brazilian design team, not an agent-consumed document. Note that
+// `docs/explorations/README.md` is NOT exempt — it is doctrine, and `^docs/`
+// still covers it. The exception is one file, not a filename.
+const ENGLISH_ONLY = [/^CLAUDE\.md$/, /^docs\//, /^\.claude\//];
 const PT_BR_MARKERS =
   /\b(não|para|que|também|então|mas|porque|quando|onde|apenas|sempre|nunca|deve|pode)\b/i;
 const CODE_FENCE = /^```/;

@@ -46,7 +46,7 @@ Detailed domain notes and known traps live in `docs/GOTCHAS.md`; product roadmap
 
 The dev surface splits by *audience*, not by directory.
 
-- *Agent-consumed surface* (English-only): code identifiers, comments, file/folder names, commit messages, branch names, PR titles/descriptions, canonical documentation (`CLAUDE.md`, `README.md`, `docs/**`), task artifacts (`docs/tasks/**`), config keys, log/console messages.
+- *Agent-consumed surface* (English-only): code identifiers, comments, file/folder names, commit messages, branch names, PR titles/descriptions, canonical documentation (`CLAUDE.md`, `docs/**`), task artifacts (`docs/tasks/**`), config keys, log/console messages. The root `README.md` was listed here until 2026-08-09 and is now exempt under `E7` — it is a product surface, not an agent-consumed one. Every other `README.md` is decided by the directory it sits in.
 - *Human-edited interface* (pt-BR is acceptable): everything under `harness/` — the prompts in `harness/init/*.md`, the workflow files in `harness/workflows/`, their `README.md`, and the `--- COPIAR ---` blocks themselves. Rationale: the user reads, copies, and customizes these directly, and every block lands in a session where M-R10 already mandates pt-BR — so pt-BR reduces friction without affecting agent quality. This bullet was corrected on 2026-08-04 (brief 049, D4): it previously claimed the COPIAR blocks were English, while every one on disk was pt-BR, including the `setup-orchestrator.md` block the owner pastes to open an Orchestrator session.
 - *UI surface* (EN + pt-BR): visible labels, button text, placeholders, tooltips, error toasts, empty states, menu items. Stored in an i18n layer keyed by string ID, with both locales defined. **Never inline a pt-BR-only literal in new HTML/JSX/template code** — route through the i18n layer (or add a `TODO(i18n)` if the layer is not yet in place).
 - Default locale is auto-detected from the OS (`app.getLocale()` in main, `navigator.language` in renderer); the user may override in settings.
@@ -104,7 +104,7 @@ The dev surface splits by *audience*, not by directory.
 
 ## Documented Exceptions
 
-**Note on v1 freeze:** all exceptions below apply to the Electron-v1 codebase, currently in freeze (`MENTOR_BRIEF.md` §2). No new work resolves them; they remain documented for historical context and any critical-bug-only v1 maintenance. New v2 exceptions take fresh numbering; `E6` was claimed on 2026-08-09, so the next is `E7`. `E6` is the first exception in this list that is not about the v1 freeze — it applies to the v2 packages and is live, not legacy debt.
+**Note on v1 freeze:** all exceptions below apply to the Electron-v1 codebase, currently in freeze (`MENTOR_BRIEF.md` §2). No new work resolves them; they remain documented for historical context and any critical-bug-only v1 maintenance. New v2 exceptions take fresh numbering. `E6` and `E7` were claimed on 2026-08-09 and are the first in this list that are not about the v1 freeze — they are live, not legacy debt. **The next free number is `E10`:** `E8` and `E9` are cited as live exceptions elsewhere (`docs/PROCESS_MAP.md` §7 for recap naming, and the task-identifier cutover for the pre-cutover numeric shape) without ever being defined in this list. Reconciling that is its own task; until then, do not reuse them.
 
 **E1 — Renderer state in module globals (`renderer/app.js`).** The current renderer keeps state in module-level variables (`allGroups`, `activeGroupName`, `searchQuery`, `rootPath`). Tolerated until `refactor/renderer-into-modules`. New renderer code must not add to this pattern.
 
@@ -121,9 +121,15 @@ Do not translate piecemeal during unrelated PRs.
 
 **E6 — Test files are measured against a subject, not against R5's 400-line budget.** A test file that maps 1:1 to a subject module (`x.test.ts` beside `x.ts`) may exceed 400 lines. Two further conditions hold: the 1:1 mapping is the *precondition* — an over-budget test with no subject module is denied, because there "split by responsibility" does have a valid axis — and a ceiling of **800 lines** still applies, escalating to the owner with a finding that points at the subject rather than the test.
 
-Rationale, recorded because the exception inverts the rule's own remedy: R5 says "when exceeded, split by responsibility". For a test file already scoped to one subject that instruction has no valid move — the responsibility *is* "test this module", and splitting by line count fragments the spec across files, so reading what a function guarantees would mean opening three of them. A check whose finding has no available remedy is worse than no check: it trains you to ignore checks.
+Rationale, recorded because this exception inverts the rule's own remedy: R5 says "when exceeded, split by responsibility". For a test file already scoped to one subject that instruction has no valid move — the responsibility *is* "test this module", and splitting by line count fragments the spec across files, so reading what a function guarantees would mean opening three of them. A check whose finding has no available remedy is worse than no check: it trains you to ignore checks.
 
 Measured on 2026-08-09 before adopting this: no implementation file in `packages/` came near the budget (largest 363 of 400), while two test files had drifted past it unnoticed — the limit works where it was designed to work and fails where it was extrapolated. All 27 test files map 1:1 today. Enforced by `.claude/hooks/lib/architecture.mjs`; the ceiling is `TEST_CEILING`.
+
+**E7 — The root `README.md` is pt-BR, and stays pt-BR.** R9 listed it as an English-only agent-consumed surface; it is not one. It is the product's front door, read by the Estratégia design team, and the team is Brazilian. An English README would serve the agents at the cost of the only humans who open it.
+
+Scope is exactly one file. Every other `README.md` is decided by the directory it sits in: `docs/explorations/README.md` is doctrine and stays English, `harness/**/README.md` is already pt-BR-tolerant under R9. The exception is a file, not a filename.
+
+This was a standing violation, not a new allowance — the R9 language check surfaced it on its first run (2026-08-09, 13 lines) after being invisible since R9 was written. `E3` covers legacy pt-BR in `main.js`, `psd-worker.js` and `renderer/`, and never covered the README. Migration path, if the product ever leaves the Estratégia team: bilingual, per R9's UI-surface rule — not a translation. Enforced by the `ENGLISH_ONLY` list in `.claude/hooks/lib/docs-checks.mjs`.
 
 ## Related Documents
 
