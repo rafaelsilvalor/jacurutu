@@ -5,8 +5,9 @@ import {
   isShellTool,
   isCommitCommand,
   extractCommitMessage,
-  parseVerbLists,
   decideCommitMessage,
+  VERB_ALLOWLIST,
+  VERB_DENYLIST,
   MAX_SUBJECT_LENGTH,
 } from "./commit-message.mjs";
 
@@ -61,14 +62,30 @@ test("an unreadable message is a documented gap, not a denial", () => {
   assert.equal(decideCommitMessage(null, LISTS).decision, "allow");
 });
 
-// WHEN the SSOT is read, both lists shall come back parsed; WHEN it is missing
-// or restructured, they shall come back empty rather than partially guessed.
-test("parseVerbLists reads the SSOT and fails loudly when it moves", () => {
-  const source = 'text\nALLOW="add fix update"\nDENY="added fixing"\nmore text';
-  assert.deepEqual(parseVerbLists(source).allow, ["add", "fix", "update"]);
-  assert.deepEqual(parseVerbLists(source).deny, ["added", "fixing"]);
-  assert.deepEqual(parseVerbLists("no lists here").allow, []);
-  assert.deepEqual(parseVerbLists(undefined).allow, []);
+// WHEN the verb lists are consulted, they shall come from this module. They
+// used to be scraped out of a markdown file at runtime; pinning them here is
+// what makes that relocation safe.
+test("the verb lists are data, and internally consistent", () => {
+  assert.ok(VERB_ALLOWLIST.includes("add"));
+  assert.ok(VERB_ALLOWLIST.includes("wire"));
+  assert.ok(VERB_DENYLIST.includes("added"));
+  assert.equal(VERB_ALLOWLIST.length, 20);
+  assert.equal(VERB_DENYLIST.length, 17);
+  // No verb may sit on both lists, and every entry is lowercase — the subject
+  // verb is lowercased before comparison, so an uppercase entry is unreachable.
+  const overlap = VERB_ALLOWLIST.filter((v) => VERB_DENYLIST.includes(v));
+  assert.deepEqual(overlap, []);
+  for (const verb of [...VERB_ALLOWLIST, ...VERB_DENYLIST]) {
+    assert.equal(verb, verb.toLowerCase());
+  }
+});
+
+// WHEN no lists are supplied, the module defaults shall apply — the hook calls
+// it with one argument.
+test("decideCommitMessage defaults to the module lists", () => {
+  assert.equal(decideCommitMessage("chore(hooks): add the guard").decision, "allow");
+  assert.equal(decideCommitMessage("chore(hooks): added the guard").decision, "deny");
+  assert.equal(decideCommitMessage("chore(hooks): frobnicate the guard").decision, "ask");
 });
 
 // WHEN the subject exceeds the limit, the commit shall be denied and the
@@ -122,12 +139,12 @@ test("an unclassifiable verb escalates instead of guessing", () => {
   assert.match(verdict.reason, /neither the allowlist nor the denylist/);
 });
 
-// WHEN the allowlist could not be read, check 3 shall escalate rather than
+// WHEN a caller injects an empty allowlist, check 3 shall escalate rather than
 // pass every verb by default.
-test("an unreadable allowlist escalates, never passes", () => {
+test("an empty injected allowlist escalates, never passes", () => {
   const verdict = decideCommitMessage("chore: add x", { allow: [], deny: [] });
   assert.equal(verdict.decision, "ask");
-  assert.match(verdict.reason, /SSOT/);
+  assert.match(verdict.reason, /empty/);
 });
 
 // WHEN everything holds, the commit shall proceed.

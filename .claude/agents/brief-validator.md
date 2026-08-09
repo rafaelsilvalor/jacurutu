@@ -61,8 +61,10 @@ brief 016: out-of-allowlist commit verbs were previously caught only at
 executor Pause 3 (via `pre-commit-self-audit` Check 3 STOP). Moving the
 check to validator-time lets the brief be rejected before any code is
 written. The validator consults the allowlist directly from
-`.claude/skills/pre-commit-self-audit/SKILL.md` so the two consumers
-cannot drift.
+`.claude/hooks/lib/commit-message.mjs` so the two consumers cannot drift.
+The list moved there from the retired `pre-commit-self-audit` skill on
+2026-08-09: it is now data pinned by tests rather than prose recovered by
+a regex.
 
 ### Rule-to-pattern table
 
@@ -78,7 +80,7 @@ cannot drift.
 | C8 | Apply to extracted subjects from C7: each must match `^(feat\|fix\|refactor\|test\|chore\|docs\|perf\|ci)(\([a-z0-9-]+\))?: ` | `CLAUDE.md` R10 |
 | C9 | `grep -nE '^## Pause points' <brief>` plus `grep -E 'Pause 1' <brief>`, `grep -E 'Pause 2' <brief>`, `grep -E 'Pause 3' <brief>` | `docs/AGENT_PLAYBOOK.md` Lesson #6 and `.claude/skills/brief-template/SKILL.md`, "Pause points" section. FAIL if pt-BR "Pausa" used on agent-consumed brief (R9) |
 | C10 | Strip fenced code blocks, then grep pt-BR markers: `awk '/^```/ { in_code = !in_code; next } !in_code { print NR ": " $0 }' <brief> \| grep -iE '\b(não\|para\|que\|também\|então\|mas\|porque\|quando\|onde\|apenas\|sempre\|nunca\|deve\|pode)\b'` | `CLAUDE.md` R9 |
-| C11 | Extract the allowlist from the canonical SSOT: `grep -oE 'ALLOW="[^"]+"' .claude/skills/pre-commit-self-audit/SKILL.md \| sed -E 's/^ALLOW="//; s/"$//'`. From each commit subject extracted in C7, extract the verb via `sed -E 's/^[a-z]+(\([a-z0-9-]+\))?: ([a-z]+).*/\2/'`. Cross-check each verb against the allowlist; FAIL if any verb is outside it. STOP if the SSOT extraction returns empty (file structure changed). | `.claude/skills/pre-commit-self-audit/SKILL.md`, "Verb allowlist as canonical source" subsection |
+| C11 | Extract the allowlist from the canonical SSOT: `node --input-type=module -e "import {VERB_ALLOWLIST} from './.claude/hooks/lib/commit-message.mjs'; console.log(VERB_ALLOWLIST.join(' '))"`. From each commit subject extracted in C7, extract the verb via `sed -E 's/^[a-z]+(\([a-z0-9-]+\))?: ([a-z]+).*/\2/'`. Cross-check each verb against the allowlist; FAIL if any verb is outside it. STOP if the SSOT extraction returns empty (file structure changed). | `.claude/skills/pre-commit-self-audit/SKILL.md`, "Verb allowlist as canonical source" subsection |
 
 ### How C7 extracts
 
@@ -199,8 +201,8 @@ You stop and report when:
 - The repo is not in a clean state (uncommitted changes) — your audit
   should run against a stable commit.
 - The C11 SSOT extraction returns empty — the allowlist could not be read
-  from `.claude/skills/pre-commit-self-audit/SKILL.md` (file structure
-  changed). Do not assume an empty allowlist; surface the structural drift.
+  from `.claude/hooks/lib/commit-message.mjs` (module moved or renamed).
+  Do not assume an empty allowlist; surface the structural drift.
 
 Reports are a single chat message prefixed `STOP — <category>: <reason>`.
 You emit no verdict in a STOP case.
