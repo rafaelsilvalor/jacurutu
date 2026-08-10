@@ -4,12 +4,13 @@
 owner as in the previous window. Push and destructive actions still gated.
 **Consumes:** `experiment/harness-redesign@32d2fbc` — the handoff state left by
 `2026-08-09-orchestrator-harness-redesign.md`.
-**Branch:** `experiment/harness-redesign@88f0976`, still accumulating, pushed and
-in sync with `origin`. Not merged to `main`; `main` is merged *into* it.
+**Branch:** `experiment/harness-redesign`, still accumulating, pushed and in sync
+with `origin`. Not merged to `main`; `main` is merged *into* it. The tip SHA is
+deliberately **not** pinned here — see "What went wrong" below.
 **Shipped to `main`:** PR #129, squash-merged as `93fa448`.
 **Sub-branches, all merged `--no-ff` and their pointers deleted:**
 `dead-reference`, `hook-worktree-gotcha`, `recap-corrections`, `g-r6-correction`,
-`session-recap`.
+`session-recap`, `git-cherry-gotcha`, `recap-sync`.
 
 ## One-line summary
 
@@ -174,19 +175,46 @@ got right.
 
 ## What went wrong in how this session ran
 
-This recap was written once and corrected three times, because it was authored
-before the owner's rulings arrived and then again before the cleanup happened.
-Each correction was cheap and each was a real falsehood — a recap that described
-a worktree which no longer existed would have sent the next session looking for
-it. But the pattern is avoidable: **a recap written while decisions are still
-open is a draft, and calling it done is what creates the corrections.** Either
-write it at the close, or treat it as living and stop paying the commit each
-time. The previous window's lesson was about rotation cadence; this one is the
-same lesson applied to the artifact.
+This recap was written once and corrected five times, because it was authored
+before the owner's rulings arrived and then re-authored after each subsequent
+front closed. Every correction fixed a real falsehood — a recap that described a
+worktree which no longer existed would have sent the next session looking for it
+— so none of them were waste. But the churn was avoidable: **a recap written
+while decisions are still open is a draft, and calling it done is what creates
+the corrections.** The previous window's lesson was about rotation cadence; this
+is the same lesson applied to the artifact.
+
+Two of the five corrections existed only because the recap **pinned values that
+move**: the branch tip SHA and the count of corrections itself. A record that
+cites a moving value is guaranteed to go false, and re-pinning it each time is
+paying a commit to be briefly accurate. The tip SHA is now removed rather than
+updated — `git log -1` is authoritative and always current, and no document
+competes with it. What stays pinned is what is genuinely immutable: `93fa448`,
+`d5da267`, `6efce90`, the sub-branch names.
+
+## What this session did NOT establish
+
+- **`G-GIT-1` rests on one repository and two branches.** `git cherry` was
+  measured right on a one-commit squash and wrong on a six-commit one. The case
+  in between is untested: a squash whose combined patch was **hand-edited before
+  merge**, where the patch-id would diverge even for a single commit. The entry's
+  advice survives either way, because it tells you to stop using `cherry` for
+  containment at all — but the mechanism is characterized, not exhaustively
+  mapped.
+- **`G-HOOK-1`'s scope beyond this harness version.** That
+  `CLAUDE_PROJECT_DIR` is fixed at session start was inferred from observed
+  behavior — guards dead before the move, live after — not from documentation.
+  If a future version re-reads settings per turn, the entry's cause goes stale
+  while its probe stays valid.
+- **The two stuck directory entries** were attributed to the other sessions
+  holding them as working directories. That is the standard cause of
+  `Device or resource busy` on an empty directory, and it was not verified by
+  inspecting process handles.
 
 ## Next-session snippet
 
-> Continue `experiment/harness-redesign@88f0976` (in sync with `origin`).
+> Continue `experiment/harness-redesign` (in sync with `origin`; read the tip
+> with `git log -1` — this document does not pin it).
 > **Open the session in a worktree that already has the branch checked out, or
 > expect every hook to be dead** — see `G-HOOK-1` in `docs/GOTCHAS.md` and run
 > its probe before trusting any guard. Green: `npx tsc -b && npm test` = 324
