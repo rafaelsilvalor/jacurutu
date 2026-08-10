@@ -149,9 +149,14 @@ touched by #129, `main` and the branch had **identical** trees; and on those two
 files, going `main` → branch *removed* 116+12 lines and restored 6+6 of the prior
 state — the #129 patch being undone, i.e. `main` strictly ahead. Only then `-D`.
 
-This is a candidate for its own gotcha entry (no `G-GIT` category exists yet). It
-is left as a candidate rather than written, because one measurement is not a
-pattern and this note records it either way.
+Written up as **`G-GIT-1`**, in a new `G-GIT` category. It was parked as a
+candidate first and then measured, and the measurement sharpened it: `git cherry`
+answered `-` **correctly** on a one-commit squash-merged branch (#129 → `93fa448`)
+and `+` wrongly on the six-commit one (#128 → `073f2ea`). So it is
+*conditionally* wrong — right often enough to earn trust, wrong exactly when a
+branch is big enough to matter — which is worse than being always wrong.
+Reachability (`--merged`, `-d`) called both unmerged, including the case `cherry`
+got right.
 
 ## Local state
 
@@ -190,5 +195,6 @@ same lesson applied to the artifact.
 > it is **synced with `main` through `git merge`, never a rebase** (G-R6; the
 > previous recap says otherwise). Do not invoke `brief-validator`, `closer`, or
 > `pre-commit-self-audit` — they are tombstones. Nothing waits on the owner and
-> nothing is in flight. One candidate is parked in this recap, not written: a
-> gotcha for `git cherry` lying about containment in a squash-merge repo.
+> nothing is in flight. Before deleting any branch here, read `G-GIT-1`: in a
+> squash-merge repo neither `git cherry` nor `--merged` can confirm containment,
+> and `cherry` is right often enough to be trusted wrongly.
