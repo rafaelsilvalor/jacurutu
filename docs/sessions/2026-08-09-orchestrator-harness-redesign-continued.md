@@ -79,9 +79,10 @@ R5's 400-line budget — and it was *already* over on `main`, as is
 measured against its 1:1 subject is **E6**, which was written on this
 experimental branch and has not reached `main`; on `main`, `E6` exists only as
 the next free number reserved by the v1-freeze note. **The PR is correct under a
-rule `main` cannot see.** Two ways out, both the owner's call: land E6 ahead of
-the rest of the redesign, or accept the finding and let the redesign PR cover it
-retroactively.
+rule `main` cannot see.** Two ways out were put to the owner, who **ruled to
+accept the finding in #129** rather than land E6 on `main` ahead of the rest of
+the redesign. The finding stays recorded in the PR body, and the redesign PR
+covers E6 retroactively when it merges. Recorded so it is not reopened from zero.
 
 **3 — the branch model: deferred, deliberately.** It stays undocumented until
 the redesign closes; documenting a temporary model before knowing whether it
@@ -91,10 +92,10 @@ wrong, because that document says the opposite.
 
 ## Local state
 
-- The old worktree `.claude/worktrees/exploracao-branch-especial-437e38` is now
-  a **detached checkout** at `32d2fbc`, with `node_modules` still installed. It
-  is stale — the branch moved out of it. Removing it is a directory deletion and
-  was left for the owner.
+- The old worktree `.claude/worktrees/exploracao-branch-especial-437e38` was
+  **removed** on the owner's call, once the branch had moved out of it and it was
+  a stale detached checkout. `git worktree remove` took it without `--force`:
+  nothing tracked had changed and nothing was untracked but its `node_modules`.
 - `claude/exploracao-branch-especial-437e38` and
   `claude/harness-redesign-exploration-24a9a0` are scaffolding branch pointers
   at `main`'s content, with no unique commits. Harmless; not this session's to
@@ -110,6 +111,5 @@ wrong, because that document says the opposite.
 > Green: `npx tsc -b && npm test` = 324 package tests + 61 hook tests. The
 > branch accumulates: cut sub-branches from it, merge back with `--no-ff`, and
 > it reaches `main` only when complete. Do not invoke `brief-validator`,
-> `closer`, or `pre-commit-self-audit` — they are tombstones. Two things are
-> waiting on the owner: PR #129, and whether E6 should land on `main` ahead of
-> the rest of the redesign (the R5 finding in that PR).
+> `closer`, or `pre-commit-self-audit` — they are tombstones. One thing waits on
+> the owner: PR #129, to merge. Nothing else is in flight.
