@@ -111,18 +111,46 @@ live** in `PROCESS_MAP.md` and elsewhere without ever being defined in
 `AGENT_PLAYBOOK.md`. The next free number is **E10**; the note in `CLAUDE.md`
 says so and says why.
 
-## Open decisions — none of these is in flight
+## Open decisions — three, none in flight
 
 1. **The dead reference** at `docs/explorations/mentor-lane-and-task-identity.md:54`
    (`harness/workflows/setup-chat.md`). Left deliberately: notes are amended by
    a Mentor session or a brief that scopes them, not during unrelated work. It
    is the only finding the docs guard reports across 72 documents.
-2. **The exception namespace** — `E4`/`E8`/`E9` cited without definition.
-3. **The special branch itself** — 21 commits, unpushed. It needs a PR against
-   `main` eventually, or decisions about what leaves earlier by cherry-pick.
-4. `retire` was **considered and rejected** for the verb allowlist: `deprecate`
-   is sufficient, and the allowlist's value is that it stays small. Recorded so
-   the question is not reopened from zero.
+2. **`fix/start-credential-guard`** — one commit, cut from `main`, green,
+   **local only**. It is the cherry-picked `b9804fe`, so nothing is at risk:
+   the same patch is on the pushed experimental branch. Push and PR are the
+   owner's call. Note for whoever merges it: once it lands on `main`, those 128
+   lines are already there when the experimental branch eventually merges —
+   rebase the experimental over the updated `main` and the duplicate resolves
+   itself.
+3. **The special branch itself** — it accumulates until the redesign is done,
+   then goes to `main` in one PR. That is the model and it has not changed;
+   the cherry-pick above was a one-off the owner authorized, not a second path.
+
+Two things closed rather than left open, recorded so neither is reopened from
+zero: `retire` was **considered and rejected** for the verb allowlist
+(`deprecate` is sufficient, and the allowlist's value is that it stays small),
+and the **exception namespace was reconciled** — `E4` is burned, `E9` closed on
+2026-08-07, `E8` never existed, and the two dangling `(En)` citations were
+removed rather than turned into entries. Next free number is `E8`.
+
+## Local state to clean up in the next session
+
+Not done here on purpose — cleanup belongs to the session that opens fresh.
+
+- **Eight merged sub-branches** still exist locally: `experiment/tdd-agent-pair`,
+  `tdd-poc-start-guard`, `architecture-guard`, `retire-self-audit`,
+  `retire-brief-validator`, `retire-closer-and-sweep`, `docs-lane`,
+  `r5-test-exception`, `readme-language-exception`, `exception-namespace`. All
+  are integrated into the experimental branch with `--no-ff`, so the history is
+  preserved in the merge commits and deleting the pointers loses nothing. G-R11
+  asks for a tag before discarding an `experiment/*` branch; that rule is aimed
+  at *abandoned* experiments, and these were merged, not abandoned.
+- **`fix/fetch-credential-guard`** is a live worktree from another session
+  (`.claude/worktrees/brief-052-task-cutover-278d50`) — not this session's to
+  touch.
+- The worktree has `node_modules` installed to work around G-NODE-2. Leave it.
 
 ## What went wrong in how this session ran
 
@@ -135,7 +163,7 @@ them.
 
 ## Next-session snippet
 
-> Continue `experiment/harness-redesign` (21 commits, unpushed, green:
+> Continue `experiment/harness-redesign` (pushed to `origin`, green:
 > `npx tsc -b && npm test` = 324 package tests + 61 hook tests). Read
 > `docs/explorations/gate-economics.md` first — it is the measurement the whole
 > redesign rests on. The branch accumulates: cut sub-branches from it, merge
