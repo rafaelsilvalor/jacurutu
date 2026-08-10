@@ -39,6 +39,7 @@
 | `G-PROC` | Process/orchestration traps when working with AI agents on briefs |
 | `G-DRIVE` | Google Drive adapter — OAuth scopes, tokens, Drive API semantics |
 | `G-JIRA` | Jira adapter — REST semantics, auth, search endpoint behavior |
+| `G-HOOK` | Claude Code hooks — registration, project-dir resolution, branch-scoped availability |
 
 Categories grow as needed. New category: lowercase shortcode, all-caps in IDs.
 
@@ -257,6 +258,18 @@ If folder sizes grow into thousands of files and the hitch becomes user-visible,
 **Workaround:** Key on HTTP status codes; never branch on response-body text. The live example is `packages/adapter-jira/src/http.ts`: it declares `CREDENTIAL_REJECTED_STATUSES = new Set([401, 403])` at module top, and `verifyCredentials` decides on set membership alone — it does not even parse the success body, precisely so no message-text dependency can grow there later. Response text is still fine in the message you *throw* (`Jira API error ${status}: ${detail}` carries it for the operator to read); it is never the thing you *test*. Enforce it with a test rather than prose alone: `http.test.ts` sends a `401` whose body is a Chinese `errorMessages` array and asserts the thrown message is still the English credential message.
 
 **Evidence:** Measured live on 2026-08-09 by the Orchestrator against `https://estrategia.atlassian.net`, with an invalid Basic credential and, in one case, with no `Authorization` header at all. The raw fact: `POST /rest/api/3/search/jql` with the unbounded JQL `order by created DESC` answered `400`, **and that `400`'s message came back in Chinese**, on a request that carried only `Accept`, `Authorization` and `Content-Type` — no `Accept-Language`, nothing asking for a language. The machine's own locale was not recorded, so it is not offered here as an explanation either. The same measurement recorded that a *bounded* JQL answers `200 {"issues":[],"isLast":true}` to an unauthenticated caller while `GET /rest/api/3/myself` answers `401`, which is why the credential pre-flight exists at all. Adopted by brief `2026-08-09-fetch-credential-guard` as its constraint 4.
+
+---
+
+### G-HOOK-1 — A session worktree cut from `main` silently loses every hook
+
+**Symptom:** A session opens in a fresh worktree, switches to the branch it was told to continue, and works normally — but no guard ever fires. A commit subject that violates R10 is accepted. A staged architecture violation goes through. The turn ends without `tsc -b` or `npm test` having run. There is no error, no warning, and no log line, because nothing failed: the hooks were never registered in the first place. The only observable is an absence, which reads exactly like "everything passed".
+
+**Cause:** Hooks are registered in `.claude/settings.json` and resolved through `${CLAUDE_PROJECT_DIR}/.claude/hooks/`. `CLAUDE_PROJECT_DIR` is the session's project directory, fixed when the session opens — it is the worktree the session was *created in*, not the branch that worktree later checks out. A session worktree created from `main` (or any branch that predates the hooks) contains no `.claude/settings.json` and no `.claude/hooks/`, so the harness has nothing to register, and `git switch`ing that worktree onto the branch that does carry them changes nothing: settings are read at session start, not per branch. Because the five guards live as files on a branch, this applies to every session opened from `main` until that branch merges. The same worktree also starts without `node_modules`, so G-NODE-2 fires simultaneously — the green boundary would have verified the main checkout's `dist` even if it had been registered.
+
+**Workaround:** Move the branch into the session's own worktree instead of reaching across into another one: `git -C <other-worktree> switch --detach` (non-destructive — it only releases the branch), then `git switch <branch>`, then `npm install` at the worktree root with G-NODE-2's guard (`git status --short` must show no tracked changes, especially not `package-lock.json`). Then **probe** rather than assume, because a dead hook looks like a passing one: with nothing staged, run `git commit -m "bogus: probe"`. A live `commit-guard` denies it on the invalid type *before* git runs; a dead harness lets git answer "nothing to commit". The two outputs are unmistakable. Never treat the absence of a complaint as evidence that a guard ran.
+
+**Evidence:** Hit on 2026-08-09 while continuing `experiment/harness-redesign`. The session opened in a worktree created from `main@073f2ea`, where the branch's five hooks and 61 hook tests exist but `.claude/settings.json` does not; the guards were confirmed dead, then confirmed live after the move, using the probe above. Recorded in `docs/sessions/2026-08-09-orchestrator-harness-redesign-continued.md`.
 
 ---
 
