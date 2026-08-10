@@ -7,7 +7,8 @@ fundido (`docs/AGENT_PLAYBOOK.md` capítulo 6). Serve pra:
 
 - Modelar tarefa nova (fechar decisões + delegar ao pipeline)
 - Autorar brief doutrinário/pipeline-modificador via caminho B
-- Dirigir o pipeline (planner → brief-validator → gate → executor)
+- Dirigir o pipeline (planner → gate → executor; a validação mecânica do
+  brief entre planner e gate é um script, não um agente)
 - Fechar a sessão com recap
 
 Uma tarefa por sessão. Trabalho conceitual (aprendizado, exploração

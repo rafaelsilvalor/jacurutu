@@ -379,7 +379,7 @@ Two roles produce session recaps; four produce none:
 - **executor**: pure execution log — Edits, Pauses, evidence, commits. No context re-narration.
 - **planner**, **test** and **code**: no recaps. The committed brief, the committed tests and the passing suite are their record.
 
-Transport: Orchestrator and executor recaps ride the session PR. Standard sequence: brief → code (executor, Pauses) → recaps (`docs(sessions):` commit on the same branch) → push + PR on owner instruction → owner squash-merge. Consequence: a recap cannot cite its own PR's merge SHA; the NEXT session confirms the merge via P4 / `git log` in its "Consumes" line. The separate docs PR for task sessions is retired, and the `[CONFIRMAR: docs PR]` pendency class dies with it. Post-merge, the closer's Phase B confirms the merge SHA in-session (brief 048, D5), while authoring the next-session snippet remains the Orchestrator recap's duty.
+Transport: Orchestrator and executor recaps ride the session PR. Standard sequence: brief → code (executor, Pauses) → recaps (`docs(sessions):` commit on the same branch) → push + PR on owner instruction → owner squash-merge. Consequence: a recap cannot cite its own PR's merge SHA; the NEXT session confirms the merge via P4 / `git log` in its "Consumes" line. The separate docs PR for task sessions is retired, and the `[CONFIRMAR: docs PR]` pendency class dies with it. Nothing confirms the merge SHA in-session any more: that was the closer's Phase B (brief 048, D5), retired on 2026-08-09, so the next session's "Consumes" line is now the only path — which is what the sentence above already describes. Authoring the next-session snippet remains the Orchestrator recap's duty.
 
 ### Blindness rules
 
