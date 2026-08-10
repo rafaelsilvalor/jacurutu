@@ -51,7 +51,7 @@ those are committed structure, not possibilities.
 
 | # | Decision |
 |---|---|
-| D1 | Chat is retired. Claude Code is the Mentor's only home; `harness/workflows/setup-chat.md` leaves the harness. |
+| D1 | Chat is retired. Claude Code is the Mentor's only home; `setup-chat.md` leaves the harness. |
 | D2 | Vehicle: a `mentor-mode` skill invoked at session open, plus a thin `harness/workflows/setup-mentor.md`. Its own main session — not an Orchestrator mode, not a subagent. One session, one role. |
 | D3 | Wide read, narrow write. Reads anything, runs non-mutating shell (`git log`, `ls`, `grep`, `npm test`); nothing that changes state. Writes only under `docs/explorations/`, through the write gate with read-back. Mechanically backed by a path `deny` in `.claude/settings.json`. |
 | D4 | Plan mode is the Mentor session default. |
