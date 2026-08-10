@@ -69,9 +69,11 @@ gitignored and out-of-repo cases the guard already exempts. No convention was
 created for it. One note needed one word removed; inventing a marker nobody
 knows would have been the worse trade (A3).
 
-**2 — `fix/start-credential-guard`: pushed, PR #129 open.** Verified identical
-to `b9804fe` first (`git range-diff` reports `=`), then green on its own branch,
-then pushed. The PR is the owner's to merge.
+**2 — `fix/start-credential-guard`: merged.** Verified identical to `b9804fe`
+first (`git range-diff` reports `=`), then green on its own branch, then pushed
+as PR #129 and squash-merged by the owner's instruction as `93fa448`. The
+squashed tree is byte-identical to the tree that was tested green, so `main` was
+not re-verified and did not need to be.
 
 It carries one honest finding. `run-start.test.ts` goes 450 → 560 lines against
 R5's 400-line budget — and it was *already* over on `main`, as is
@@ -83,6 +85,18 @@ rule `main` cannot see.** Two ways out were put to the owner, who **ruled to
 accept the finding in #129** rather than land E6 on `main` ahead of the rest of
 the redesign. The finding stays recorded in the PR body, and the redesign PR
 covers E6 retroactively when it merges. Recorded so it is not reopened from zero.
+
+**Correction to the previous recap: the duplicate is resolved by a merge, not a
+rebase.** That recap instructs whoever merges #129 to "rebase the experimental
+over the updated `main`". Do not — the experimental branch has been pushed since
+that recap was written, and **G-R6 forbids rebasing pushed commits**. The safe
+operation is `git merge main` into the experimental branch, which was done here
+as `d5da267` and changed **zero** content: `git diff` between the pre-merge tip
+and the merge commit is empty, because both sides carried the identical patch.
+The duplicate resolves itself exactly as predicted, just through the operation
+the rules allow. The older recap is not rewritten — `docs/sessions/` is a
+historical surface, which is why the docs guard excludes it from inspection at
+all — so the correction lives here instead.
 
 **3 — the branch model: deferred, deliberately.** It stays undocumented until
 the redesign closes; documenting a temporary model before knowing whether it
@@ -110,6 +124,7 @@ wrong, because that document says the opposite.
 > `G-HOOK-1` in `docs/GOTCHAS.md` and run its probe before trusting any guard.
 > Green: `npx tsc -b && npm test` = 324 package tests + 61 hook tests. The
 > branch accumulates: cut sub-branches from it, merge back with `--no-ff`, and
-> it reaches `main` only when complete. Do not invoke `brief-validator`,
-> `closer`, or `pre-commit-self-audit` — they are tombstones. One thing waits on
-> the owner: PR #129, to merge. Nothing else is in flight.
+> it reaches `main` only when complete — and it is **synced with `main` through
+> `git merge`, never a rebase** (G-R6; the previous recap says otherwise). Do not
+> invoke `brief-validator`, `closer`, or `pre-commit-self-audit` — they are
+> tombstones. Nothing waits on the owner and nothing is in flight.
