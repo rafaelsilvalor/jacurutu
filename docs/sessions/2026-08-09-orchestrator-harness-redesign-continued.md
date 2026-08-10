@@ -10,7 +10,8 @@ deliberately **not** pinned here — see "What went wrong" below.
 **Shipped to `main`:** PR #129, squash-merged as `93fa448`.
 **Sub-branches, all merged `--no-ff` and their pointers deleted:**
 `dead-reference`, `hook-worktree-gotcha`, `recap-corrections`, `g-r6-correction`,
-`session-recap`, `git-cherry-gotcha`, `recap-sync`.
+`session-recap`, `git-cherry-gotcha`, `recap-sync`, `sweep-harness-surface`,
+`recap-close`.
 
 ## One-line summary
 
@@ -159,6 +160,37 @@ branch is big enough to matter — which is worse than being always wrong.
 Reachability (`--merged`, `-d`) called both unmerged, including the case `cherry`
 got right.
 
+## The retirement sweep had a hole, on the surface that matters most
+
+Asked what was still missing, an inventory of the repository turned up five
+places still describing the pipeline as running through the retired
+`brief-validator`, or the retired closer as acting in the present tense. Fixed in
+`77cfd3b`.
+
+The pattern is what makes it worth recording: the 2026-08-09 retirement swept the
+**agent-consumed** surface — `.claude/agents/*`, `CLAUDE.md`, `PROCESS_MAP.md`,
+`MENTOR_BRIEF.md` were all correct — and left the **human-edited** one behind.
+Four of the five were under `harness/`, including `setup-orchestrator.md`, which
+is the block the owner pastes to open an Orchestrator session. So the prompt that
+starts a session was instructing it to drive a retired agent, and had been since
+the retirement. The fifth was `AGENT_PLAYBOOK.md` asserting that the closer's
+Phase B confirms the merge SHA post-merge, in a paragraph that had already said
+the next session's `Consumes` line is the path — it contradicted itself.
+
+**The docs guard could not have caught any of it, and this is the important
+part.** Every path those lines name resolves, because the tombstone files still
+exist at their paths. This is precisely the blind spot `docs-checks.mjs`
+documents about itself and `gate-economics.md` named — "a claim can be false
+while every path it names resolves" — and it now has a real case rather than a
+hypothetical one. Treat it as evidence for the uncovered judgment gap below, not
+as a guard defect.
+
+One thing was deliberately not touched: the gate section's "the validator" now
+denotes `validate-brief.mjs`, which does emit C1–C11 and a verdict, so those
+sentences are true of the CLI and merely sound dated. The line held was **fix
+what is false, not what is old** — rewriting for tone inside a factual
+correction is the scope creep A2 exists to stop.
+
 ## Local state
 
 - **Worktrees:** two, both necessary (above). Two empty directory entries wait on
@@ -175,22 +207,24 @@ got right.
 
 ## What went wrong in how this session ran
 
-This recap was written once and corrected five times, because it was authored
-before the owner's rulings arrived and then re-authored after each subsequent
-front closed. Every correction fixed a real falsehood — a recap that described a
+This recap was authored before the owner's rulings arrived and then re-authored
+after each subsequent front closed, once per merge, for the length of the
+session. Every correction fixed a real falsehood — a recap that described a
 worktree which no longer existed would have sent the next session looking for it
 — so none of them were waste. But the churn was avoidable: **a recap written
 while decisions are still open is a draft, and calling it done is what creates
 the corrections.** The previous window's lesson was about rotation cadence; this
 is the same lesson applied to the artifact.
 
-Two of the five corrections existed only because the recap **pinned values that
-move**: the branch tip SHA and the count of corrections itself. A record that
+Some of those corrections existed only because the recap **pinned values that
+move** — the branch tip SHA, and the tally of its own corrections. A record that
 cites a moving value is guaranteed to go false, and re-pinning it each time is
-paying a commit to be briefly accurate. The tip SHA is now removed rather than
-updated — `git log -1` is authoritative and always current, and no document
-competes with it. What stays pinned is what is genuinely immutable: `93fa448`,
-`d5da267`, `6efce90`, the sub-branch names.
+paying a commit to be briefly accurate. Both are now stated without a number:
+`git log -1` is authoritative for the tip and always current, and the count of
+rewrites is a fact about this file's history, which `git log` already holds. (The
+tally survived one round *after* being named as the problem — the diagnosis is
+easier than the habit.) What stays pinned is only what is immutable and otherwise
+unrecoverable: `93fa448`, `d5da267`, `6efce90`, `77cfd3b`, the sub-branch names.
 
 ## What this session did NOT establish
 
@@ -211,6 +245,44 @@ competes with it. What stays pinned is what is genuinely immutable: `93fa448`,
   `Device or resource busy` on an empty directory, and it was not verified by
   inspecting process handles.
 
+## What the redesign still owes — inventory, measured at close
+
+Taken from the repository rather than from memory, in priority order. Nothing
+here is in flight.
+
+**1 — the branch has not merged.** On the order of forty files and a few thousand
+lines sitting on `experiment/harness-redesign` — `git diff --shortstat main` for
+the figure, which this document deliberately does not pin, since this document is
+itself inside that diff. Until it lands, the redesign's value is zero for
+anyone not in this worktree, and two consequences are live rather than
+theoretical: `G-HOOK-1` means every session opened from `main` runs with all five
+guards dead, and `E6`/`E7` do not exist where pull requests are judged — proven by
+#129, which was correct under a rule `main` could not see. This is the item that
+makes the others matter.
+
+**2 — two coverage gaps still have no successor**, both accepted rather than
+papered over, and both unchanged since the previous window. Self-audit **Check
+5**, staged scope against the brief's declared edit scope, whose input comes from
+the brief that a hook cannot read (recorded in `docs/GIT_WORKFLOW.md`). And the
+**closer's judgment half** — R18 storage routing, R19 registry dispatch, R6's
+orchestration exception, R4, duplication against `core`. The A3 reasoning holds:
+encoding them badly is worse than not encoding them. The sweep hole found this
+session is the first concrete evidence of what that gap costs.
+
+**3 — `gate-economics.md` names its own successor and it has not started.**
+Disposition is still `open`, and the note closes by saying a stronger measurement
+would instrument the gates at runtime instead of reading their prose afterwards —
+"possible now that hooks exist". Every number in the current baseline came from
+recaps written by the sessions being measured, which is the limitation the note
+declares about itself.
+
+**4 — smaller, all deliberate.** The accumulating branch model stays undocumented
+while `GIT_WORKFLOW.md` says the opposite (owner's ruling this session). The
+"third kind of correct absence" in the docs guard — a note recording a deletion —
+stays unmodelled. `G-GIT-1` is a candidate for hardening once a second
+measurement exists. Two empty directory entries in `.claude/worktrees/` wait on
+other sessions closing.
+
 ## Next-session snippet
 
 > Continue `experiment/harness-redesign` (in sync with `origin`; read the tip
@@ -222,7 +294,11 @@ competes with it. What stays pinned is what is genuinely immutable: `93fa448`,
 > it, merge back with `--no-ff`, and it reaches `main` only when complete — and
 > it is **synced with `main` through `git merge`, never a rebase** (G-R6; the
 > previous recap says otherwise). Do not invoke `brief-validator`, `closer`, or
-> `pre-commit-self-audit` — they are tombstones. Nothing waits on the owner and
-> nothing is in flight. Before deleting any branch here, read `G-GIT-1`: in a
-> squash-merge repo neither `git cherry` nor `--merged` can confirm containment,
-> and `cherry` is right often enough to be trusted wrongly.
+> `pre-commit-self-audit` — they are tombstones. Before deleting any branch here,
+> read `G-GIT-1`: in a squash-merge repo neither `git cherry` nor `--merged` can
+> confirm containment, and `cherry` is right often enough to be trusted wrongly.
+>
+> Nothing waits on the owner and nothing is in flight. **Start from "What the
+> redesign still owes" above** — the ranked inventory, measured at close. Item 1
+> is that this branch has not merged, which is what keeps every other session in
+> the repository unguarded; if only one thing happens next, that is the one.
