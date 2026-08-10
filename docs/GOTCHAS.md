@@ -40,6 +40,7 @@
 | `G-DRIVE` | Google Drive adapter — OAuth scopes, tokens, Drive API semantics |
 | `G-JIRA` | Jira adapter — REST semantics, auth, search endpoint behavior |
 | `G-HOOK` | Claude Code hooks — registration, project-dir resolution, branch-scoped availability |
+| `G-GIT` | Git semantics — squash-merge consequences, containment checks, branch and worktree lifecycle |
 
 Categories grow as needed. New category: lowercase shortcode, all-caps in IDs.
 
@@ -270,6 +271,30 @@ If folder sizes grow into thousands of files and the hitch becomes user-visible,
 **Workaround:** Move the branch into the session's own worktree instead of reaching across into another one: `git -C <other-worktree> switch --detach` (non-destructive — it only releases the branch), then `git switch <branch>`, then `npm install` at the worktree root with G-NODE-2's guard (`git status --short` must show no tracked changes, especially not `package-lock.json`). Then **probe** rather than assume, because a dead hook looks like a passing one: with nothing staged, run `git commit -m "bogus: probe"`. A live `commit-guard` denies it on the invalid type *before* git runs; a dead harness lets git answer "nothing to commit". The two outputs are unmistakable. Never treat the absence of a complaint as evidence that a guard ran.
 
 **Evidence:** Hit on 2026-08-09 while continuing `experiment/harness-redesign`. The session opened in a worktree created from `main@073f2ea`, where the branch's five hooks and 61 hook tests exist but `.claude/settings.json` does not; the guards were confirmed dead, then confirmed live after the move, using the probe above. Recorded in `docs/sessions/2026-08-09-orchestrator-harness-redesign-continued.md`.
+
+---
+
+### G-GIT-1 — After a squash merge, no commit-level check can confirm containment
+
+**Symptom:** You need to decide whether deleting a branch loses work. `git branch --merged main` does not list it. `git branch -d` refuses it. `git cherry -v main <branch>` marks **every** commit `+`. Three independent signals agree: unmerged, unique content, deletion loses work. All three can be wrong at once, with no warning that they are — the branch's content may be fully in `main`, and the branch may in fact be *behind* it. The two failure modes are both bad: an agent that believes the tools refuses a safe cleanup forever, or reaches for `-D` having "checked" and destroys real work the next time the answer differs.
+
+**Cause:** Squash merging, which `docs/GIT_WORKFLOW.md` step 8 makes the default here. A branch's N commits land on `main` as **one** commit with a combined patch and a fresh SHA, and the originals are never referenced again. The two checks then fail for different reasons, which is why agreeing does not make them corroborating:
+
+- `git branch --merged` and `git branch -d` test **reachability**. The original commits are not ancestors of `main` after a squash, so they report "unmerged" — correctly, and uselessly. This is unconditional: it happens for every squash-merged branch regardless of size.
+- `git cherry` tests **patch-ids, commit by commit**. The squashed commit's patch-id is the id of the *combination*, which matches none of the N individual ids. But when N is 1 and the patch was not modified, the squashed patch *is* the original patch and `git cherry` answers correctly.
+
+That last clause is the trap's real edge. `git cherry` is **conditionally** wrong — right on single-commit branches, silently wrong on multi-commit ones — which is more dangerous than always wrong, because it works often enough to earn trust. Measured on 2026-08-09 against this repo: a six-commit branch squashed into `073f2ea` reported `+` six times, while a one-commit branch squashed into `93fa448` reported `-`. Neither was an ancestor of `main`, so reachability called both unmerged.
+
+**Workaround:** Ask about **trees**, never about commits. `git diff --stat main <branch>`: if empty, the trees are identical and there is nothing to lose. If it is not empty, do not stop there — read the *direction* of the difference, because `main` being ahead looks exactly like the branch having unique work. Settle it in two parts, excluding the files `main` is known to lead on:
+
+```bash
+git diff --stat main <branch> -- . ':!path/to/led-file' ':!path/to/other'   # must be empty
+git diff --numstat main <branch> -- path/to/led-file path/to/other          # read added vs deleted
+```
+
+In the second command, `main` → branch showing mostly **deletions** means the branch lacks a patch `main` has, i.e. `main` is ahead. Only then delete, and record the tip SHA in the commit message or recap so the reflog is not the only trace. Do not use `git cherry` or `--merged` for this decision at all; their output is the same for a fully-merged branch and for one carrying unique work, so it conveys nothing.
+
+**Evidence:** Hit on 2026-08-09 during the harness-redesign cleanup, on `fix/fetch-credential-guard`. `git cherry -v main` marked all six of its commits `+` after their content had already shipped as PR #128, squashed to `073f2ea`. What proved deletion safe: excluding the two files touched by PR #129, `main` and the branch had identical trees; and on those two files, `main` → branch deleted 116 and 12 lines while adding back 6 and 6 of the pre-#129 state — the #129 patch being undone, so `main` was strictly ahead. Recorded in `docs/sessions/2026-08-09-orchestrator-harness-redesign-continued.md`.
 
 ---
 
