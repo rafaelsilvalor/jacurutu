@@ -4,10 +4,14 @@
 owner as in the previous window. Push and destructive actions still gated.
 **Consumes:** `experiment/harness-redesign@32d2fbc` — the handoff state left by
 `2026-08-09-orchestrator-harness-redesign.md`.
-**Branch:** `experiment/harness-redesign`, still accumulating, pushed and in sync
-with `origin`. Not merged to `main`; `main` is merged *into* it. The tip SHA is
-deliberately **not** pinned here — see "What went wrong" below.
-**Shipped to `main`:** PR #129, squash-merged as `93fa448`.
+**Branch:** `experiment/harness-redesign`. It accumulated for two sessions and
+**closed here** — the owner declared the redesign done and it goes to `main` in the
+single PR the model always specified, as a merge commit. `main` was merged into it
+first, so the PR is conflict-free. The tip SHA is deliberately **not** pinned here
+— see "What went wrong" below.
+**Shipped to `main`:** PR #129, squash-merged as `93fa448`, and the redesign
+itself. Per `AGENT_PLAYBOOK.md`, a recap cannot cite its own PR's merge SHA — the
+next session confirms it in its `Consumes:` line.
 **Sub-branches, all merged `--no-ff` and their pointers deleted:**
 `dead-reference`, `hook-worktree-gotcha`, `recap-corrections`, `g-r6-correction`,
 `session-recap`, `git-cherry-gotcha`, `recap-sync`, `sweep-harness-surface`,
@@ -250,15 +254,32 @@ unrecoverable: `93fa448`, `d5da267`, `6efce90`, `77cfd3b`, the sub-branch names.
 Taken from the repository rather than from memory, in priority order. Nothing
 here is in flight.
 
-**1 — the branch has not merged.** On the order of forty files and a few thousand
-lines sitting on `experiment/harness-redesign` — `git diff --shortstat main` for
-the figure, which this document deliberately does not pin, since this document is
-itself inside that diff. Until it lands, the redesign's value is zero for
-anyone not in this worktree, and two consequences are live rather than
-theoretical: `G-HOOK-1` means every session opened from `main` runs with all five
-guards dead, and `E6`/`E7` do not exist where pull requests are judged — proven by
-#129, which was correct under a rule `main` could not see. This is the item that
-makes the others matter.
+**1 — the branch has not merged. Resolved at close: the owner declared the
+redesign closed and the single PR opened.** On the order of forty files and a few
+thousand lines — `git diff --shortstat main` for the figure, which this document
+deliberately does not pin, since this document is itself inside that diff.
+
+Why it could not stay open: the redesign's value was zero for anyone not in this
+worktree, and two consequences were live rather than theoretical. `G-HOOK-1` meant
+every session opened from `main` ran with all five guards dead; and `E6`/`E7` did
+not exist where pull requests are judged — proven by #129, which was correct under
+a rule `main` could not see. Landing the branch ends both: a worktree cut from
+`main` now inherits `.claude/settings.json`, and #129's R5 finding stops being an
+exception that only the experiment can see.
+
+**Merge method: a merge commit, not a squash** — the owner's call, and the
+exception `GIT_WORKFLOW.md` step 8 provides for a branch whose commits are
+individually meaningful. Twenty front merges collapsed into one subject would
+have destroyed the only record of which check came from which retirement. It does
+change `main`'s shape: every merge before it is a single-parent squash, so `main`
+stops being linear here. That is a deliberate trade, recorded because a future
+reader will notice the discontinuity and should not have to guess.
+
+**What "closed" was taken to mean**, since nothing defined it: the built surface
+is green and tested, the doctrine is swept to match, and everything still
+outstanding is either explicitly *accepted* (item 2, under A3) or an unpromoted
+candidate (item 3). None of it was a blocker; the branch was open on a phrase, not
+on a criterion. Recorded so nobody looks for the checklist that never existed.
 
 **2 — two coverage gaps still have no successor**, both accepted rather than
 papered over, and both unchanged since the previous window. Self-audit **Check
@@ -277,28 +298,36 @@ recaps written by the sessions being measured, which is the limitation the note
 declares about itself.
 
 **4 — smaller, all deliberate.** The accumulating branch model stays undocumented
-while `GIT_WORKFLOW.md` says the opposite (owner's ruling this session). The
-"third kind of correct absence" in the docs guard — a note recording a deletion —
-stays unmodelled. `G-GIT-1` is a candidate for hardening once a second
+while `GIT_WORKFLOW.md` says the opposite — and with the branch closing, that
+contradiction becomes **historical rather than live**: there is no accumulating
+branch left for a session to get wrong. It was deferred on the reasoning that a
+temporary model should not be written down before knowing whether it survives; it
+did not survive as a standing practice, so the deferral was right and nothing is
+owed. The "third kind of correct absence" in the docs guard — a note recording a
+deletion — stays unmodelled. `G-GIT-1` is a candidate for hardening once a second
 measurement exists. Two empty directory entries in `.claude/worktrees/` wait on
 other sessions closing.
 
 ## Next-session snippet
 
-> Continue `experiment/harness-redesign` (in sync with `origin`; read the tip
-> with `git log -1` — this document does not pin it).
-> **Open the session in a worktree that already has the branch checked out, or
-> expect every hook to be dead** — see `G-HOOK-1` in `docs/GOTCHAS.md` and run
-> its probe before trusting any guard. Green: `npx tsc -b && npm test` = 324
-> package tests + 61 hook tests. The branch accumulates: cut sub-branches from
-> it, merge back with `--no-ff`, and it reaches `main` only when complete — and
-> it is **synced with `main` through `git merge`, never a rebase** (G-R6; the
-> previous recap says otherwise). Do not invoke `brief-validator`, `closer`, or
-> `pre-commit-self-audit` — they are tombstones. Before deleting any branch here,
-> read `G-GIT-1`: in a squash-merge repo neither `git cherry` nor `--merged` can
-> confirm containment, and `cherry` is right often enough to be trusted wrongly.
+> **The harness redesign is closed and merged.** Confirm the merge SHA with
+> `git log --merges -1 main` and put it in your `Consumes:` line. There is no
+> accumulating branch any more — `experiment/harness-redesign` is finished, and
+> `GIT_WORKFLOW.md` governs again with no exception in force. Work normally: one
+> branch, sub-branch → `main` through a PR.
 >
-> Nothing waits on the owner and nothing is in flight. **Start from "What the
-> redesign still owes" above** — the ranked inventory, measured at close. Item 1
-> is that this branch has not merged, which is what keeps every other session in
-> the repository unguarded; if only one thing happens next, that is the one.
+> The five guards now live on `main`, so a fresh worktree inherits them — which
+> retires the live half of `G-HOOK-1`. Its probe stays worth running when
+> anything looks unguarded: with nothing staged, `git commit -m "bogus: probe"`
+> is denied by `commit-guard` before git runs. Green: `npx tsc -b && npm test` =
+> 324 package tests + 61 hook tests. Do not invoke `brief-validator`, `closer`,
+> or `pre-commit-self-audit` — they are tombstones, and their checks are hooks.
+> Before deleting any branch, read `G-GIT-1`: in a squash-merge repo neither
+> `git cherry` nor `--merged` can confirm containment.
+>
+> Nothing waits on the owner and nothing is in flight. Of what the redesign
+> still owes, item 2 is **accepted** rather than pending and needs no work. The
+> one live candidate is item 3: `gate-economics.md` names a runtime
+> instrumentation successor and carries `no implementation mandate`, so it needs
+> promotion to a brief before anyone builds it — an Orchestrator move with the
+> owner ratifying, per D11.
