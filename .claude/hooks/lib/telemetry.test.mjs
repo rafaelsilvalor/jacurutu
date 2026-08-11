@@ -1,8 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert";
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { delimiter, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   buildRecord,
@@ -408,5 +410,414 @@ test("resolving the path does not create anything", () => {
     telemetryPath();
     assert.throws(() => readFileSync(join(unused, "gates.jsonl"), "utf8"));
     mkdirSync(unused, { recursive: true });
+  });
+});
+
+/* ---------------------------------------------------------------------------
+ * Integration: the shipped hook executables.
+ *
+ * Everything below spawns the real file `.claude/settings.json` registers, with
+ * a real payload on stdin. Nothing here re-implements a hook's pipeline: a test
+ * pipeline that differs from the shipped one passes while proving nothing,
+ * which is the whole point of D5.
+ * ------------------------------------------------------------------------ */
+
+const TSC_SHIM_MARKER = "SACI-SHIM-TSC";
+const NPM_SHIM_MARKER = "SACI-SHIM-NPM";
+const NPM_SHIM_EXIT = 7;
+
+/** Spawn a hook executable exactly as the harness does: stdin in, exit code out. */
+function spawnHook(hook, payload, options = {}) {
+  const hookPath = fileURLToPath(new URL(`../${hook}`, import.meta.url));
+  // No `encoding`: stdout and stderr come back as Buffers so D5's comparison is
+  // over bytes rather than over a decoded string.
+  return spawnSync(process.execPath, [hookPath], {
+    input: JSON.stringify(payload),
+    cwd: options.cwd,
+    env: options.env ?? { ...process.env, [TELEMETRY_DIR_ENV]: options.streamDir },
+  });
+}
+
+/** Every line of `stderr` except the telemetry diagnostics: the verdict channel. */
+function verdictChannel(stderr) {
+  const kept = stderr
+    .toString("utf8")
+    .split("\n")
+    .filter((line) => !line.startsWith(LOG_PREFIX));
+  return Buffer.from(kept.join("\n"), "utf8");
+}
+
+function telemetryLines(stderr) {
+  return stderr
+    .toString("utf8")
+    .split("\n")
+    .filter((line) => line.startsWith(LOG_PREFIX));
+}
+
+function readStream(dir) {
+  const path = join(dir, "gates.jsonl");
+  if (!existsSync(path)) return [];
+  return readFileSync(path, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line));
+}
+
+/** A directory whose parent is a regular file: ENOTDIR on every platform. */
+function unwritableDir(root) {
+  const blocker = join(root, "not-a-directory");
+  writeFileSync(blocker, "a file cannot be a parent directory\n");
+  return join(blocker, "stream");
+}
+
+function withTempDir(run) {
+  const dir = mkdtempSync(join(tmpdir(), "saci-hook-"));
+  try {
+    return run(dir);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+function git(dir, args) {
+  return spawnSync("git", ["-C", dir, ...args], { encoding: "utf8" });
+}
+
+/** A git repository of its own, so `git status` answers about it and not about us. */
+function initRepo(dir) {
+  git(dir, ["init", "-q", "."]);
+  return dir;
+}
+
+/**
+ * Put fast shims for `npx` and `npm` first on PATH.
+ *
+ * The alternative is the real toolchain: measured at 3.8s for `npx tsc -b`,
+ * paid on every run of a suite that itself gates every turn. The hook still
+ * executes its own code path — it spawns the same literal command strings — and
+ * every assertion below checks for the shim's marker, so a shim that failed to
+ * resolve fails the test loudly instead of silently falling back to the real
+ * binary and passing slowly.
+ */
+function withGateShims(run) {
+  const bin = mkdtempSync(join(tmpdir(), "saci-shim-"));
+  writeShim(bin, "npx", 0, TSC_SHIM_MARKER);
+  writeShim(bin, "npm", NPM_SHIM_EXIT, NPM_SHIM_MARKER);
+  const env = { ...process.env };
+  // Windows reports the variable as `Path`; leaving both spellings in the child
+  // environment makes which one wins a coin flip.
+  for (const key of Object.keys(env)) {
+    if (key.toLowerCase() === "path") delete env[key];
+  }
+  env.PATH = `${bin}${delimiter}${process.env.PATH ?? ""}`;
+  try {
+    return run(env);
+  } finally {
+    rmSync(bin, { recursive: true, force: true });
+  }
+}
+
+function writeShim(dir, name, code, marker) {
+  writeFileSync(join(dir, name), `#!/bin/sh\necho "${marker}"\nexit ${code}\n`);
+  chmodSync(join(dir, name), 0o755);
+  writeFileSync(join(dir, `${name}.cmd`), `@echo off\r\necho ${marker}\r\nexit /b ${code}\r\n`);
+}
+
+const OVERLONG_SUBJECT = `chore(hooks): ${"x".repeat(80)}`;
+
+function commitPayload(command) {
+  return {
+    session_id: "integration-session",
+    hook_event_name: "PreToolUse",
+    agent_type: "executor",
+    tool_name: "Bash",
+    tool_input: { command },
+  };
+}
+
+// WHEN the telemetry stream cannot be written, the verdict shall be untouched:
+// same exit code, same verdict bytes on stderr. This is D5's hard invariant,
+// measured against the shipped executable rather than against a rehearsal of it.
+// The payload is a denied commit on purpose — two empty stderrs would compare
+// equal while proving nothing.
+test("D5: an unwritable stream changes no verdict byte on the deny path", () => {
+  withTempDir((root) => {
+    const writable = join(root, "writable");
+    const payload = commitPayload(`git commit -m "${OVERLONG_SUBJECT}"`);
+
+    const ok = spawnHook("commit-guard.mjs", payload, { streamDir: writable });
+    const broken = spawnHook("commit-guard.mjs", payload, { streamDir: unwritableDir(root) });
+
+    assert.equal(ok.status, 2, "an overlong subject is denied");
+    assert.equal(broken.status, ok.status, "exit code must not depend on telemetry");
+    assert.equal(Buffer.compare(verdictChannel(broken.stderr), verdictChannel(ok.stderr)), 0);
+    assert.equal(Buffer.compare(broken.stdout, ok.stdout), 0);
+
+    assert.equal(telemetryLines(ok.stderr).length, 0, "a healthy write is silent");
+    const diagnostics = telemetryLines(broken.stderr);
+    assert.equal(diagnostics.length, 1, "one line, and only one");
+    assert.match(diagnostics[0], /emission failed:/);
+
+    const records = readStream(writable);
+    assert.equal(records.length, 1);
+    assert.deepEqual(Object.keys(records[0]), RECORD_KEYS.slice(0, -1));
+    assert.equal(records[0].check, "R10-subject-length");
+    assert.equal(records[0].decision, "deny");
+    assert.equal(records[0].session, "integration-session");
+    assert.equal(records[0].agent, "executor");
+    assert.equal(records[0].event, "PreToolUse");
+    assert.equal(records[0].inputKind, "commit-subject");
+    assert.equal(records[0].inputHash, hashInput(OVERLONG_SUBJECT));
+  });
+});
+
+// WHEN the commit is allowed, the same invariant shall hold, and the allowed
+// verdict shall still be recorded — an allow is a gate event, not silence.
+test("D5: the invariant holds on the allow path, and the allow is recorded", () => {
+  withTempDir((root) => {
+    const writable = join(root, "writable");
+    const subject = "chore(hooks): wire telemetry into the five hooks";
+    const payload = commitPayload(`git commit -m "${subject}"`);
+
+    const ok = spawnHook("commit-guard.mjs", payload, { streamDir: writable });
+    const broken = spawnHook("commit-guard.mjs", payload, { streamDir: unwritableDir(root) });
+
+    assert.equal(ok.status, 0);
+    assert.equal(broken.status, ok.status);
+    assert.equal(Buffer.compare(verdictChannel(broken.stderr), verdictChannel(ok.stderr)), 0);
+    assert.equal(telemetryLines(broken.stderr).length, 1);
+
+    const records = readStream(writable);
+    assert.equal(records.length, 1);
+    assert.equal(records[0].check, "R10-ok");
+    assert.equal(records[0].decision, "allow");
+    assert.equal(records[0].inputHash, hashInput(subject));
+  });
+});
+
+// WHEN a hook exits before inspecting anything, it shall write nothing (D4).
+// These guards fire on every Bash call in every session; recording an
+// invocation that examined nothing would inflate the denominator of every rate
+// the reader computes, and make the guard the most expensive item in the turn.
+test("D4: commit-guard is silent on every path where no rule ran", () => {
+  withTempDir((root) => {
+    const cases = [
+      ["not a shell tool", { ...commitPayload("git commit -m \"chore: add x\""), tool_name: "Read" }],
+      ["not a commit", commitPayload("git status --porcelain")],
+      ["no inline message", commitPayload("git commit -F message.txt")],
+    ];
+
+    for (const [label, payload] of cases) {
+      const dir = join(root, label.replace(/\s+/g, "-"));
+      const result = spawnHook("commit-guard.mjs", payload, { streamDir: dir });
+      assert.equal(result.status, 0, `${label} is allowed`);
+      assert.equal(readStream(dir).length, 0, `${label} must emit nothing`);
+      assert.equal(existsSync(join(dir, "gates.jsonl")), false, `${label} must not create the stream`);
+    }
+  });
+});
+
+// WHEN the pair writes, the verdict shall be recorded with the file path as its
+// label; WHEN anyone else writes, the hook has no opinion and stays silent.
+test("file-ownership records pair verdicts and stays silent outside the pair", () => {
+  withTempDir((root) => {
+    const denied = join(root, "denied");
+    const result = spawnHook(
+      "file-ownership.mjs",
+      {
+        session_id: "integration-session",
+        hook_event_name: "PreToolUse",
+        agent_type: "code",
+        cwd: "D:/repo",
+        tool_name: "Write",
+        tool_input: { file_path: "D:\\repo\\packages\\cli\\src\\run-start.test.ts" },
+      },
+      { streamDir: denied },
+    );
+
+    assert.equal(result.status, 2, "@code writing a test is denied");
+    const records = readStream(denied);
+    assert.equal(records.length, 1);
+    assert.deepEqual(Object.keys(records[0]), RECORD_KEYS);
+    assert.equal(records[0].check, "pair-code-writes-test");
+    assert.equal(records[0].decision, "deny");
+    assert.equal(records[0].inputKind, "file-path");
+    assert.equal(records[0].label, "packages/cli/src/run-start.test.ts");
+    assert.equal(records[0].inputHash, hashInput("packages/cli/src/run-start.test.ts"));
+
+    const quiet = join(root, "quiet");
+    const outside = spawnHook(
+      "file-ownership.mjs",
+      {
+        session_id: "integration-session",
+        hook_event_name: "PreToolUse",
+        agent_type: "executor",
+        tool_name: "Write",
+        tool_input: { file_path: "packages/cli/src/run-start.test.ts" },
+      },
+      { streamDir: quiet },
+    );
+    assert.equal(outside.status, 0);
+    assert.equal(readStream(quiet).length, 0, "no opinion is not a gate event");
+  });
+});
+
+// WHEN a commit stages nothing this guard inspects, it shall stay silent; WHEN
+// it stages something, the verdict shall carry the staged set as its input.
+test("architecture-guard records the staged set it inspected, and only then", () => {
+  withTempDir((root) => {
+    const repo = initRepo(join(mkdtempSync(join(root, "repo-")), ""));
+    const empty = join(root, "empty");
+    const staged = join(root, "staged");
+    const payload = commitPayload('git commit -m "chore: add x"');
+
+    const nothing = spawnHook("architecture-guard.mjs", { ...payload, cwd: repo }, { streamDir: empty });
+    assert.equal(nothing.status, 0);
+    assert.equal(readStream(empty).length, 0, "an empty index is not a gate event");
+
+    writeFileSync(join(repo, "a.md"), "# a\n");
+    writeFileSync(join(repo, "b.txt"), "b\n");
+    git(repo, ["add", "a.md", "b.txt"]);
+
+    const result = spawnHook("architecture-guard.mjs", { ...payload, cwd: repo }, { streamDir: staged });
+    assert.equal(result.status, 0);
+    const records = readStream(staged);
+    assert.equal(records.length, 1);
+    assert.equal(records[0].hook, "architecture-guard");
+    assert.equal(records[0].check, "none", "no findings is a named outcome, not an absence");
+    assert.equal(records[0].decision, "allow");
+    assert.equal(records[0].inputKind, "staged-set");
+    assert.equal(records[0].inputHash, hashInput("a.md\nb.txt"), "sorted, newline-joined");
+    assert.equal("label" in records[0], false, "only file-path carries a label");
+  });
+});
+
+// WHEN a commit stages no reviewable markdown, the docs guard shall stay silent
+// — most commits here stage none, and every one of them fires this hook.
+test("docs-guard records only when it inspected a document", () => {
+  withTempDir((root) => {
+    const repo = initRepo(join(mkdtempSync(join(root, "repo-")), ""));
+    const quiet = join(root, "quiet");
+    const loud = join(root, "loud");
+    const payload = commitPayload('git commit -m "docs: add x"');
+
+    writeFileSync(join(repo, "b.txt"), "b\n");
+    git(repo, ["add", "b.txt"]);
+    const nothing = spawnHook("docs-guard.mjs", { ...payload, cwd: repo }, { streamDir: quiet });
+    assert.equal(nothing.status, 0);
+    assert.equal(readStream(quiet).length, 0);
+
+    writeFileSync(join(repo, "notes.md"), "# notes\n\nNothing to resolve here.\n");
+    git(repo, ["add", "notes.md"]);
+    const result = spawnHook("docs-guard.mjs", { ...payload, cwd: repo }, { streamDir: loud });
+    assert.equal(result.status, 0);
+    const records = readStream(loud);
+    assert.equal(records.length, 1);
+    assert.equal(records[0].hook, "docs-guard");
+    assert.equal(records[0].check, "none");
+    assert.equal(records[0].inputHash, hashInput("notes.md"), "only the documents it inspected");
+  });
+});
+
+// WHEN the green boundary runs a gate, it shall record that gate by name — the
+// two identifiers of the D6 table that are born in the executable rather than
+// in a decision module.
+test("green-boundary records one verdict per gate it actually ran", () => {
+  withTempDir((root) => {
+    const repo = initRepo(join(mkdtempSync(join(root, "repo-")), ""));
+    mkdirSync(join(repo, "packages"), { recursive: true });
+    writeFileSync(join(repo, "packages", "a.ts"), "export const a = 1;\n");
+    // Staged, not merely written: `git status --porcelain` collapses an
+    // untracked directory to `?? packages/`, so an unstaged file would make the
+    // hook hash the directory. Both run the gates; only one is a stable input.
+    git(repo, ["add", "packages/a.ts"]);
+    const stream = join(root, "stream");
+
+    const result = withGateShims((env) =>
+      spawnHook(
+        "green-boundary.mjs",
+        { session_id: "integration-session", hook_event_name: "Stop", cwd: repo },
+        { cwd: repo, env: { ...env, [TELEMETRY_DIR_ENV]: stream } },
+      ),
+    );
+
+    assert.equal(result.status, 0, "a blocked stop still exits 0; the block rides stdout");
+    const decision = JSON.parse(result.stdout.toString("utf8"));
+    assert.equal(decision.decision, "block");
+    assert.match(decision.reason, /npm test/);
+    assert.match(decision.reason, new RegExp(NPM_SHIM_MARKER), "the shim ran, not the real npm");
+
+    const records = readStream(stream);
+    assert.deepEqual(
+      records.map((r) => [r.check, r.decision]),
+      [["green-tsc", "allow"], ["green-npm-test", "deny"]],
+      "one record per gate, in the order the gates ran",
+    );
+    assert.equal(records[0].hook, "green-boundary");
+    assert.equal(records[0].event, "Stop");
+    assert.equal(records[0].inputKind, "turn");
+    assert.equal(records[0].inputHash, hashInput("packages/a.ts"), "the watched paths that made it run");
+  });
+});
+
+// WHEN the working tree cannot be read, the gates shall run anyway. R4 calls a
+// false green the expensive failure, and `null` must reach the gates exactly as
+// a non-empty list does — a truthiness test here would end the turn instead,
+// which looks identical to a passing boundary and is the opposite of one.
+test("green-boundary runs the gates when the working tree is unreadable", () => {
+  withTempDir((root) => {
+    const notARepo = join(mkdtempSync(join(root, "bare-")), "");
+    // The precondition, asserted rather than assumed: if this ever becomes a
+    // repository, the test would pass for the wrong reason.
+    assert.notEqual(git(notARepo, ["status", "--porcelain"]).status, 0, "must not be a git repository");
+    const stream = join(root, "stream");
+
+    const result = withGateShims((env) =>
+      spawnHook(
+        "green-boundary.mjs",
+        { session_id: "integration-session", hook_event_name: "Stop", cwd: notARepo },
+        { cwd: notARepo, env: { ...env, [TELEMETRY_DIR_ENV]: stream } },
+      ),
+    );
+
+    const records = readStream(stream);
+    assert.deepEqual(
+      records.map((r) => r.check),
+      ["green-tsc", "green-npm-test"],
+      "an unreadable tree runs the gates; it is not treated as nothing to do",
+    );
+    assert.equal(records[0].inputHash, "", "no readable paths is an empty input, not a hash of none");
+    assert.equal(JSON.parse(result.stdout.toString("utf8")).decision, "block");
+  });
+});
+
+// WHEN nothing watched changed, or the block would feed itself, the boundary
+// shall end the turn without running or recording anything (D4).
+test("green-boundary is silent on both of its early exits", () => {
+  withTempDir((root) => {
+    const repo = initRepo(join(mkdtempSync(join(root, "repo-")), ""));
+    writeFileSync(join(repo, "README.md"), "# not a watched prefix\n");
+
+    const unwatched = join(root, "unwatched");
+    const quiet = withGateShims((env) =>
+      spawnHook(
+        "green-boundary.mjs",
+        { session_id: "s", hook_event_name: "Stop", cwd: repo },
+        { cwd: repo, env: { ...env, [TELEMETRY_DIR_ENV]: unwatched } },
+      ),
+    );
+    assert.equal(quiet.status, 0);
+    assert.equal(quiet.stdout.length, 0, "no block, no output");
+    assert.equal(readStream(unwatched).length, 0);
+
+    const reentrant = join(root, "reentrant");
+    mkdirSync(join(repo, "packages"), { recursive: true });
+    writeFileSync(join(repo, "packages", "a.ts"), "export const a = 1;\n");
+    const looped = withGateShims((env) =>
+      spawnHook(
+        "green-boundary.mjs",
+        { session_id: "s", hook_event_name: "Stop", cwd: repo, stop_hook_active: true },
+        { cwd: repo, env: { ...env, [TELEMETRY_DIR_ENV]: reentrant } },
+      ),
+    );
+    assert.equal(looped.status, 0);
+    assert.equal(readStream(reentrant).length, 0, "the re-entrancy guard runs no gate to record");
   });
 });

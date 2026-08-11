@@ -15,6 +15,7 @@ import { readHookInput, deny, allow, askOwner } from "./lib/hook-io.mjs";
 import { isShellTool, isCommitCommand } from "./lib/commit-message.mjs";
 import { inspectDocument, resolverFor } from "./lib/docs-checks.mjs";
 import { summarize } from "./lib/architecture.mjs";
+import { emitGateRecord } from "./lib/telemetry.mjs";
 
 // Historical surfaces. Recaps and task artifacts record what was true when they
 // were written and are never rewritten, so a reference that has since died is
@@ -40,16 +41,31 @@ const io = {
 const staged = git(["diff", "--cached", "--name-only", "--diff-filter=ACM"]);
 if (staged === null) allow();
 
-const findings = staged
+const documents = staged
   .split(/\r?\n/)
   .map((line) => line.trim())
-  .filter((file) => file.endsWith(".md") && !HISTORICAL.some((h) => h.test(file)))
-  .flatMap((file) => {
-    const content = git(["show", `:${file}`]);
-    return content === null ? [] : inspectDocument(file, content, io);
-  });
+  .filter((file) => file.endsWith(".md") && !HISTORICAL.some((h) => h.test(file)));
+
+const findings = documents.flatMap((file) => {
+  const content = git(["show", `:${file}`]);
+  return content === null ? [] : inspectDocument(file, content, io);
+});
 
 const verdict = summarize(findings);
+
+// D4: a commit that stages no reviewable markdown is not a docs-gate event.
+// Most commits in this repository stage none, and every one of them fires this
+// hook.
+if (documents.length > 0) {
+  emitGateRecord({
+    input,
+    hook: "docs-guard",
+    check: verdict.check,
+    decision: verdict.decision,
+    inputKind: "staged-set",
+    inspected: [...documents].sort().join("\n"),
+  });
+}
 
 if (verdict.decision === "deny") deny(verdict.reason);
 if (verdict.decision === "ask") askOwner(verdict.reason);

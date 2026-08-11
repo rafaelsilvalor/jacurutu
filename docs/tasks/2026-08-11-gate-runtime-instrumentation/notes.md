@@ -122,6 +122,84 @@ that checkbox could only ever fail, and a check whose finding has no available
 remedy is worse than no check — the reasoning `E6` records in `CLAUDE.md`,
 applied here unchanged.
 
+### F-8 — the hook executables cannot have 1:1 test files at all (2026-08-11)
+
+Surfaced when `.claude/hooks/lib/telemetry.test.mjs` reached 823 lines, past
+E6's ceiling of 800. Escalated to the owner, as E6 requires, and **the ceiling
+was ruled accepted for this file**. Recorded here because the cause is
+structural and will recur.
+
+E6 assumes one diagnosis for an over-ceiling test: the subject does too much.
+That is false here. `.claude/hooks/lib/telemetry.mjs` is 297 lines and coherent.
+What the file acquired is a *second subject*: 415 of its lines test the five
+hook executables rather than the module it is named for.
+
+The reason they live there is not convenience. **Each of the five executables
+opens with a top-level `await readHookInput()` that blocks on stdin, so nothing
+can import them** — a test can only spawn them as a child process. They
+therefore cannot have a 1:1 test file, and their tests must live beside some
+other module's subject. E6's precondition, a 1:1 mapping, is unsatisfiable for
+them by construction rather than by neglect.
+
+That makes this a candidate for a future documented exception, and the shape of
+one is already visible: an integration test file whose subject is a set of
+executables, measured against a ceiling rather than against a mapping.
+Deliberately **no exception number is cited here**. `CLAUDE.md` states that a
+bare `(En)` with no entry in its list is a bug, and reserving a slot in a notes
+file without writing the entry is exactly that. The gap is named; the number
+belongs to whoever writes the entry.
+
+Two properties of how this was found, both worth keeping. F-5 already
+established that no hook enforces R5 or E6 anywhere in `.claude/hooks/` —
+`V2_SOURCE` gates every check on `packages/**` TypeScript — so **nothing
+stopped this file at any size**. The escalation happened because the rule was
+applied by hand, in both directions: by hand when 412 lines were judged fine
+under E6, and by hand again when 823 was judged the owner's call. An unenforced
+rule was obeyed here; that is not a guarantee that it will be next time, which
+is the argument for the exception being written down rather than re-derived.
+
+### F-7 — a count carried across a change of scope (2026-08-11)
+
+The Edit 3 commit body said "the nine deletions in the three modules". The three
+modules carry eight; the ninth deletion is the F-6 title rename in
+`.claude/hooks/lib/telemetry.test.mjs`. The number was taken from the staged
+total at Pause 3 and not re-scoped when the sentence narrowed to the three
+verdict modules, so it was true of the commit and false as written.
+
+Amended rather than left, on the owner's ruling. The reasoning is worth more
+than the digit: that commit's whole subject is a record that can be trusted
+without re-deriving it, and the wrong number sits exactly where a future reader
+decides whether to re-audit. Someone counting eight and reading "nine" goes
+looking for a deletion that does not exist — in the one file set where "did any
+`reason` string move?" is the load-bearing question. The commit was unpushed, so
+G-R6 was not in play; only the digit and the word changed, and the tree is
+byte-identical (`df2ef7f` became `a18d8a0`, 8 files, 281 insertions, 9
+deletions).
+
+**This is the loose-number entry for the run, and it has three occurrences.**
+They are recorded together because the pattern is the finding; separately they
+read as three typos.
+
+1. The owner's Pause 2 wording, which said the `inputHash` sentinel eliminated
+   the collision between two input-less records. It did not: both still carry
+   one hash, and what changed is that the shared value became legible instead of
+   plausible (F-4).
+2. This entry's own subject: "nine deletions in the three modules", where the
+   nine was the staged total and the three modules carry eight.
+3. Edit 4's Pause 3 reported the green-boundary exit call sites as `3 -> 3`. The
+   count is `4 -> 4` — lines 30, 31, 59 and 65 at `4b43cc8`, lines 31, 40, 86
+   and 92 after the wiring. The owner's own first re-count said `4 -> 5`,
+   because a grep counted the comment describing the one-character truthiness
+   trap. Two wrong numbers, one right claim: not one exit was added or removed,
+   which is what the number existed to support.
+
+The general form, and the reason all three were hard to see: **a figure measured
+against one boundary keeps looking right when the sentence around it moves to a
+narrower one**, because nothing about the figure changes when its subject does.
+In every case the claim underneath was sound, which is exactly what stops a
+reader from checking the number — the sentence reads true. All three were caught
+by re-counting rather than by re-reading.
+
 ### F-5 — the architecture guard cannot see the architecture guard (2026-08-11)
 
 Surfaced while applying E6 by hand to a 412-line test file under
