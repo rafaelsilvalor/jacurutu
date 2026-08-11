@@ -7,4 +7,5 @@ config.json
 oauth_client.json
 token.json
 .claude/settings.local.json
+.claude/telemetry/
 /payload.json

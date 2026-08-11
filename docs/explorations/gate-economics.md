@@ -1,7 +1,7 @@
 # Gate economics
 
 Status: exploration — no implementation mandate
-Disposition: open — 2026-08-09
+Disposition: promoted to brief 2026-08-11-gate-runtime-instrumentation — 2026-08-11
 Origin: 2026-08-09 harness-redesign session (`experiment/harness-redesign`), measured against `docs/sessions/` (101 recaps), `docs/tasks/*/notes.md` (10 files) and `git log main` (129 merges). Authored on the experiment branch rather than in a Mentor session through the write gate — an owner-approved deviation for this branch, recorded here rather than left implicit.
 Roadmap link: none — this measures the process, not the product.
 
@@ -120,3 +120,4 @@ natural successor to this note.
 ## Changelog
 
 - 2026-08-09 — created; baseline measured during the harness-redesign session, disposition `open`.
+- 2026-08-11 — promoted; the runtime instrumentation this note names as its successor is specified in `docs/tasks/2026-08-11-gate-runtime-instrumentation/brief.md`.
