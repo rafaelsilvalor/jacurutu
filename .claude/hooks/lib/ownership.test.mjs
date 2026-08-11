@@ -67,3 +67,38 @@ test("a missing path is not a denial", () => {
   assert.equal(write("code", undefined).allowed, true);
   assert.equal(write("code", "").allowed, true);
 });
+
+// WHEN a write is decided, the verdict shall carry its D6 check identifier. The
+// three no-opinion returns take `not-applicable`, which is what lets the
+// executable tell "this hook had nothing to say" apart from "this hook allowed
+// the write" — the first is silence, the second is a gate event.
+test("every ownership verdict carries its D6 check identifier", () => {
+  const read = decideOwnership({
+    agentType: "code",
+    toolName: "Read",
+    filePath: "packages/cli/src/run-start.test.ts",
+  });
+  assert.equal(read.check, "not-applicable");
+  assert.equal(write("executor", "packages/cli/src/run-start.test.ts").check, "not-applicable");
+  assert.equal(write("code", "").check, "not-applicable");
+
+  assert.equal(write("code", "packages/cli/src/run-start.test.ts").check, "pair-code-writes-test");
+  assert.equal(write("test", "packages/cli/src/run-start.ts").check, "pair-test-writes-impl");
+  assert.equal(write("code", "packages/cli/src/run-start.ts").check, "pair-ok");
+  assert.equal(write("test", "packages/cli/src/run-start.test.ts").check, "pair-ok");
+});
+
+// WHEN the identifier is added, `allowed` shall keep its name and its value on
+// every path. `.claude/hooks/file-ownership.mjs` branches on `allowed` alone, so
+// `check` is additive or it is a behavior change wearing a new field's clothes.
+test("adding check leaves allowed untouched on every path", () => {
+  assert.equal(write("executor", "packages/cli/src/run-start.test.ts").allowed, true);
+  assert.equal(write("code", "").allowed, true);
+  assert.equal(write("code", "packages/cli/src/run-start.test.ts").allowed, false);
+  assert.equal(write("test", "packages/cli/src/run-start.ts").allowed, false);
+  assert.equal(write("code", "packages/cli/src/run-start.ts").allowed, true);
+  assert.equal(write("test", "packages/cli/src/run-start.test.ts").allowed, true);
+
+  const denied = write("code", "packages/cli/src/run-start.test.ts");
+  assert.match(denied.reason, /^Denied: @code may not write test files/);
+});

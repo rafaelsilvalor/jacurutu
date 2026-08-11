@@ -103,10 +103,22 @@ function unquote(token) {
  * `decision` is one of "allow", "deny" or "ask". The first failure wins: a
  * subject that is both overlong and misspelled only needs one round trip to
  * learn that, and stacking findings makes the feedback harder to act on.
+ *
+ * `check` names which rule spoke, for the telemetry stream. It exists because
+ * the rule's name is otherwise recoverable only from the prose of `reason`, and
+ * reading an identifier back out of an error message breaks silently the first
+ * time someone rewords it — the exact vice the gate-economics baseline
+ * criticises. The identifiers are fixed by the D6 table of
+ * `docs/tasks/2026-08-11-gate-runtime-instrumentation/brief.md`, which is their
+ * SSOT; `reason` is for humans and `check` is for the reader.
  */
 export function decideCommitMessage(message, verbLists = DEFAULT_VERB_LISTS) {
   if (message === null || message === undefined) {
-    return { decision: "allow", reason: "no inline commit message to inspect" };
+    return {
+      decision: "allow",
+      check: "commit-none",
+      reason: "no inline commit message to inspect",
+    };
   }
 
   const subject = message.split(/\r?\n/)[0] ?? "";
@@ -114,6 +126,7 @@ export function decideCommitMessage(message, verbLists = DEFAULT_VERB_LISTS) {
   if (subject.length > MAX_SUBJECT_LENGTH) {
     return {
       decision: "deny",
+      check: "R10-subject-length",
       reason:
         `Commit subject is ${subject.length} chars, over the ${MAX_SUBJECT_LENGTH} ` +
         `limit (R10 / G-R3). Measured: "${subject}"`,
@@ -123,6 +136,7 @@ export function decideCommitMessage(message, verbLists = DEFAULT_VERB_LISTS) {
   if (!CONVENTIONAL_SUBJECT.test(subject)) {
     return {
       decision: "deny",
+      check: "R10-subject-shape",
       reason:
         `Commit subject does not match <type>(<scope>)?: <subject> with an allowed ` +
         `type (feat, fix, refactor, test, chore, docs, perf, ci) — R10 / G-R3. ` +
@@ -133,6 +147,7 @@ export function decideCommitMessage(message, verbLists = DEFAULT_VERB_LISTS) {
   if (COAUTHOR_TRAILER.test(message)) {
     return {
       decision: "deny",
+      check: "G-A7-coauthor-trailer",
       reason: "Commit carries a Co-authored-by trailer, forbidden by G-R3 / G-A7.",
     };
   }
@@ -141,7 +156,11 @@ export function decideCommitMessage(message, verbLists = DEFAULT_VERB_LISTS) {
   // constants and cannot be empty. A caller that supplies its own empty list
   // must not have every verb silently pass.
   if (verbLists.allow.length === 0) {
-    return { decision: "ask", reason: "The verb allowlist is empty; check 3 cannot run." };
+    return {
+      decision: "ask",
+      check: "R10-verb-list-empty",
+      reason: "The verb allowlist is empty; check 3 cannot run.",
+    };
   }
 
   const verbMatch = SUBJECT_VERB.exec(subject);
@@ -150,6 +169,7 @@ export function decideCommitMessage(message, verbLists = DEFAULT_VERB_LISTS) {
   if (verbLists.deny.includes(verb)) {
     return {
       decision: "deny",
+      check: "R10-verb-imperative",
       reason: `Commit verb "${verb}" is not imperative mood (R10 / G-R3). Use the imperative form.`,
     };
   }
@@ -157,13 +177,18 @@ export function decideCommitMessage(message, verbLists = DEFAULT_VERB_LISTS) {
   if (!verbLists.allow.includes(verb)) {
     return {
       decision: "ask",
+      check: "R10-verb-unknown",
       reason:
         `Commit verb "${verb}" is in neither the allowlist nor the denylist. The skill ` +
         `calls this a STOP, not a judgment call — the owner decides.`,
     };
   }
 
-  return { decision: "allow", reason: `subject ok (${subject.length} chars, verb "${verb}")` };
+  return {
+    decision: "allow",
+    check: "R10-ok",
+    reason: `subject ok (${subject.length} chars, verb "${verb}")`,
+  };
 }
 
 export { MAX_SUBJECT_LENGTH, SHELL_TOOLS };

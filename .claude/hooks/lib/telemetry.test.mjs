@@ -146,7 +146,7 @@ test("an absent input hashes to the empty sentinel, not to the digest of nothing
 
 // WHEN a record is composed with no input, two hooks shall not collide on one
 // legitimate-looking hash — the failure mode F-4 describes, at record level.
-test("records from different hooks with no input do not collide", () => {
+test("records from different hooks with no input share the empty sentinel, not a digest", () => {
   const a = emitGateRecord({ hook: "commit-guard", inputKind: "commit-subject" }, () => {});
   const b = emitGateRecord({ hook: "file-ownership", inputKind: "file-path" }, () => {});
   assert.equal(a.inputHash, EMPTY_INPUT_HASH);

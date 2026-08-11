@@ -26,17 +26,30 @@ export function isTestFile(filePath) {
  * Returns `{ allowed: true }` for every actor outside the pair — the main
  * thread and unrelated subagents keep their normal permission flow. The hook
  * has an opinion only about `@test` and `@code`.
+ *
+ * `check` is additive and for the telemetry stream only; `allowed` keeps both
+ * its name and its value, because `.claude/hooks/file-ownership.mjs` branches
+ * on it. The three early returns take `not-applicable`, which is what lets that
+ * executable tell "this hook had no opinion" apart from "this hook allowed the
+ * write" — the first must stay silent (D4), the second is a real gate event.
+ * Identifiers are fixed by the D6 table of
+ * `docs/tasks/2026-08-11-gate-runtime-instrumentation/brief.md`.
  */
 export function decideOwnership({ agentType, toolName, filePath }) {
-  if (!WRITE_TOOLS.has(toolName)) return { allowed: true };
-  if (agentType !== TEST_AGENT && agentType !== CODE_AGENT) return { allowed: true };
-  if (typeof filePath !== "string" || filePath === "") return { allowed: true };
+  if (!WRITE_TOOLS.has(toolName)) return { allowed: true, check: "not-applicable" };
+  if (agentType !== TEST_AGENT && agentType !== CODE_AGENT) {
+    return { allowed: true, check: "not-applicable" };
+  }
+  if (typeof filePath !== "string" || filePath === "") {
+    return { allowed: true, check: "not-applicable" };
+  }
 
   const writingATest = isTestFile(filePath);
 
   if (agentType === CODE_AGENT && writingATest) {
     return {
       allowed: false,
+      check: "pair-code-writes-test",
       reason:
         `Denied: @code may not write test files (${filePath}). The tests are the ` +
         `specification for this cycle and belong to @test. If a test looks wrong, ` +
@@ -47,13 +60,14 @@ export function decideOwnership({ agentType, toolName, filePath }) {
   if (agentType === TEST_AGENT && !writingATest) {
     return {
       allowed: false,
+      check: "pair-test-writes-impl",
       reason:
         `Denied: @test may not write implementation files (${filePath}). Express the ` +
         `requirement as a failing test; making it pass is @code's job.`,
     };
   }
 
-  return { allowed: true };
+  return { allowed: true, check: "pair-ok" };
 }
 
 export { TEST_AGENT, CODE_AGENT, WRITE_TOOLS };

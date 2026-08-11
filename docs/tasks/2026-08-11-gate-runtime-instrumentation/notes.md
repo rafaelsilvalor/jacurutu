@@ -55,6 +55,33 @@ The amended brief must still validate: `node .claude/hooks/validate-brief.mjs`
 returns APPROVED, or the run stops rather than reshaping the brief to satisfy
 the validator.
 
+### R-4 — the secret-scanner fixtures escalate, and that is correct
+
+Ruled at Edit 3's Pause 3. Staging `.claude/hooks/lib/architecture.test.mjs`
+makes `.claude/hooks/architecture-guard.mjs` answer `ask` with seven secret
+findings. The commit proceeds; the escalation is not a defect in either file.
+
+The findings are the secret scanner's own fixtures. A test for a credential
+detector has to contain something shaped like a credential, so that file
+escalates whenever it is staged and always will. Five of the seven were already
+present at `4b43cc8` and stand accepted. The two added by Edit 3 — at lines 189
+and 194 of the amended file — are byte-identical reuses of the literals at lines
+159 and 165, driving the two code paths the new assertions cover: the deny tier
+hiding the ask tier's rule, and the ask-only tier. No value is a real
+credential; all are keyboard patterns.
+
+Three properties of this ruling are worth keeping separate. It is about **this
+file**, not about secret findings in general — a finding anywhere else is a new
+event and gets its own ruling. It does **not** loosen `scanSecrets`, which is
+working exactly as designed: `A3`-style special-casing of its own fixtures is
+the change that would break it. And it was **not** the executor's to make: an
+`ask` is the owner's ruling (`docs/AGENT_PLAYBOOK.md`, troubleshooting table),
+and seven findings at once is precisely where an agent talks itself into "these
+are obviously fine". That they were fine does not make deciding it the agent's.
+
+For whoever stages that file next: expect the prompt, expect seven findings, and
+compare against this entry rather than re-deriving the answer.
+
 ## Executor findings
 
 ### F-1 — `.jsonl` is never extracted as a path reference (2026-08-11)
@@ -94,6 +121,58 @@ Ruled at that Pause 3: keep the amendment. The moment R-2 ratified `node:path`,
 that checkbox could only ever fail, and a check whose finding has no available
 remedy is worse than no check — the reasoning `E6` records in `CLAUDE.md`,
 applied here unchanged.
+
+### F-5 — the architecture guard cannot see the architecture guard (2026-08-11)
+
+Surfaced while applying E6 by hand to a 412-line test file under
+`.claude/hooks/lib/`, and verified by the owner to be broader than first framed.
+Owner-ruled: record it, do not act on it.
+
+`.claude/hooks/lib/architecture.mjs` gates every check on two patterns:
+
+```
+V2_SOURCE   = /^packages\/.+\.(ts|mts|cts)$/
+TEST_SOURCE = /\.test\.(ts|mts|cts)$/
+```
+
+`checkFileSize`, `checkNoAny`, `checkImportExtensions` and
+`checkDependencyDirection` all return early for anything that is not TypeScript
+under `packages/`. Consequence: **R5, R24 and R25 have no mechanical enforcement
+anywhere in `.claude/hooks/`**. Only `scanSecrets` runs on a harness file,
+because it is the one check with no surface gate.
+
+So the E6 judgment on `telemetry.test.mjs` at 412 lines was the executor
+applying a rule the guard cannot see, not the guard clearing the file. That
+distinction is the finding: an unenforced rule that reads as enforced is worse
+than one nobody claims to enforce.
+
+No action, deliberately. `.claude/hooks/lib/architecture.mjs` is inside
+constraint 1 for the `check` field only, and widening `V2_SOURCE` to the harness
+surface would change what every future commit is measured against — a change
+with consequences nobody has measured, which is not something to slip into a
+telemetry task. It is also live material for the measurement this task builds:
+a guard that does not measure itself is exactly the shape of gap the window
+should expose.
+
+### F-6 — a test title that claimed more than its assertions (2026-08-11)
+
+`telemetry.test.mjs` carried the title `records from different hooks with no
+input do not collide`. The assertions under it were correct — both records carry
+`EMPTY_INPUT_HASH`, and the hook and input-kind pair differ — but the title
+claimed the hashes differ, which they do not. It was wrong by exactly the error
+the owner caught in the Edit 2 commit body: F-4's sentinel did not eliminate the
+collision, it made the shared value legible. The comment directly above the
+title already carried the qualifier ("on one legitimate-looking hash") that
+makes the claim true; the title dropped it. Corrected to `records from different
+hooks with no input share the empty sentinel, not a digest`.
+
+Why it was carried to Edit 3 rather than fixed under Edit 2, which is the part
+worth keeping: the Edit 2 set had already been cleared by the B6(d) index
+pre-flight, and re-staging after that probe would have meant committing a set no
+guard had inspected. A probe that predates the staged set it clears has cleared
+nothing. Flagging the inaccuracy cost one message; the alternative silently
+voids the pre-flight, and nobody notices, because the failure looks exactly like
+success.
 
 ### F-4 — an absent input must not hash to the digest of nothing (2026-08-11)
 

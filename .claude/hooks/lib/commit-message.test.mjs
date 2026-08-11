@@ -151,3 +151,49 @@ test("an empty injected allowlist escalates, never passes", () => {
 test("a conforming commit is allowed", () => {
   assert.equal(decideCommitMessage("chore(hooks): wire the green boundary", LISTS).decision, "allow");
 });
+
+// WHEN a verdict is reached, it shall carry a machine-readable identifier of the
+// rule that spoke, for every row of the D6 table. Without it the reader would
+// have to recover the rule's name from the prose of `reason`, which breaks
+// silently the first time someone rewords an error message — the exact vice the
+// gate-economics baseline criticises.
+test("every commit-message verdict carries its D6 check identifier", () => {
+  const overlong = `chore: add ${"x".repeat(MAX_SUBJECT_LENGTH)}`;
+  const rows = [
+    [null, LISTS, "commit-none", "allow"],
+    [undefined, LISTS, "commit-none", "allow"],
+    [overlong, LISTS, "R10-subject-length", "deny"],
+    ["chore add x", LISTS, "R10-subject-shape", "deny"],
+    ["nope(scope): add x", LISTS, "R10-subject-shape", "deny"],
+    ["chore: add x\n\nCo-authored-by: Someone <s@example.com>", LISTS, "G-A7-coauthor-trailer", "deny"],
+    ["chore: add x", { allow: [], deny: [] }, "R10-verb-list-empty", "ask"],
+    ["chore: added x", LISTS, "R10-verb-imperative", "deny"],
+    ["chore: frobnicate x", LISTS, "R10-verb-unknown", "ask"],
+    ["chore(hooks): add x", LISTS, "R10-ok", "allow"],
+  ];
+
+  for (const [message, lists, check, decision] of rows) {
+    const verdict = decideCommitMessage(message, lists);
+    assert.equal(verdict.check, check, `check for ${JSON.stringify(message)}`);
+    assert.equal(verdict.decision, decision, `decision for ${JSON.stringify(message)}`);
+  }
+});
+
+// WHEN the identifier is added, the decision and the reason shall be untouched:
+// `check` is for the reader, `reason` is for the human, and this task changes no
+// verdict. Pinned here so a later edit cannot quietly reword one.
+test("adding check changes neither decision nor reason", () => {
+  const denied = decideCommitMessage("chore: added x", LISTS);
+  assert.equal(denied.decision, "deny");
+  assert.equal(
+    denied.reason,
+    'Commit verb "added" is not imperative mood (R10 / G-R3). Use the imperative form.',
+  );
+
+  const allowed = decideCommitMessage("chore(hooks): add x", LISTS);
+  assert.equal(allowed.decision, "allow");
+  assert.equal(allowed.reason, 'subject ok (19 chars, verb "add")');
+
+  const none = decideCommitMessage(null, LISTS);
+  assert.equal(none.reason, "no inline commit message to inspect");
+});

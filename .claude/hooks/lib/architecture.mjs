@@ -168,9 +168,18 @@ export function inspectFile(filePath, content, io) {
 /**
  * Fold findings into a single decision. `deny` wins over `ask` wins over
  * `allow`, matching how Claude Code combines hook results.
+ *
+ * `check` names which rules spoke, for the telemetry stream: the distinct
+ * `rule` values of the findings this verdict is actually built from, joined by
+ * commas, or `none` when there were no findings. Every finding already carries
+ * its `rule`, so this identifier costs nothing to derive and is not recovered
+ * from prose — and `.claude/hooks/docs-guard.mjs` inherits it by calling this
+ * same function, which is why `docs-checks.mjs` needs no change to report
+ * `ref` and `R9`. The identifiers are fixed by the D6 table of
+ * `docs/tasks/2026-08-11-gate-runtime-instrumentation/brief.md`.
  */
 export function summarize(findings) {
-  if (findings.length === 0) return { decision: "allow", reason: "" };
+  if (findings.length === 0) return { decision: "allow", check: "none", reason: "" };
   const denials = findings.filter((f) => f.decision === "deny");
   const chosen = denials.length > 0 ? denials : findings;
   const decision = denials.length > 0 ? "deny" : "ask";
@@ -179,6 +188,7 @@ export function summarize(findings) {
     .join("\n");
   return {
     decision,
+    check: [...new Set(chosen.map((f) => f.rule))].join(","),
     reason: `${chosen.length} finding(s) in the staged diff:\n${body}`,
   };
 }

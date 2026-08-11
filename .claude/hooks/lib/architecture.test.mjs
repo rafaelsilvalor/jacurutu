@@ -164,3 +164,66 @@ test("summarize takes the most restrictive tier", () => {
   assert.doesNotMatch(verdict.reason, /secret/);
   assert.equal(summarize(scanSecrets("x.ts", lines(`const secret = "abcdefghijklmnop";`))).decision, "ask");
 });
+
+// WHEN findings are summarized, the verdict shall name which rules spoke: the
+// distinct `rule` values of the findings it is actually built from, comma-joined,
+// and `none` when there were none. This identifier costs nothing to derive
+// because every finding already carries its rule — the asymmetry the D6 table
+// records against the two modules that carried it only inside prose.
+test("summarize carries the distinct rules as its D6 check identifier", () => {
+  assert.equal(summarize([]).check, "none");
+
+  const twoRules = inspectFile(
+    "packages/core/src/a.ts",
+    [
+      `import { x } from "@saci/adapter-jira";`,
+      `import { y } from "./y";`,
+    ].join("\n"),
+  );
+  assert.equal(summarize(twoRules).check, "R25,R21");
+
+  // The deny tier hides the ask tier's reason, so it hides its rule too:
+  // the identifier describes the verdict, not everything that was found.
+  const mixed = inspectFile(
+    "packages/core/src/a.ts",
+    [`import { x } from "@saci/adapter-jira";`, `const p = "ATATT3xFfGF0abcdefghijklmnop";`].join("\n"),
+  );
+  assert.equal(summarize(mixed).check, "R25");
+
+  assert.equal(
+    summarize(scanSecrets("x.ts", lines(`const secret = "abcdefghijklmnop";`))).check,
+    "secret",
+  );
+});
+
+// WHEN the docs guard folds its own findings through this same function, the
+// identifier shall be the docs rules — which is why `docs-checks.mjs` needs no
+// change of its own to appear in the stream.
+test("summarize inherits identifiers from any finding shape", () => {
+  const docsFindings = [
+    { rule: "ref", file: "docs/A.md", line: 3, decision: "deny", reason: "resolves to no file" },
+    { rule: "R9", file: "docs/A.md", line: 9, decision: "ask", reason: "pt-BR on an English surface" },
+  ];
+  assert.equal(summarize(docsFindings).check, "ref");
+  assert.equal(summarize([docsFindings[1]]).check, "R9");
+  assert.equal(summarize([docsFindings[1], docsFindings[1]]).check, "R9");
+});
+
+// WHEN the identifier is added, the decision and the reason shall be untouched.
+test("adding check changes neither decision nor reason", () => {
+  const empty = summarize([]);
+  assert.equal(empty.decision, "allow");
+  assert.equal(empty.reason, "");
+
+  const findings = inspectFile(
+    "packages/core/src/a.ts",
+    [`import { x } from "@saci/adapter-jira";`].join("\n"),
+  );
+  const verdict = summarize(findings);
+  assert.equal(verdict.decision, "deny");
+  assert.equal(
+    verdict.reason,
+    "1 finding(s) in the staged diff:\n  packages/core/src/a.ts:1 — R25: " +
+      "core must not import an adapter; the dependency direction is inward only",
+  );
+});
