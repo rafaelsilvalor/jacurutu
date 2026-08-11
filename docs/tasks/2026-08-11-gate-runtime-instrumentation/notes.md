@@ -95,6 +95,46 @@ that checkbox could only ever fail, and a check whose finding has no available
 remedy is worse than no check — the reasoning `E6` records in `CLAUDE.md`,
 applied here unchanged.
 
+### F-4 — an absent input must not hash to the digest of nothing (2026-08-11)
+
+Found by the owner at Pause 2, against the brief's own consistency rather than
+against the code. D13 says `inputHash` is "first 12 hex chars of the SHA-256 of
+the inspected input" and says nothing about an input that is not there, so the
+first implementation hashed the empty string:
+
+```
+hashInput(undefined) = "e3b0c44298fc"
+hashInput('')        = "e3b0c44298fc"
+hashInput(null)      = "e3b0c44298fc"
+record A (commit-guard,   no input) = "e3b0c44298fc"
+record B (file-ownership, no input) = "e3b0c44298fc"   -> collide
+```
+
+`e3b0c44298fc` is the SHA-256 of the empty string — a real digest, and one that
+reads as perfectly good data. Two records from different hooks with different
+input kinds land
+on one legitimate-looking value, and the reader's "inputs recurring at least
+twice" section then reports a phantom recurring input — the section that carries
+D1's self-inflicted fraction, which is the measure this whole task exists to
+produce.
+
+Not a live bug at any point: Edit 4 passes a real `inspected` from all five
+hooks. It is a silent failure mode waiting for the first wiring path that
+forgets, and the record it produces looks correct.
+
+**Ruling — an explicit sentinel, counted and reported.** A missing or empty
+input produces an empty `inputHash`, never a hash of nothing. `EMPTY_INPUT_HASH`
+in `.claude/hooks/lib/telemetry.mjs` is the constant, and `hashInput` returns it
+before touching `createHash`. The shape is D12's, one field over: D12 writes
+`session: "unknown"`, counts it toward the window, excludes it from the distinct
+count and has the reader say how many it saw, on the stated ground that "a
+silent zero there would corrupt D8's window without anyone noticing". Same
+argument.
+
+Consequence for Edit 5, recorded here so it is not rediscovered then: the reader
+counts and reports records carrying the empty hash the same way it reports
+sessions that resolved to `"unknown"`.
+
 ### F-3 — this file was added to constraint 1 (2026-08-11)
 
 Constraint 1 is a closed list of the paths this task may create or modify, and
