@@ -122,6 +122,53 @@ that checkbox could only ever fail, and a check whose finding has no available
 remedy is worse than no check — the reasoning `E6` records in `CLAUDE.md`,
 applied here unchanged.
 
+### F-10 — the first session in the window is the one that built the instrument (2026-08-11)
+
+Ruled recorded, not acted on. **The first records in `.claude/telemetry/gates.jsonl`
+come from this session**, and this session is not a typical one.
+
+They are real gate events — no fixture, no replay — and they count toward D8's
+window exactly as specified. But the session that produced them was doing
+harness work rather than product work: the five guards were themselves changing
+between commits, the Pause cadence was far denser than a normal task's, every
+commit was a documentation or hook commit, and a stretch of the session's own
+tool calls were probes deliberately redirected away from the stream. Whatever
+the first session says about denial rates says as much about the work being
+harness work as about the gates.
+
+No code change follows, and that is the ruling rather than an omission.
+Hardcoding this session's identifier into the reader to exclude it would age
+badly — the identifier is meaningless in three weeks, and the exclusion would
+outlive its reason — and D8's report sections are closed. The window is also
+built to absorb this: at 10 committing sessions or 150 events, one atypical
+session is a minority of the sample, which is a different situation from the
+baseline note, where the sessions being measured wrote the measurements.
+
+What the digest author needs from this entry is the option: decide whether to
+separate the first session, with the information available rather than
+rediscovered from a commit log. The honest framing for the digest is that the
+instrument's first subject was its own construction.
+
+### F-9 — the stream already separates main-session turns from subagent calls (2026-08-11)
+
+Observed by the owner in the first four real records, and recorded because
+whoever writes the digest at window close will want it and will not find it in
+the brief, which never anticipated it.
+
+The two `green-boundary` records carry `agent: ""`; the two `PreToolUse` records
+carry `agent: "executor"`. That is D13 behaving exactly as specified —
+`agent_type` from the payload, empty string when absent — and the consequence is
+free: **a turn boundary in the main session is distinguishable from a tool call
+made by a subagent, on every record, with no additional field.**
+
+Deliberately not acted on. The brief's report sections are closed, and adding an
+agent breakdown to the reader would be scope creep. The distinction is in the
+data; a future digest can group by it without any change to the emission side.
+
+One caveat for whoever uses it: `agent: ""` means the payload carried no
+`agent_type`, which today is the `Stop` event. It is evidence about the payload,
+not a claim that no subagent was involved in the turn.
+
 ### F-8 — the hook executables cannot have 1:1 test files at all (2026-08-11)
 
 Surfaced when `.claude/hooks/lib/telemetry.test.mjs` reached 823 lines, past

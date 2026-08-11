@@ -148,5 +148,6 @@ This was a standing violation, not a new allowance — the R9 language check sur
 - `.claude/agents/` — orchestration subagents: `planner.md`, `executor.md`, and the `test.md`/`code.md` pair; invoked by the main session acting as Orchestrator (`docs/AGENT_PLAYBOOK.md` Chapter 6). `brief-validator.md` and `closer.md` are retired tombstones — do not invoke them
 - `.claude/skills/brief-template/` — authoring template for `docs/tasks/<task-id>-<slug>/brief.md`; preloaded by planner
 - `.claude/hooks/` — the executable checks. They run in the harness, not the model, so they fire on every commit and every write whether or not anyone remembers them: commit message, architecture rules, test/code file ownership, the green boundary, and `validate-brief.mjs` for C1–C11
+- `.claude/hooks/gate-yield.mjs` — the reader over the gate telemetry stream. Aggregates the append-only `.claude/telemetry/gates.jsonl` into yield per hook, per check and per verdict; the stream is gitignored and local to the worktree that produced it
 - `.claude/skills/mentor-mode/` — session mechanics for the Mentor lane; invoked at the open of a Mentor session
 - `README.md` — user-facing project description
