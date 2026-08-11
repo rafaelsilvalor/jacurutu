@@ -1,22 +1,40 @@
 # Session recap — 2026-08-11 — gate runtime instrumentation (Orchestrator)
 
 **Mode:** Orchestrator, Plan mode. Decisions closed with the owner one at a
-time, then delegated. No code was written and no product file was touched.
+time, then delegated — first to `@planner` for the brief, then, after the owner
+reopened the session, to `@executor` for the whole of it. The Orchestrator wrote
+no code and touched no product file; `packages/` is untouched end to end.
 **Consumes:** `4b43cc8` — the harness redesign, landed via PR #130. See the
 correction below: this SHA cannot be produced the way the previous recap says.
 **Branch:** `chore/gate-runtime-instrumentation`, cut from `4b43cc8` with the
-owner's explicit approval. One commit, `989cb8a`. **Not pushed.**
-**Produced:** `docs/tasks/2026-08-11-gate-runtime-instrumentation/brief.md`, the
-promotion of `docs/explorations/gate-economics.md` into a mandate. Item 3 of what
-the harness redesign still owed is now specified rather than owed.
+owner's explicit approval. Nine commits. **Not pushed** — `origin` stands seven
+behind at `8d12133`, which is where PR #131 was opened from.
+**Produced:** the brief at `docs/tasks/2026-08-11-gate-runtime-instrumentation/`,
+this recap, and then the executed task — the emission seam, check identifiers on
+every verdict, the wiring of all five hooks, the `gate-yield` reader, and the
+promotion of `docs/explorations/gate-economics.md`. Item 3 of what the harness
+redesign still owed is built, not merely specified.
+**Pairs with:** `docs/sessions/2026-08-11-executor-gate-runtime-instrumentation.md`.
+
+> **This recap was written twice.** Everything from here to "What this session
+> did NOT establish" was authored when the session closed on the brief, and is
+> preserved as written. The owner then reopened the session with "aciona o
+> executor", which made three claims in the original closing section false. They
+> are corrected in place rather than left standing, and the execution window has
+> its own section below. The lesson the 2026-08-09 recap recorded about itself —
+> *a recap written while decisions are still open is a draft, and calling it done
+> is what creates the corrections* — was quoted in this file before it happened
+> to this file.
 
 ## One-line summary
 
-The baseline note's own successor became a brief: thirteen closed decisions that
-make every mechanical verdict the five hooks reach durable, so Finding 1 can be
-re-tested against runtime data instead of against prose written by the sessions
-being measured — and the two findings worth keeping came from refusing to take
-an assertion on trust, once by the planner and once at the gate.
+The baseline note's own successor became a brief and then became real: thirteen
+closed decisions, then seven executor commits that make every mechanical verdict
+the five hooks reach durable, so Finding 1 can be re-tested against runtime data
+instead of against prose written by the sessions being measured. The through-line
+of both halves is the same — every finding worth keeping came from refusing to
+take an assertion on trust, and the serious ones came from running the code
+rather than reading it.
 
 ## Correction to the previous recap: it was a squash, not a merge commit
 
@@ -177,28 +195,76 @@ stated payoff. Green re-established: `npx tsc -b` clean, 324 package tests
 ## Local state
 
 - **Branches:** `main`, `experiment/harness-redesign` (preserved — see the
-  correction above), `chore/gate-runtime-instrumentation` (this task, one
-  commit, no upstream), `docs/spike-art-chain` (another live session), and two
-  `claude/*` scaffolding pointers. Nothing was deleted; `G-GIT-1` was never
-  approached.
+  correction above), `chore/gate-runtime-instrumentation` (this task, nine
+  commits, `origin` seven behind), `docs/spike-art-chain` (another live session),
+  and two `claude/*` scaffolding pointers. Nothing was deleted; `G-GIT-1` was
+  never approached.
 - **Worktrees:** four registered — `main`, this one, `harness-redesign-exploration`
   and `jira-google-art-generator`. The two empty directory entries the previous
   recap expected to vanish, `brief-052-task-cutover-278d50` and
   `exploracao-branch-especial-437e38`, are **still present**: the prediction that
   they would delete once those sessions closed has not come true, and the cause
   was never verified by inspecting process handles.
-- **Green:** unchanged from the numbers above. Nothing in `packages/` was
-  touched.
+- **Green:** `tsc -b` clean; 324 package tests (323 pass, 1 skipped) unchanged
+  from first measurement to last, plus hook tests **61 → 112**. Nothing in
+  `packages/` was touched.
 - **Not pushed.** The push and the PR are the owner's.
+
+## The execution window — what the Orchestrator did after the session reopened
+
+The owner reopened with "aciona o executor", and the rest of the session was
+gate work rather than authoring: seven executor commits, one Pause 1, one
+Pause 2, six Pause 3 presentations, and one `ask` escalated to the owner. The
+detailed record is the executor's recap; what belongs here is what the
+Orchestrator seat contributed and what it got wrong.
+
+**What the gate caught that the pipeline had not.** The brief carried a
+contradiction: D5 required the hook to log a failed telemetry write to stderr
+(R4) and, one bullet later, required stderr to be byte-identical between a
+writable and an unwritable run. Both cannot hold. It survived authoring, `11/11
+PASS APPROVED` from `validate-brief.mjs`, and this Orchestrator's own full read
+at the gate — and was found in the first ten minutes by an executor trying to
+build the test. The mechanical validator cannot catch a semantic contradiction,
+and neither did the reader who approved it.
+
+**What the Orchestrator verified rather than relayed.** Three claims were
+checked against the code instead of taken from a report, and one of them
+mattered: that `docs-guard` inherits the new `check` field through
+`architecture.mjs`'s `summarize`, which is true — had it not been, that guard
+would have emitted `check: undefined` and gone silently missing from the
+measurement. The other two: that `CLAUDE.md` produced zero docs findings before
+Edit 5 staged it, so any finding would be attributable to the change; and that
+no `reason` string moved across Edit 3, read deletion by deletion.
+
+**What the Orchestrator got wrong.** Two things, both corrected by the executor.
+Told at Pause 2 that the empty-input hash fix "eliminated the collision" — it did
+not; two input-less records still share one value, and what changed is that the
+value became unmistakably "no input" rather than a plausible digest. And a grep
+counting exit call sites in `green-boundary` returned 4 → 5 by counting a comment;
+the executor's own count of 3 → 3 was also wrong, and the truth is 4 → 4. The
+claim underneath — no exit added or removed — held both times. All three
+occurrences are consolidated as `F-7` in the task's `notes.md`, and the pattern
+is worth more than the instances: **a number keeps looking right when the scope
+of the sentence around it narrows, because nothing about the number changes when
+its subject does.**
+
+**Four verification checkboxes could not be met as written**, all reported as
+findings rather than ticked: E6's 800-line ceiling (`telemetry.test.mjs` at 823,
+owner-ruled, cause recorded as `F-8`); Edit 3's last D6 row, closed in Edit 4;
+D5's byte-identity assertion, amended to the verdict channel and **weaker than
+the brief's original words**; and constraint 1, amended to admit `notes.md`.
 
 ## What this session did NOT establish
 
-- **Nothing was executed.** The brief is a mandate, not an outcome. No hook
-  emits anything today, `.claude/telemetry/` does not exist, and
-  `gate-economics.md` still carries `Disposition: open` — the promotion to
-  `promoted to brief 2026-08-11-gate-runtime-instrumentation` is Edit 6 of the
-  brief, deliberately not performed here. Promoting the disposition before the
-  work exists would record a state that has not happened.
+- **Twelve events establish that the pipe works, and nothing else.** All twelve
+  are allows, so the denial rate is 0/12 and Finding 1 is neither supported nor
+  refuted. That is what the window exists to collect, and it stands at 12 of 150
+  events and 1 of 10 committing sessions.
+- **The first session in the window is the one that built the instrument.**
+  Recorded as `F-10`: those records come from a session doing harness work, with
+  the guards themselves changing between commits, under a Pause cadence no
+  ordinary task has. Whoever writes the digest decides whether to separate them;
+  the point is that the option is visible rather than buried.
 - **D8's window is arithmetic on one prior rate.** The "~15 denials from 150
   events" projection rests on the baseline's approximate 4-in-38 validator
   rejection rate — a figure the baseline itself marks as approximate and
@@ -221,18 +287,28 @@ stated payoff. Green re-established: `npx tsc -b` clean, 324 package tests
 
 ## Next-session snippet
 
-> **The gate-economics note is promoted.** Its brief is
-> `docs/tasks/2026-08-11-gate-runtime-instrumentation/brief.md`, committed as
-> `989cb8a` on `chore/gate-runtime-instrumentation`, validated 11/11 APPROVED,
-> **not pushed**. If it has not merged yet, the owner's push and PR are the next
-> step; nothing else waits on anyone.
+> **The gate-economics note is promoted and its brief is executed.** Nine commits
+> on `chore/gate-runtime-instrumentation`, **not pushed** — `origin` is seven
+> behind at `8d12133`, and PR #131 was opened from there while the branch still
+> held documentation only, so its title and body describe a state that no longer
+> exists. Rewriting it and pushing are the owner's.
 >
-> To execute it, invoke `@executor` against that brief. `Plan required: yes`, so
-> Pause 1 is mandatory — and the thing to present there is the order in which
-> five live hooks get rewired while those same hooks gate the commits doing the
-> rewiring. Edit 2 must land before Edit 5 or Edit 5's commit is denied.
+> **The gates now instrument themselves.** Five hooks append one JSON record per
+> real decision to `.claude/telemetry/gates.jsonl`, gitignored and local to the
+> worktree that produced it. Read it any time with
+> `node .claude/hooks/gate-yield.mjs` — no arguments, and it reports the window
+> state. Nothing is emitted by a hook that examined nothing, which is why a
+> session of dozens of Bash calls produced twelve records.
 >
-> Green is `npx tsc -b && npm test` = 324 package tests (323 pass, 1 skip) + 61
+> **The window is open at 12 of 150 events and 1 of 10 committing sessions**,
+> whichever comes first. At close, `docs/explorations/gate-runtime-yield.md` is
+> authored in a Mentor session through the write gate, and `gate-economics.md`
+> gains one dated changelog line pointing at it. Read `F-10` before treating the
+> early records as representative — the first session in the window is the one
+> that built the instrument — and `F-9` for a grouping axis already present in
+> the data.
+>
+> Green is `npx tsc -b && npm test` = 324 package tests (323 pass, 1 skip) + 112
 > hook tests. A fresh worktree inherits the guards from `main`; confirm with the
 > `G-HOOK-1` probe rather than assuming. Do not invoke `brief-validator`,
 > `closer` or `pre-commit-self-audit` — tombstones; mechanical brief validation
