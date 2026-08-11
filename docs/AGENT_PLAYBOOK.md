@@ -229,20 +229,25 @@ This is **your** operating manual. It is not the agent's instruction set — tha
 
 Read this file end-to-end every 4–6 weeks until lessons #1–#10 are reflexes. After that, scan the lesson titles only — they will trigger the right behavior on their own.
 
-## Chapter 6 — The roles and the orchestration pipeline (Orchestrator → planner → brief-validator → executor → closer)
+## Chapter 6 — The roles and the orchestration pipeline (Orchestrator → planner → executor)
 
-The pipeline runs inside Claude Code under a role-based separation: roles, not surfaces, define who does what. The Mentor is its own main session and the conceptual surface — it stays out of the operational loop entirely. This chapter defines the six roles, then describes how to drive the pipeline and what to do when it surfaces a problem. The role model was ratified in the fused-model design session (`docs/sessions/2026-07-25-mentor-fused-model-design.md`) and piloted end to end on task 038.
+The pipeline runs inside Claude Code under a role-based separation: roles, not surfaces, define who does what. The Mentor is its own main session and the conceptual surface — it stays out of the operational loop entirely. This chapter defines the roles, then describes how to drive the pipeline and what to do when it surfaces a problem. The role model was ratified in the fused-model design session (`docs/sessions/2026-07-25-mentor-fused-model-design.md`) and piloted end to end on task 038.
 
-### The six roles
+### The roles
+
+Two of the original six were retired on 2026-08-09 (`brief-validator`, `closer`).
+Neither was replaced by another agent: their mechanical content became hooks and
+a CLI, and their judgment content either moved to the Pauses or was declared
+uncovered. The measurement behind that is `docs/explorations/gate-economics.md`.
 
 | Role | Where | What it does |
 |---|---|---|
 | **Mentor** | Claude Code — its own main session | Learning, pre-task exploration, meta-discussion. Writes only `docs/explorations/`. No gate, no task modeling, no operational rulings, no subagents. |
 | **Orchestrator** | Claude Code — the main session | Task modeling, decision closure with the owner, delegation to subagents, the orchestrator gate, the write gate, session close-out. |
 | **planner** | Claude Code — subagent | Authors briefs from delegation prompts. |
-| **brief-validator** | Claude Code — subagent | Audits briefs mechanically; emits APPROVED or REJECTED. |
-| **executor** | Claude Code — subagent | Runs approved briefs — Edits, Pauses, commits. |
-| **closer** | Claude Code — subagent | Reviews the assembled diff before push; emits a report. Phase B pushes and opens the PR on explicit owner instruction. |
+| **executor** | Claude Code — subagent | Runs approved briefs — Edits, Pauses, commits. Carries docs work, which the pair cannot. |
+| **test** | Claude Code — subagent | Turns a requirement into failing tests. Writes `*.test.*` only; the hook denies the rest. |
+| **code** | Claude Code — subagent | Makes those tests pass on a fresh context. Cannot edit a test; a test it believes wrong is a finding it reports. |
 
 ### The Mentor
 
@@ -272,9 +277,29 @@ The Orchestrator is the main session, not a subagent. Subagents get fresh contex
 
 Write policy: Plan mode is the session default. The Orchestrator writes ONLY under `docs/`, per artifact, via the write gate — show the full content → owner approves → write → read back from disk → confirm byte-match. Source code exists only behind `@executor`; the Orchestrator never writes it.
 
-### The closer
+### The pair, and what replaced the closer
 
-The closer is the sixth role and the only one that acts on the assembled result rather than on the plan. It reads `git diff main...HEAD` on a task branch and runs three narrow checks — architecture against `CLAUDE.md` R18–R25, duplication against what `core` actually exports, and secret/path hygiene — then emits one pt-BR report and stops. Phase A is strictly read-only: the closer creates, modifies and stages nothing, and it never merges. Its verdict is **input to your judgment, not a gate that opens itself**: a clean report does not authorize the push, and a `trava` finding is a recommendation, not a veto the closer enforces (lesson #14 again, one role further down the line). When you disagree with the report, route through the same three responses as a REJECTED verdict or a rejected orchestrator gate — redesign with the Orchestrator, fix directly on the branch, or override the finding and record why. Phase B — push the branch, open the PR, and post-merge confirm the merge SHA — runs only on your explicit per-branch instruction, never inferred from a clean Phase A.
+**`@test` / `@code`** is the lane for work that carries a testable contract. `@test`
+turns a short requirement — context, WHEN/THEN behavior, out of scope — into
+failing tests without ever writing implementation. `@code` then starts on a fresh
+context, sees the tests and not the requirement, and makes them pass. Neither can
+write into the other's domain: `.claude/hooks/file-ownership.mjs` denies the write,
+so the separation is a guarantee rather than an instruction. The point is competing
+incentives — one agent holding both halves drifts the test toward whatever it built.
+
+The pair does not replace the executor. It has nothing to say about a docs task,
+which has no test to write, and docs is most of what this repository merges.
+
+**The closer was retired, not replaced.** Its mechanical checks — R25, R21, R24, R5,
+secret hygiene — run as `.claude/hooks/architecture-guard.mjs` at commit time, which
+catches a violation at the commit that introduces it instead of at the end of a
+branch. Its judgment checks (R18, R19, R6's exception, R4 with N1, duplication
+against `core`) have no successor; Pause 2 and Pause 3 absorb them, and the
+gate-economics measurement found those to be the highest-yield gates in the system.
+Push and PR were never the closer's to authorize and remain the owner's, per branch.
+
+The former content of this section, including the three checks in full, is preserved
+in the tombstone at `.claude/agents/closer.md`.
 
 ### When to use the pipeline vs. caminho B
 
@@ -299,8 +324,8 @@ Invoke @planner.
 The Orchestrator then:
 1. Invokes planner with the description.
 2. Receives planner's final message (brief authored, branch, commit SHA).
-3. Invokes `@brief-validator` with the brief path and branch.
-4. Receives the validator's verdict report.
+3. Runs `node .claude/hooks/validate-brief.mjs <brief path>` (exit 0 = APPROVED).
+4. Reads the verdict report it prints — eleven check lines and a verdict.
 5. If `Verdict: APPROVED` — surfaces the brief, the validator's verdict report, and the brief commit's diff, then halts at the orchestrator gate (see "The orchestrator gate" below). The executor is invoked only after you give an explicit go.
 6. If `Verdict: REJECTED` — surfaces the report to you. See "Verdict handling" below.
 
@@ -322,7 +347,7 @@ When the validator emits `Verdict: REJECTED`, the Orchestrator surfaces the repo
 You then choose one of three responses:
 
 1. **Redesign with the Orchestrator.** The cleanest path when the FAIL reveals a design gap — the brief asks for something the validator's checks correctly flag as out of convention. Re-open the affected decisions in the Orchestrator session (conceptual exploration, if any, goes to the Mentor on the conceptual surface); the Orchestrator authors the corrected brief via caminho B; re-invoke validator and executor.
-2. **Fix directly on the branch.** Use when the FAIL is a small mechanical slip the planner introduced (subject overflow, missing section header, branch type mismatch). Edit the brief on disk; re-invoke `@brief-validator` to re-audit. If APPROVED, proceed to executor.
+2. **Fix directly on the branch.** Use when the FAIL is a small mechanical slip the planner introduced (subject overflow, missing section header, branch type mismatch). Edit the brief on disk; re-run `validate-brief.mjs`. If APPROVED, proceed to executor.
 3. **Override the validator.** Use when you know the FAIL is correct under unusual circumstances the validator can't see (e.g. a brief that intentionally violates a convention to introduce its replacement — the cluster bootstrap case). Skip the validator and invoke `@executor` directly. Document the override in the brief's "Plan required justification" or a dedicated decision block; the mentor session recap should also capture the override.
 
 > **Lesson #12 — REJECTED is a decision point, not a failure state.** The validator's job is to flag mechanical drift; your job is to decide whether the drift is the bug or the convention is the bug. Three responses, one chosen per case, none default. Auto-loop back to planner was rejected at cluster design (D4) precisely because the user-judgment step protects against silent validator errors.
@@ -352,9 +377,9 @@ Two roles produce session recaps; four produce none:
 - **Mentor**: no recap. The session's only artifact is the topic note under `docs/explorations/`, which travels on its own `docs/<topic>` branch and PR — created by you or by an Orchestrator session, never by the Mentor (`docs/MENTOR_BRIEF.md` M-R14).
 - **Orchestrator**: decisions, gate outcome, deviations, queue state, next-session snippet. No execution log.
 - **executor**: pure execution log — Edits, Pauses, evidence, commits. No context re-narration.
-- **planner**, **brief-validator** and **closer**: no recaps. The committed brief, the recorded verdict and the emitted report are their record.
+- **planner**, **test** and **code**: no recaps. The committed brief, the committed tests and the passing suite are their record.
 
-Transport: Orchestrator and executor recaps ride the session PR. Standard sequence: brief → code (executor, Pauses) → recaps (`docs(sessions):` commit on the same branch) → push + PR on owner instruction → owner squash-merge. Consequence: a recap cannot cite its own PR's merge SHA; the NEXT session confirms the merge via P4 / `git log` in its "Consumes" line. The separate docs PR for task sessions is retired, and the `[CONFIRMAR: docs PR]` pendency class dies with it. Post-merge, the closer's Phase B confirms the merge SHA in-session (brief 048, D5), while authoring the next-session snippet remains the Orchestrator recap's duty.
+Transport: Orchestrator and executor recaps ride the session PR. Standard sequence: brief → code (executor, Pauses) → recaps (`docs(sessions):` commit on the same branch) → push + PR on owner instruction → owner squash-merge. Consequence: a recap cannot cite its own PR's merge SHA; the NEXT session confirms the merge via P4 / `git log` in its "Consumes" line. The separate docs PR for task sessions is retired, and the `[CONFIRMAR: docs PR]` pendency class dies with it. Nothing confirms the merge SHA in-session any more: that was the closer's Phase B (brief 048, D5), retired on 2026-08-09, so the next session's "Consumes" line is now the only path — which is what the sentence above already describes. Authoring the next-session snippet remains the Orchestrator recap's duty.
 
 ### Blindness rules
 
@@ -391,24 +416,26 @@ R17 restated for Orchestrator sessions — the letter of the rule holds; the fus
 | Validator REJECTED with FAILs you disagree with | Convention vs. intentional deviation tension | Use override path (option 3 above); document the override |
 | Validator REJECTED with FAILs you didn't anticipate | Planner output drifted from brief-template SKILL | Fix on branch (option 2); re-validate |
 | Executor STOPs at Pause 2 with "file outside scope" | Brief's scope didn't predict a required side-effect | Revise the scope in the Orchestrator session; re-execute |
-| Executor reports pre-commit-self-audit FAIL | Mechanical slip in commit subject or staging | Fix the subject or restage; re-run the audit; commit |
+| `commit-guard` denies the commit | Mechanical slip in the commit subject | Fix the subject; the hook re-runs on the next attempt |
+| A hook answers `ask` | A case nobody has ruled on — an unlisted verb, a suspected secret, an oversized test file | Rule on it yourself. Never let the model classify it |
 
 ## Related documents
 
 | File | Purpose |
 |---|---|
 | `CLAUDE.md` | Code rules for the executor agent (Claude Code) |
-| `docs/PROCESS_MAP.md` | Agent-facing map of the process surface — reading order, the six roles, the gates, artifact naming, rule-ID namespaces. Where this file is the orchestration manual for *you*, that one orients an agent arriving cold |
+| `docs/PROCESS_MAP.md` | Agent-facing map of the process surface — reading order, the roles, the gates, artifact naming, rule-ID namespaces. Where this file is the orchestration manual for *you*, that one orients an agent arriving cold |
 | `docs/MENTOR_BRIEF.md` | Behavioral rules for the Mentor session (Claude Code) |
 | `docs/GIT_WORKFLOW.md` | Operational git discipline — branches, PRs, hooks, releases |
 | `docs/GOTCHAS.md` | Stack-specific traps catalog (`G-CAT-N` IDs) |
 | `docs/AGENT_PLAYBOOK.md` | This file — orchestration manual for the user |
 | `.claude/agents/planner.md` | Planner subagent — authors briefs from delegation prompts |
-| `.claude/agents/brief-validator.md` | Brief-validator subagent — audits briefs with 11 mechanical checks |
+| `.claude/agents/brief-validator.md` | *Retired 2026-08-09* — tombstone. C1–C11 run as `node .claude/hooks/validate-brief.mjs <brief>` |
+| `.claude/agents/test.md`, `.claude/agents/code.md` | The pair for work that carries tests |
 | `.claude/agents/executor.md` | Executor subagent — runs briefs (pipeline-invoked) |
-| `.claude/agents/closer.md` | Closer subagent — reviews the assembled diff before push |
-| `.claude/skills/brief-template/` | Brief authoring template (preloaded by planner and brief-validator) |
-| `.claude/skills/pre-commit-self-audit/` | Executor's Pause-3 self-audit checklist |
+| `.claude/agents/closer.md` | *Retired 2026-08-09* — tombstone. Mechanical half is `architecture-guard`; judgment half is uncovered by design |
+| `.claude/skills/brief-template/` | Brief authoring template (preloaded by planner) |
+| `.claude/hooks/` | The executable checks — commit message, architecture rules, file ownership, green boundary, brief validation |
 | `.claude/skills/mentor-mode/` | Mentor session mechanics (skill invoked at session open) |
 | `harness/workflows/` | Pre-built session templates for manual invocation (parallel surface to `.claude/agents/`) |
 | `README.md` | End-user description of Saci |

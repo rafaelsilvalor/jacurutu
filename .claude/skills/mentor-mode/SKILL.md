@@ -57,9 +57,8 @@ Four flat statements, none of them negotiable inside a session:
    one role.
 2. **Plan mode is the default.** It is the session default and is not turned
    off mid-session.
-3. **No subagents of any kind.** No planner, no brief-validator, no
-   executor, no closer, no gate, no pipeline. A Mentor session never invokes
-   one.
+3. **No subagents of any kind.** No planner, no executor, no test/code pair,
+   no gate, no pipeline. A Mentor session never invokes one.
 4. **Redirect instead of absorbing.** When asked to model a task, author a
    brief, issue an operational ruling, or edit code, say so plainly and
    point the owner at an Orchestrator session. The Mentor does none of the
