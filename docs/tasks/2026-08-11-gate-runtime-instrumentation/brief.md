@@ -87,6 +87,11 @@ Out of scope:
 
 1. Only the following paths may be created or modified:
    - `docs/tasks/2026-08-11-gate-runtime-instrumentation/brief.md`
+   - `docs/tasks/2026-08-11-gate-runtime-instrumentation/notes.md` (new) —
+     added by owner ruling on 2026-08-11 (finding F-3 in that file): it is a
+     canonical task artifact under `docs/PROCESS_MAP.md` §7 and is created by
+     protocol, so the list names it rather than leaving a permanent asterisk on
+     the structural check below
    - `.claude/hooks/lib/telemetry.mjs` (new)
    - `.claude/hooks/lib/telemetry.test.mjs` (new)
    - `.claude/hooks/lib/gate-yield.mjs` (new)
@@ -123,14 +128,19 @@ Out of scope:
    - Commit freely; **DO NOT push** (G-R5 / R17). The owner pushes and opens
      the PR.
    - No `STATE.md`: this is a single-session task.
-4. **Builtins only.** `node:fs`, `node:crypto`, `node:child_process` and
-   `node:url` are the whole import surface for the new code. This closed list
-   is owner-ratified: R2 governs npm runtime dependencies and a Node builtin is
-   not one; `node:crypto` is required by D6's hash, and hand-rolling one would
-   be worse code whose cross-version stability nobody verified — and the
-   historical series would depend on it. The delegation's narrower "`node:fs`
-   only" wording was imprecise, not restrictive by design. If a builtin outside
-   this list is needed, **STOP and ask**.
+4. **Builtins only.** `node:fs`, `node:crypto`, `node:child_process`,
+   `node:url`, `node:os` and `node:path` are the whole import surface for the
+   new code. This closed list is owner-ratified: R2 governs npm runtime
+   dependencies and a Node builtin is not one; `node:crypto` is required by
+   D6's hash, and hand-rolling one would be worse code whose cross-version
+   stability nobody verified — and the historical series would depend on it.
+   The delegation's narrower "`node:fs` only" wording was imprecise, not
+   restrictive by design. `node:os` and `node:path` were added by owner ruling
+   R-2 on 2026-08-11, recorded in
+   `docs/tasks/2026-08-11-gate-runtime-instrumentation/notes.md`: `os.tmpdir()`
+   keeps test scratch out of the very directory the measurement reads, and R1
+   asks for `path.join` in those words. If a builtin outside this list is
+   needed, **STOP and ask**.
 5. **The green boundary must stay green**: 324 package tests (323 pass, 1 skip)
    plus 61 hook tests, 0 failures. New tests add to that count. Not one of the
    61 existing test blocks may be edited (D6); appending new `test(...)` blocks
@@ -236,10 +246,22 @@ The invariant is covered two ways, both required:
   normally, having written one stderr line;
 - an integration test that spawns the real hook executable twice with an
   identical stdin payload — once with a writable telemetry directory, once with
-  `SACI_TELEMETRY_DIR` pointed at an unwritable path — and asserts the exit
-  code and stderr bytes are identical between the two runs. Spawning the
-  shipped hook is the point: a test pipeline that differs from the shipped one
-  passes while proving nothing.
+  `SACI_TELEMETRY_DIR` pointed at an unwritable path — and asserts that the exit
+  code is byte-identical between the two runs, and that stderr is byte-identical
+  **over the verdict channel**: identical once whole lines carrying the
+  `telemetry:` prefix are removed, with the writable run producing exactly zero
+  such lines and the unwritable run exactly one, naming the error. The
+  comparison is over buffers, never substrings. Spawning the shipped hook is the
+  point: a test pipeline that differs from the shipped one passes while proving
+  nothing.
+
+  This bullet asked for whole-stderr byte identity until owner ruling R-1 on
+  2026-08-11 (`docs/tasks/2026-08-11-gate-runtime-instrumentation/notes.md`),
+  which the first sentence of D5 makes impossible: the R4 diagnostic line **is**
+  a stderr byte difference. Moving the diagnostic to stdout was rejected — a
+  bare line there prepends to `askOwner`'s JSON payload and destroys an `ask`
+  escalation, so a telemetry failure would change a verdict, the exact inversion
+  D5 exists to prevent.
 
 #### D6 — Verdicts gain a machine-readable check identifier plus an input hash
 
@@ -332,6 +354,14 @@ Trap for whoever writes that changelog line: the docs guard resolves any
 path-shaped reference inside backticks against the index. Naming the new note
 in backticks before it is tracked is a deny. Name it in plain prose, or commit
 the note in the same commit as the line.
+
+Precision added under owner ruling R-3, from finding F-1
+(`docs/tasks/2026-08-11-gate-runtime-instrumentation/notes.md`): "any
+path-shaped reference" means any reference whose extension sits in
+`PATH_REFERENCE`'s closed alternation — `md`, `ts`, `mts`, `cts`, `mjs`, `cjs`,
+`js`, `json`, `py`, `sh`, `yml`, `yaml`. The trap applies in full to the `.md`
+note D9 is about. An extension outside that list is never extracted at all, and
+`.jsonl` is one such: it matches as far as `.json` and dies on the trailing `l`.
 
 #### D10 — This brief explicitly scopes the amendment of the baseline note
 
@@ -444,7 +474,9 @@ Add `.claude/telemetry/` to `.gitignore`, below `.claude/settings.local.json`.
 Verification:
 
 - [ ] `.claude/hooks/lib/telemetry.mjs` exists, under 400 lines (R5), imports
-      only `node:fs`, `node:crypto` and `node:url`
+      only `node:fs`, `node:crypto`, `node:url` and `node:path` — the fourth
+      added by owner ruling R-2, which routes path composition through
+      `path.join` per R1
 - [ ] `.claude/hooks/lib/telemetry.test.mjs` exists and maps 1:1 to it (E6)
 - [ ] `grep -n 'telemetry' .gitignore` shows `.claude/telemetry/`
 - [ ] `git check-ignore -q .claude/telemetry/gates.jsonl` exits 0
@@ -501,7 +533,11 @@ Verification:
 
 - [ ] Each of the five hooks emits on its decision paths and stays silent on
       every path listed in D4
-- [ ] The D5 integration test passes and compares bytes, not substrings
+- [ ] The D5 integration test passes, comparing buffers rather than substrings:
+      the exit code is identical, and stderr is identical over the verdict
+      channel per D5 as amended by owner ruling R-1 — with exactly zero
+      `telemetry:` lines in the writable run and exactly one in the unwritable
+      run
 - [ ] `npm test` green; package tests still 324 (323 pass, 1 skip)
 - [ ] `.claude/telemetry/gates.jsonl` exists after the run and every line
       parses as JSON with the D13 keys
@@ -547,11 +583,17 @@ alongside the reader files.
 Docs-guard interaction, because this is the first commit in the task that
 stages a markdown file outside `docs/tasks/`: `CLAUDE.md` is inspected, and it
 is on the `ENGLISH_ONLY` list in `.claude/hooks/lib/docs-checks.mjs`, so the
-line is English. The backticked `.claude/hooks/gate-yield.mjs` resolves only
+line is English. The load-bearing reference is the backticked
+`.claude/hooks/gate-yield.mjs`: `.mjs` sits inside `PATH_REFERENCE`'s
+alternation, so the guard does extract and resolve it, and it resolves only
 because that file is staged in the same commit — the same trap D9 records, one
-commit earlier than expected. The backticked `.claude/telemetry/gates.jsonl`
-resolves by being gitignored, which `isOutOfScope` treats as correct absence;
-that depends on Edit 2 having landed the `.gitignore` entry. `CLAUDE.md` was
+commit earlier than expected. The backticked `.claude/telemetry/gates.jsonl` is
+never extracted at all, per finding F-1
+(`docs/tasks/2026-08-11-gate-runtime-instrumentation/notes.md`), so nothing
+about it is checked and Edit 2's `.gitignore` entry is belt-and-braces rather
+than the load path. The mandated Edit 2 before Edit 5 order stands regardless:
+it costs nothing, and the `.mjs` reference genuinely needs same-commit staging.
+`CLAUDE.md` was
 verified clean against both docs checks on 2026-08-11 before this Edit was
 written, so any finding the guard reports is caused by this change.
 
@@ -635,8 +677,9 @@ Commit: `docs(explorations): promote the gate-economics note`
       same `reason` bytes as at `4b43cc8`, and emits `R10-subject-length`
 - [ ] A Bash call that is not a commit emits nothing
 - [ ] A turn with no watched changes emits nothing from `green-boundary`
-- [ ] An unwritable telemetry directory changes no verdict, exit code or
-      stderr byte
+- [ ] An unwritable telemetry directory changes no verdict, no exit code and no
+      stderr byte on the verdict channel; it adds exactly one `telemetry:`
+      diagnostic line, which D5 and R4 require (owner ruling R-1)
 
 ### Git checks
 
