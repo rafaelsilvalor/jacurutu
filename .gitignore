@@ -9,3 +9,5 @@ token.json
 .claude/settings.local.json
 .claude/telemetry/
 /payload.json
+# Internal reports built from live Jira/Drive data. Local only, never on GitHub.
+/reports/
