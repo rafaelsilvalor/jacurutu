@@ -65,15 +65,42 @@ const CRITERIA = [
 
 const yn = (value) => (value ? "yes" : "no");
 const sha12 = (data) => createHash("sha256").update(data).digest("hex").slice(0, SHA_PREFIX_LEN);
-/** The adapter hangs the classified status on the error's `cause` (adapter-drive errors.ts). */
-const statusOf = (error) => [error?.cause?.status, error?.response?.status, error?.status,
-  error?.code].find((value) => typeof value === "number") ?? "n/a";
+/**
+ * A measured negative answer, not a crash. It carries its own already-printed verdict, so
+ * the top-level handler must not report it as a probe failure — and the criteria table still
+ * prints, because a late stop must not discard the stages that already succeeded.
+ */
+class VerdictStop extends Error {
+  constructor(verdict, code = EXIT_VERDICT) {
+    super(verdict);
+    this.code = code;
+  }
+}
+
+/**
+ * The adapter hangs the classified status on the error's `cause` (adapter-drive errors.ts),
+ * and `errorStatus` there returns `error.status` when it is a number **or a string** — so
+ * coerce instead of filtering on type. Filtering dropped a string "403" on the floor and
+ * turned the SCOPE-BLOCKED verdict into a generic crash on the very path a `.docx` takes.
+ */
+const statusOf = (error) => {
+  for (const value of [error?.cause?.status, error?.response?.status, error?.status,
+    error?.code]) {
+    if (value === null || value === undefined || value === "") continue;
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) return numeric;
+  }
+  return "n/a";
+};
 
 function parseFlags(argv) {
   const flags = { force: argv.includes("--force") };
   for (let i = 0; i < argv.length; i += 1) {
     const name = argv[i].startsWith("--") ? argv[i].slice(2) : null;
-    if (name && name !== "force") flags[name] = argv[i + 1];
+    // A value that is itself a flag means the previous one was given none. Leaving it
+    // unset makes the presence check below report the real mistake, instead of the run
+    // proceeding with `--key` set to "--suindara" and Jira answering not-found.
+    if (name && name !== "force" && !argv[i + 1]?.startsWith("--")) flags[name] = argv[i + 1];
   }
   // Name every absent input individually (the cli.ts env-check pattern): one blanket usage
   // line hides which of the six was the typo.
@@ -83,7 +110,7 @@ function parseFlags(argv) {
   for (const name of missing) console.error(`missing required flag: --${name}`);
   for (const name of missingEnv) console.error(`missing required env var: ${name}`);
   console.error(`usage: node probe.mjs ${REQUIRED_FLAGS.map((n) => `--${n} <value>`).join(" ")} [--force]`);
-  process.exit(EXIT_PRECONDITION);
+  throw new VerdictStop("USAGE", EXIT_PRECONDITION);
 }
 
 function parseDriveUrl(url) {
@@ -133,7 +160,7 @@ async function readBrief(drive, auth, fileId, mimeType) {
     console.error(`[drive] verdict SCOPE-BLOCKED under ${DRIVE_SCOPES.join(" + ")}`);
     console.error(`[drive] widening the scopes means deleting ${defaultCredentialPaths().tokenPath}`
       + " first — a scope change silently reuses the old grant (G-DRIVE-1)");
-    process.exit(EXIT_VERDICT);
+    throw new VerdictStop("SCOPE-BLOCKED");
   }
   console.log(`[drive] path=${path} -> ok`);
   const { ok, ratio, nulByte } = inspectText(raw);
@@ -142,7 +169,7 @@ async function readBrief(drive, auth, fileId, mimeType) {
   // Distinct from SCOPE-BLOCKED on purpose: the grant worked and the content is unusable,
   // which is a different problem with a different fix.
   console.error(`[drive] verdict BINARY-NOT-TEXT mimeType=${mimeType}`);
-  process.exit(EXIT_VERDICT);
+  throw new VerdictStop("BINARY-NOT-TEXT");
 }
 
 function normalizeBrief(raw) {
@@ -240,6 +267,10 @@ function runRender(suindara, args) {
 }
 
 async function inspectPackage(dir) {
+  // An absent directory is an answer, not a crash: an aborted render writes nothing, and a
+  // thrown ENOENT here would take the whole criteria table down with it.
+  if (!existsSync(dir)) return { pngs: [], specPath: join(dir, "editables", "spec.json"),
+    hasSpec: false, hasDiagnostics: false };
   const names = (await readdir(dir)).filter((name) => name.toLowerCase().endsWith(".png")).sort();
   const pngs = [];
   for (const name of names) pngs.push({ name, sha: sha12(await readFile(join(dir, name))) });
@@ -265,14 +296,13 @@ const printCriteria = (verdicts) => CRITERIA.forEach(([id, label]) =>
 
 // --- Entry point ---
 
-async function main() {
-  const flags = parseFlags(process.argv.slice(2));
+async function run(flags, verdicts) {
   const suindara = resolve(flags.suindara), brandPath = resolve(flags.brand);
   const outDir = resolve(flags.out), folderId = flags["drive-folder"];
   // The match step scans the template repos as siblings of the one it was handed, which is
   // the layout render.mjs itself assumes (its `resolve('..', 'suindara-tmpl-' + id)`).
   const templatesRoot = dirname(resolve(flags.template));
-  const baseUrl = process.env[ENV_BASE_URL], verdicts = {};
+  const baseUrl = process.env[ENV_BASE_URL];
   console.log(`[probe] node ${process.version} on ${process.platform}; `
     + `drive scopes under test: ${DRIVE_SCOPES.join(" + ")}`);
 
@@ -285,13 +315,13 @@ async function main() {
     + `copy_source=${issue.copy_source} copy_url=${issue.copy_url ?? "none"}`);
   if (!issue.copy_url) {
     console.error("[jira] no copy_url — verdict NO-BRIEF");
-    process.exit(EXIT_VERDICT);
+    throw new VerdictStop("NO-BRIEF");
   }
   const target = parseDriveUrl(issue.copy_url);
   console.log(`[url] kind=${target.kind} id=${target.id || "none"}`);
   if (target.kind !== "doc" && target.kind !== "binary") {
     console.error(`[url] a ${target.kind} link is not a readable brief — verdict NO-BRIEF`);
-    process.exit(EXIT_VERDICT);
+    throw new VerdictStop("NO-BRIEF");
   }
 
   const auth = await authorize({ paths: defaultCredentialPaths() });
@@ -320,9 +350,9 @@ async function main() {
   const chosen = pickTemplate(rows);
   verdicts.S2 = chosen ? `PASS (${chosen.id}: ${chosen.decision})` : "PASS (manual: none applies)";
   if (!chosen) {
-    // The expected pass-1 outcome (D9), not an error: exit 0 with S3-S5 unmeasured.
+    // The expected pass-1 outcome (D9), not an error: a plain return leaves the exit code
+    // at 0, and `main` prints the criteria on every path.
     console.log("[match] no template applies; stopping before render (D9 pass 1)");
-    printCriteria(verdicts);
     return;
   }
   // The chosen manifest wins over --template, so spec.template and the served folder can
@@ -343,19 +373,28 @@ async function main() {
   const rendered = exit === 0 && pkg.pngs.length > 0 && pkg.hasSpec;
   verdicts.S3 = rendered ? `PASS (${pkg.pngs.length} pngs)`
     : `FAIL (exit=${exit}, pngs=${pkg.pngs.length}, editables/spec.json=${yn(pkg.hasSpec)})`;
-  if (!rendered) {
-    printCriteria(verdicts);
-    process.exit(EXIT_VERDICT);
-  }
+  if (!rendered) throw new VerdictStop("RENDER-FAILED");
 
   const recheckDir = join(outDir, RERENDER_DIR);
   const again = renderArgs(pkg.specPath, chosen.dir, brandPath, recheckDir, flags.force);
-  console.log(`[render] exit=${await runRender(suindara, again)} (re-render for D5)`);
+  const againExit = await runRender(suindara, again);
+  console.log(`[render] exit=${againExit} (re-render for D5)`);
+  if (againExit !== 0) {
+    // Read from the code that reported it, not inferred from a missing directory: an
+    // aborted re-render and a hash mismatch are different answers.
+    verdicts.S4 = `FAIL (re-render exited ${againExit})`;
+    throw new VerdictStop("RE-RENDER-FAILED");
+  }
   const recheck = await inspectPackage(recheckDir);
   const identical = pkg.pngs.filter((png, index) => recheck.pngs[index]?.name === png.name
     && recheck.pngs[index]?.sha === png.sha).length;
-  console.log(`[det] ${identical}/${pkg.pngs.length} identical`);
-  verdicts.S4 = identical === pkg.pngs.length ? "PASS" : `FAIL (${identical}/${pkg.pngs.length})`;
+  console.log(`[det] ${identical}/${pkg.pngs.length} identical; re-render produced ${recheck.pngs.length}`);
+  // Counting by index over the FIRST package cannot see a re-render that added frames, and
+  // `agenda-semana` derives its frame count from measured pagination — exactly the quantity
+  // that drifts between runs. Equal counts are part of "identical", not a separate nicety.
+  verdicts.S4 = recheck.pngs.length === pkg.pngs.length && identical === pkg.pngs.length
+    ? "PASS"
+    : `FAIL (${identical}/${pkg.pngs.length} matched, re-render produced ${recheck.pngs.length})`;
 
   const uploads = [...pkg.pngs.map((png) => join(packageDir, png.name)), pkg.specPath];
   for (const file of uploads) {
@@ -375,8 +414,35 @@ async function main() {
   printCriteria(verdicts);
 }
 
-main().catch((error) => {
-  console.error(`[probe] FAILED — ${error.message}`);
-  if (error.cause instanceof Error) console.error(`[probe] cause: ${error.cause.message}`);
-  process.exitCode = EXIT_VERDICT;
-});
+/**
+ * The criteria table prints on every path, including the failing ones. The measurements
+ * this probe produces are expensive — S1 alone costs a browser consent round-trip — and a
+ * late throw discarding the stages that already succeeded is the worst outcome available:
+ * the operator would re-run the whole chain to recover a number they had already paid for.
+ *
+ * `process.exitCode` rather than `process.exit()` throughout: the latter does not wait for
+ * asynchronous stderr to drain, and stderr is asynchronous whenever it is a pipe or a file
+ * rather than a TTY. The run instructions ask the operator to paste this output, which
+ * invites a redirect — and the lines most likely to be lost are the verdicts.
+ */
+async function main() {
+  const verdicts = {};
+  let started = false;
+  try {
+    const flags = parseFlags(process.argv.slice(2));
+    started = true;
+    await run(flags, verdicts);
+  } catch (error) {
+    // A VerdictStop already printed its own verdict; anything else is a genuine failure.
+    if (!(error instanceof VerdictStop)) {
+      console.error(`[probe] FAILED — ${error.message}`);
+      if (error.cause instanceof Error) console.error(`[probe] cause: ${error.cause.message}`);
+    }
+    process.exitCode = error instanceof VerdictStop ? error.code : EXIT_VERDICT;
+  }
+  // Not printed for a usage error: nothing was attempted, so five "not measured" rows would
+  // suggest a run that never happened.
+  if (started) printCriteria(verdicts);
+}
+
+await main();
