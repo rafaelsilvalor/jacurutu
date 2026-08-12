@@ -143,6 +143,38 @@ session. That is the calibration lesson, not the errors themselves.
   no `R26`. That is the next brief, and it is deliberately downstream of the
   spike's evidence.
 
+## Post-merge window — pass 1 ran
+
+Everything above was written before PR #138 merged. The owner then ran pass 1,
+which makes one claim in "What this session did NOT establish" false. It is
+corrected here rather than rewritten in place, following the pattern of
+`docs/sessions/2026-08-11-orchestrator-gate-runtime-instrumentation.md`.
+
+**"S1 through S5 are all unmeasured" no longer describes the state.** They are
+still unmeasured as verdicts, but the run that would have measured them stopped
+at stage 4 and produced the answer the spike existed for. Two things are now
+settled, and the full record with the verbatim output is
+`docs/tasks/2026-08-12-spike-art-chain/notes.md`:
+
+- The copy is an **uploaded `.docx`**, not a native Google Doc. The amended D2
+  branched correctly; the original would have carried ZIP bytes downstream.
+- The **046 D7 cross-user gap is confirmed** — `appNotAuthorizedToFile`, with the
+  granted scopes matching the requested ones, so it is `drive.file`'s per-file
+  model rather than a stale grant.
+
+The finding that changes planning is neither of those on its own: **the two
+blockers are stacked.** Fixing the scope does not make the chain work, because
+the `.docx` still is not text. Briefs 2 and 3 of the sequence below should not
+start until the owner's scope decision lands, because that decision changes what
+the Drive primitive must do.
+
+The doctrine brief is unaffected — none of its content depends on how the brief
+text is fetched — so it remains the next thing that can start.
+
+Two review fixes were also confirmed against reality by this run rather than by
+reading: the criteria table printed on a failing path, and the run ended on
+`process.exitCode` instead of a truncating `process.exit()`.
+
 ## Open items carried forward
 
 - The **fifth identity shift** in `ROADMAP.md` plus the `MENTOR_BRIEF.md` §2
