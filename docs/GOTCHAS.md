@@ -286,14 +286,16 @@ If folder sizes grow into thousands of files and the hitch becomes user-visible,
 
 That last clause is the trap's real edge. `git cherry` is **conditionally** wrong — right on single-commit branches, silently wrong on multi-commit ones — which is more dangerous than always wrong, because it works often enough to earn trust. Measured on 2026-08-09 against this repo: a six-commit branch squashed into `073f2ea` reported `+` six times, while a one-commit branch squashed into `93fa448` reported `-`. Neither was an ancestor of `main`, so reachability called both unmerged. A third measurement on 2026-08-11 at **N=10** did exactly what the rule predicts — ten `+` marks on a branch whose content was already in `main` — so the conditional-wrongness claim now rests on three points, at N=1, N=6 and N=10, rather than on the two it was written from.
 
-**Workaround:** Ask about **trees**, never about commits. `git diff --stat main <branch>`: if empty, the trees are identical and there is nothing to lose. If it is not empty, do not stop there — read the *direction* of the difference, because `main` being ahead looks exactly like the branch having unique work. Settle it in two parts, excluding the files `main` is known to lead on:
+**Workaround:** Ask about **trees**, never about commits — and ask against `origin/main`, never the local `main`. `git diff --stat origin/main <branch>`: if empty, the trees are identical and there is nothing to lose. If it is not empty, do not stop there — read the *direction* of the difference, because `origin/main` being ahead looks exactly like the branch having unique work. Settle it in two parts, excluding the files `origin/main` is known to lead on:
 
 ```bash
-git diff --stat main <branch> -- . ':!path/to/led-file' ':!path/to/other'   # must be empty
-git diff --numstat main <branch> -- path/to/led-file path/to/other          # read added vs deleted
+git diff --stat origin/main <branch> -- . ':!path/to/led-file' ':!path/to/other'   # must be empty
+git diff --numstat origin/main <branch> -- path/to/led-file path/to/other          # read added vs deleted
 ```
 
-In the second command, `main` → branch showing mostly **deletions** means the branch lacks a patch `main` has, i.e. `main` is ahead. Only then delete, and record the tip SHA in the commit message or recap so the reflog is not the only trace.
+In the second command, `origin/main` → branch showing mostly **deletions** means the branch lacks a patch `origin/main` has, i.e. `origin/main` is ahead. Only then delete, and record the tip SHA in the commit message or recap so the reflog is not the only trace.
+
+**The `origin/` prefix is the load-bearing part, not a stylistic preference.** `git fetch` advances `origin/main` and leaves the local `main` exactly where it was; nothing moves a local branch you never check out. In a worktree cut from a SHA that then does its work and merges on the server, the local `main` is stale **by construction** — and this project opens a fresh worktree per session, which makes stale the default state rather than an edge case. A stale reference fails in this entry's own worst shape: the diff comes back non-empty, the branch reads as carrying unique work, and what it is actually showing is the distance between two points on `main`. The direction paragraph above cannot save you here, because the difference is real — it is just a difference from the wrong place. `origin/main` is in turn only as fresh as your last fetch, so `git fetch origin` immediately before the check is part of the check, not preparation for it.
 
 The two-part form above is for the non-empty case only, and that case is not the common one. After a clean squash of a branch that was not left behind, `git diff --stat` comes back empty outright and the answer is immediate — the direction question never arises. 2026-08-11 measured exactly that: empty diff, identical trees, done in one command. Reach for the exclusion pair when the first `git diff --stat` has output to explain, not before.
 
@@ -311,6 +313,8 @@ Exercised a third time on 2026-08-11, on `chore/gate-runtime-instrumentation` �
 | `git branch -d <branch>` | `Deleted branch ... (was c4ebae3)`, first try | misleading — it checked the upstream, not `main` |
 
 Both trees were `ae79eb91e32c226575dc3b0a03a075784902d4e8`. The branch had `origin/chore/gate-runtime-instrumentation` at the same commit, which is the entire reason `-d` succeeded. **These measurements cannot be re-run from this repository**: the branch was destroyed by the very command under measurement, and its tip `c4ebae329186b15e8d23e260cee38efcf15d6155` — content fully contained in `d517144` — now survives only in the reflog and in this entry. Recorded in `docs/sessions/2026-08-11-orchestrator-gate-runtime-instrumentation.md` and its executor pair.
+
+The `origin/` requirement was measured the same day, on the session that wrote the correction above — by running this entry's own Workaround against that session's task branch, `docs/gotchas-squash-containment`, to check a claim its recap had already asserted. The claim was wrong. `git diff --stat main <branch>`, run literally, reported **21 insertions and 5 deletions** and read as unique work; the local `main` was one commit behind at `d517144`, because the merge happened on the server and `git fetch` had moved only `origin/main`. The same command against `origin/main` was empty, with both trees at `b7f8fcf2e9976d7755040b9f5fc06285a0dd08f4`. Nothing about the branch changed between the two commands — only the reference did. Unlike the measurements above, **this one reproduces**: check out any worktree cut from a SHA whose `main` has since advanced, and both answers are still there. Recorded in `docs/sessions/2026-08-11-orchestrator-gotchas-squash-containment.md` as F-3.
 
 ---
 
