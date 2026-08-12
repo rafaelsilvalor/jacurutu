@@ -69,7 +69,7 @@ test("the verb lists are data, and internally consistent", () => {
   assert.ok(VERB_ALLOWLIST.includes("add"));
   assert.ok(VERB_ALLOWLIST.includes("wire"));
   assert.ok(VERB_DENYLIST.includes("added"));
-  assert.equal(VERB_ALLOWLIST.length, 20);
+  assert.equal(VERB_ALLOWLIST.length, 22);
   assert.equal(VERB_DENYLIST.length, 17);
   // No verb may sit on both lists, and every entry is lowercase — the subject
   // verb is lowercased before comparison, so an uppercase entry is unreachable.

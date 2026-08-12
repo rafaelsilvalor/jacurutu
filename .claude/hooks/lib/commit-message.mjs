@@ -38,7 +38,7 @@ const SHELL_TOOLS = new Set(["Bash", "PowerShell"]);
 export const VERB_ALLOWLIST = [
   "add", "fix", "update", "remove", "refactor", "rename", "document", "migrate",
   "port", "bump", "drop", "restore", "revert", "support", "deprecate", "promote",
-  "wire", "declare", "canonicalize", "start",
+  "wire", "declare", "canonicalize", "start", "split", "extract",
 ];
 
 export const VERB_DENYLIST = [
