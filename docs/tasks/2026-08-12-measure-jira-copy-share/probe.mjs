@@ -342,7 +342,9 @@ async function run(flags, verdicts) {
   console.log(`[signal] ${withMarkers}/${rows.length} card(s) carry a line marker (\\bL\\d+\\s*:) `
     + `in their best surface; the anchored production regex cannot be evaluated on ADF text`);
   verdicts.M5 = `PASS (${withMarkers}/${rows.length})`;
-  printCriteria(verdicts);
+  // The criteria table is `main`'s to print, on every path. Printing it here too put it
+  // twice on the success path — the failing paths hid the duplicate, because they throw
+  // before reaching this line. Measured on the 2026-08-12 run.
 }
 
 /**
