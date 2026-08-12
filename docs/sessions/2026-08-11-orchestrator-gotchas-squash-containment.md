@@ -13,6 +13,20 @@ the entry this session had just finished correcting.
 **Pairs with:** nothing. There is no executor recap for this session, and the
 reason is structural — see "The pairing ruling has a precondition" below.
 
+> **This recap was written before the session ended, and the session did not
+> end.** Everything from here to "Next-session snippet" was authored when PR #132
+> had just merged, and is preserved as written except where a later fact made it
+> **false** — those are corrected in place and marked, never quietly edited. The
+> owner then merged that recap, asked for the F-3 follow-up, and the session ran
+> three more PRs and four branch cleanups. That window has its own section,
+> "The post-merge window", below the original body.
+>
+> The irony is the point. This file's own lesson was *write the recap while the
+> PR is still open*, and the reason it needed rewriting is that it was written
+> while three more PRs were still ahead of it. The lesson was right about the
+> vehicle and wrong about the timing: a recap is not finishable at the moment the
+> first PR merges, because "the session" is not over until the owner says so.
+
 ## One-line summary
 
 An entry warning that no commit-level check can confirm containment was itself
@@ -162,6 +176,13 @@ question. It is a fourth change to an entry that merged twenty minutes ago, and
 it wants its own PR and the owner's call — folding it in silently would make this
 recap the record of an edit nobody reviewed. Flagged, queued, not done.
 
+> **Corrected — this was done.** The owner called it in the same session and it
+> shipped as PR #134, `1437a8c`'s parent. The queue item is closed; see "The
+> post-merge window". One thing was added beyond the finding as stated above:
+> `origin/main` is itself only as fresh as the last fetch, so `git fetch origin`
+> immediately before the check is part of the check. Without that, the fix would
+> have swapped one untrustworthy reference for another.
+
 The uncomfortable part is worth stating plainly: this recap asserted the branch
 was safe to delete *before* checking, and the check contradicted it. The claim
 was written from the reasonable inference that a squash-merged branch has an
@@ -213,23 +234,118 @@ has left. The session PR is open for a window, and the recap has to be inside it
   branches were never pushed, or pushed and pruned.
 - **Whether `-d`'s `HEAD` fallback has its own trap** is unexamined. The entry
   names the fallback because it is part of what `-d` actually checks, but every
-  measurement here is of the upstream path.
+  measurement here is of the upstream path. *(Corrected: the fallback was
+  measured after all, three times, in the post-merge window — it refuses, which
+  is the safe direction.)*
 - **F-1 and F-2 are one session each.** F-1 rests on a single `ask` record and
   F-2 on two worktrees. Neither is a pattern yet, and `G-GIT-1` is itself the
   cautionary example of an entry generalised from two measurements — it took a
-  third to find the error.
-- **F-3 is not fixed.** `G-GIT-1` still says `main` where it should say
-  `origin/main`. The finding is recorded and the correct command is in the
-  next-session snippet, but the entry a future reader opens has not been changed,
-  and will hand them the same stale reference.
+  third to find the error. *(Corrected: F-1 now rests on four `ask` records and
+  zero `allow`s across four merged PRs. It is no longer a single observation.)*
+- ~~**F-3 is not fixed.**~~ **Corrected — F-3 was fixed**, as PR #134, later in
+  the same session. `G-GIT-1` now says `origin/main` in all three Workaround
+  commands. The original text of this bullet claimed a future reader would be
+  handed the stale reference; that stopped being true at `821e91a`.
 - **No product code was touched.** `packages/` is untouched end to end; the only
   file changed on the task branch was `docs/GOTCHAS.md`.
 
+## The post-merge window
+
+Everything above was written when PR #132 merged. The owner then merged this
+recap as PR #133, called the queued F-3 follow-up, and the session ran on. Final
+state: `main` at `1437a8c`, four merged PRs, four branches cut and deleted, zero
+lines of `packages/` touched.
+
+| PR | Merge | What |
+|---|---|---|
+| #132 | `6b35abb` | the `-d` correction and N=10 — the original ask |
+| #133 | `adb74e4` | this recap, with F-1, F-2, F-3 |
+| #134 | `821e91a` | `origin/main` in the Workaround — the F-3 queue item |
+| #135 | `1437a8c` | the `git branch -d` warning quoted verbatim |
+
+Only #132 was in the original request. The other three came out of checking
+assertions instead of accepting them, and in two cases the assertion being
+checked was **this file's own**.
+
+### The fourth error, and what it cost
+
+`G-GIT-1` was wrong a third time. The entry — as corrected by #132, by this
+session, hours earlier — said `-d` deletes "without a word" and called the
+success line "clean". Both false. Git prints a warning immediately above it,
+naming the reference it actually consulted:
+
+```
+warning: deleting branch 'docs/gotchas-squash-containment' that has been merged to
+         'refs/remotes/origin/docs/gotchas-squash-containment', but not yet merged to HEAD
+```
+
+This inverted the entry's argument rather than decorating it. The claim had been
+that a successful `-d` reads as confirmation *because git is silent*. Git is not
+silent; the warning appears **only** in this exact case, which makes its presence
+a positive signal that the wanted check did not happen, and its absence beside a
+deletion a real all-clear. The failure is presentation — stderr, wrapped across
+two lines, with the reassuring `Deleted branch ...` directly underneath. Shipped
+as #135, which had to correct two of #132's own sentences to make room.
+
+### The cleanup that produced the entry's best measurement
+
+Deleting this session's four branches ran `G-GIT-1` end to end, and produced the
+tightest demonstration the entry has. Three branches went into one
+`git branch -d`. All three were verified contained first — remainder empty against
+`origin/main`, led files at `0/260` and `4/8` added-over-deleted. `-d` then
+answered in **opposite directions**:
+
+| Branch | tip | `-d` |
+|---|---|---|
+| `docs/gotchas-squash-containment` | `8dcf0a6` | deleted, over the warning |
+| `docs/session-recap-gotchas-squash-containment` | `f7e2ed6` | refused, needed `-D` |
+| `docs/gotchas-origin-main-reference` | `4bbc897` | refused, needed `-D` |
+| `docs/gotchas-d-warning` (later) | `cd2ee6f` | refused, needed `-D` |
+
+Same repository, same minute, identical containment. The variable was whether
+GitHub had auto-deleted the remote branch on merge and a `git fetch --prune` had
+removed the tracking ref. #132's remote survived; the rest did not. **This closes
+the "`HEAD` fallback unexamined" gap** listed above: the fallback refuses, which
+is the safe direction — the danger is entirely on the upstream path.
+
+Had the corrected doctrine not been followed, the three refusals would have read
+as "these carry unique work" and the one deletion as "this one was safe". Every
+one of those readings would have been wrong.
+
+### F-1 is no longer a single observation
+
+The telemetry now reads **five events: one `deny`, four `ask`, zero `allow`** —
+across four commits that all merged. `gate-yield` still reports
+`Committing sessions: 0 of 10`. F-1 was written from one record and hedged as
+"not a pattern yet"; it is now 4 of 4, and the D8 window is not undercounting at
+the margin, it is counting nothing at all.
+
+### F-4 — the R10 verb allowlist has no verb for "this was wrong"
+
+New, and the cause of all four `ask`s. `VERB_ALLOWLIST` in
+`.claude/hooks/lib/commit-message.mjs` holds 21 verbs. This session's four
+subjects used `correct` (twice), `record` and `quote`. None is on the list, so
+every commit stopped on `R10-verb-unknown`.
+
+The gap is not vocabulary breadth, it is a missing category. The list is shaped
+for code — `fix`, `refactor`, `port`, `wire`, `bump` — and its nearest
+documentation verbs are `document` (implies it was not written down) and `update`
+(implies it was current and aged). Neither fits a doctrine file that stated
+something **false**. `correct` is the precise word and it is absent, which means
+every future correction to `CLAUDE.md`, `GOTCHAS.md` or `PROCESS_MAP.md` trips
+the same ask. In a repository whose central artifacts are documents that get
+things wrong and then get fixed, that is the wrong 21 verbs.
+
+Left as a finding. Adding a verb to a gate's SSOT is the owner's call, and the
+`ask` verdict is arguably correct behaviour — it stopped and asked, which is what
+it is for. What it should not do is stop and ask the same question four times in
+one session with the same answer each time.
+
 ## Next-session snippet
 
-> **Consumes:** `6b35abb` — the `G-GIT-1` correction, landed via PR #132. Use
-> `git log -1 main`, not `git log --merges -1 main`: `main` still has no merge
-> commits.
+> **Consumes:** `1437a8c` — `G-GIT-1` after four PRs (#132, #133, #134, #135).
+> Use `git log -1 main`, not `git log --merges -1 main`: `main` still has no
+> merge commits.
 >
 > Green is `npx tsc -b && npm test` = 324 package tests (323 pass, 1 skip) + 112
 > hook tests. A fresh worktree inherits the guards from `main` but starts without
@@ -240,21 +356,30 @@ has left. The session PR is open for a window, and the recap has to be inside it
 > `pre-commit-self-audit` — tombstones; mechanical brief validation is
 > `node .claude/hooks/validate-brief.mjs <brief>`.
 >
-> **Before deleting any branch, read `G-GIT-1` as corrected.** `git branch -d` is
-> now known to delete squash-merged branches without complaint whenever their
-> upstream matches, which is the normal state of any branch that was pushed for a
-> PR. It is not a containment check. Ask about trees — and ask against
+> **Before deleting any branch, read `G-GIT-1` as corrected.** `git branch -d`
+> deletes a squash-merged branch whenever its upstream matches, and refuses when
+> the upstream is gone — measured four times here, both directions, with
+> containment identical throughout. It is not a containment check in either
+> direction. Watch for the `warning:` line above a successful deletion; it names
+> the ref git actually used. Ask about trees instead, and ask against
 > **`origin/main`**, never the local `main`, which is stale by construction in a
-> per-session worktree (F-3): `git diff --stat origin/main <branch>`, empty means
-> safe, and after a clean squash empty is the common answer.
+> per-session worktree (F-3): `git fetch origin` then
+> `git diff --stat origin/main <branch>`. Empty means safe, and after a clean
+> squash empty is the common answer.
 >
-> **The D8 telemetry window is counted per worktree** (F-2) and undercounts
-> `ask`-permitted commits (F-1). Read both findings before treating
-> `gate-yield`'s window state as a measurement of the project rather than of one
-> worktree.
+> **The D8 telemetry window counts per worktree** (F-2) and does not count
+> `ask`-permitted commits at all (F-1, now 4 of 4 — four merged PRs, zero
+> `allow`s, window still reading `0 of 10`). Do not treat `gate-yield`'s window
+> state as a measurement of the project.
+>
+> **Expect `R10-verb-unknown` on any documentation correction** (F-4). `correct`,
+> `record` and `quote` are not on `VERB_ALLOWLIST`, and there is no allowlisted
+> verb meaning "this was wrong". The `ask` is not a bug — decide whether the list
+> should grow before assuming your subject is malformed.
 >
 > `experiment/harness-redesign` must not be deleted: `4ba57d7` is unreachable
-> from `main` and holds the only record of its twenty front merges.
+> from `main` and holds the only record of its twenty front merges. Every other
+> branch this session created is gone, verified contained before deletion.
 > `docs/gotchas-squash-containment` **is** safe to delete — verified, not
 > inferred: `git diff --stat origin/main docs/gotchas-squash-containment` is
 > empty and both trees are `b7f8fcf2e997`.
