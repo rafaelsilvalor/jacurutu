@@ -111,6 +111,45 @@ Grafana) and consolidating production across designers over time. Export is a
 to Phase 3 state, not to the export. Phase 4 is rescoped accordingly and
 `adapter-sheets` moves to the parking lot.
 
+### 2026-08-13 — Production assistant → production assistant with an art arm
+
+The 2026-06-12 pivot settled who owns state. This one settles what the product
+*makes*. Saci orchestrated files around a designer's work — pull the task,
+scaffold the folder, copy the template, ship the result. It now also **generates
+the art itself** from a structured brief, through a rendering arm.
+
+The arm exists already, outside this repository: **Suindara**, an HTML art
+laboratory that renders a PNG from a spec by driving a headless browser. Its
+contract was defined before Saci had any consumer for it; the art-chain spike
+(`docs/tasks/2026-08-12-spike-art-chain/`) measured the seam between the two.
+
+**Suindara's engine is ported into this monorepo, not called across a process
+boundary.** The reason is control, not size: Suindara carries none of this
+project's rules, gates or test discipline — it is closer to a test bench than to
+a product, and a product arm living outside every gate is an arm nobody can hold
+to account.
+
+This supersedes, on this point only, the topology in
+`docs/sessions/2026-08-12-orchestrator-spike-art-chain.md`, which justified a
+separate repository as "an earned boundary" and had the chain spawning
+`render.mjs` as a subprocess. That recap is authority level 6 and stays on disk
+unedited; this subsection is what supersedes it.
+
+Two things the shift deliberately does **not** change:
+
+- **The Python lane is untouched.** `automation/` was declared a permanent
+  laboratory on 2026-08-08 and stays one. Suindara's status changed; no argument
+  here reaches the Python lane.
+- **The art-template repositories stay outside.** `suindara-tmpl-*` remains an
+  installable versioned ecosystem with its own release rhythm. Only the engine
+  moves.
+
+Three things it does **not** decide, listed so nobody reads them into it: which
+phase the arm belongs to, which units of the engine port first, and whether the
+art chain works end to end. The spike stopped on two stacked blockers — the
+granted Drive scope reaches no file this client did not create, and the copy is
+an uploaded `.docx` rather than text — and a document touches neither.
+
 ## Phases
 
 Phases are ordered by dependency, not by date. Items are tagged `[coord]`, `[prod]`, or untagged (foundational, serves both modes). Estimates are set at each phase's start, not in a central table — that pattern proved hard to keep current under v1.
