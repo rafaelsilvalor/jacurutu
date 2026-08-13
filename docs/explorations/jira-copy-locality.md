@@ -1,7 +1,7 @@
 # Where design-card copy actually lives — measured
 
 Status: exploration — no implementation mandate
-Disposition: open — 2026-08-12
+Disposition: candidate — 2026-08-13
 Origin: probe run 2026-08-12 over 47 live design cards, from
 `docs/tasks/2026-08-12-measure-jira-copy-share/`; follows the art-chain
 spike (`docs/tasks/2026-08-12-spike-art-chain/notes.md`)
@@ -196,3 +196,8 @@ need Drive at all".
   result, the six findings, and the `dead end` verdict; supersedes the untested
   "a share of cards may carry copy in the Jira body" hypothesis left open by
   `docs/tasks/2026-08-12-spike-art-chain/notes.md`.
+- 2026-08-13 — Disposition ratified by the owner: `open` → `candidate`. The
+  measurement itself is closed and needs no further exploration; what is shaped
+  enough to become a brief are the two findings §6 names as brief-shaped — F6
+  (the frame regex does not survive the ADF path) and F3 (26% of cards carry no
+  copy pointer at all). Neither depends on the Drive-scope decision.
