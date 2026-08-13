@@ -107,6 +107,37 @@ The dev surface splits by *audience*, not by directory.
 
 **R25 — Hexagonal architecture: dependency direction.** The `core` package defines domain logic and port interfaces. Adapter packages (`adapter-jira`, `adapter-sheets`, future others) implement ports and depend on `core`. The `core` package never imports from adapters. The composition root (currently `cli`) wires adapters into `core`. Verification: `grep -rn 'from.*adapter' core/` returns no matches.
 
+**R26 — Laboratory code is normalized on arrival, never carried raw.** Two
+permanent laboratory lanes feed this repository: the Python `automation/` lane
+and the Suindara art lane (see "Architecture"). Code leaves them one mechanism
+at a time, as briefs, and whatever arrives is normalized in the same commit that
+introduces it — never in a follow-up.
+
+- **Language.** Identifiers, comments, log and error messages, and test
+  descriptions are rewritten in English (R9). A laboratory's language convention
+  does not travel with its code, and a half-translated file is worse than either
+  end state: it teaches that the rule is optional.
+- **Rule identifiers.** `R*`, `A*` and `E*` here mean what this file says they
+  mean. A citation inherited from another repository's rulebook is a false
+  citation however true it was at the origin — requalify it with the origin's
+  name (`SUINDARA-R2`) or drop it and keep its reasoning in plain words.
+- **Rationale.** Design reasoning carried in a laboratory's comments is
+  preserved, not deleted to satisfy R8. Where it exceeds R8's one-short-line
+  default it moves into the porting brief or the package's own doc, and the
+  comment keeps a one-line pointer. R8 forbids restating *what* code does; it
+  does not license discarding *why* — that reasoning is the most expensive thing
+  a laboratory produces and the easiest to lose in transit.
+
+Verification is per-brief, not global: a porting brief lists the units it moves
+and each one's normalization is a Done-criteria checkbox.
+
+Numbering note: `docs/sessions/2026-08-12-orchestrator-spike-art-chain.md`
+queued `R26` for a different rule — composition functions being
+transport-agnostic. That rule was measured on 2026-08-13 and is not yet true
+(six `console` sites in `run-fetch.ts` and `run-start.ts`, all of them R4
+compliance), so it was deferred and will take the next free number. That
+citation is superseded.
+
 ## Anti-patterns
 
 **A1 — Silent error swallowing.** `catch {}` or `catch (e) { return null }` without log. Violates R4.
