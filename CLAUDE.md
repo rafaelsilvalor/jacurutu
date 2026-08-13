@@ -20,6 +20,29 @@ Packages:
 
 The Python `automation/` codebase is both the **seed reference** of v2's core (its `lib_transform.py` was ported into `core` in Phase 2) and a **permanent laboratory lane** — it does not migrate. Proven mechanisms are absorbed here one at a time, as briefs; the lab stays Python (decided 2026-08-08, `docs/explorations/python-laboratory-lane.md`). It carries no behavior-preserving mandate — there are no production users — and `sync.py` / `lib_sheets.py` are legacy reference only; the sync diff engine is never ported.
 
+The **art arm** is the product's second half: given a structured brief, Saci
+renders the deliverable rather than only routing the file a designer made. Its
+engine comes from **Suindara**, an HTML art laboratory that drives a headless
+browser to turn a spec into a PNG. Suindara's engine is **ported into this
+monorepo** (2026-08-13, `docs/ROADMAP.md`), one mechanism at a time under R26;
+it is not spawned as a subprocess and it is not a dependency. The laboratory
+itself, and the `suindara-tmpl-*` art-template repositories it publishes, stay
+outside — they are an installable versioned ecosystem on their own release
+rhythm.
+
+**Vocabulary, fixed before the first identifier.** This repository uses
+`template` for exactly one thing: the source PSD/AI that `start` copies into a
+task folder to produce the `editable` (`templateSource`, `templatesRoot`,
+`copyTemplate` — 142 sites as of 2026-08-13). An **`artTemplate`** is the other
+thing entirely: an HTML package that renders a PNG from a spec, with no human
+editing step. The two never share a word. Code absorbed from Suindara is renamed
+on arrival — its `template` is our `artTemplate`. In prose, "art template" with
+the space; in identifiers, `artTemplate`. Three packages are planned for the arm
+and **none exists yet**: `adapter-render` (drives the headless browser),
+`adapter-http` and `web` (the brief UI, which replaces Suindara's own panel
+rather than porting it). Do not create them ahead of a brief that needs them
+(A3).
+
 Build: each workspace compiles via `tsc -p .` into its own `dist/`; tests are `*.test.ts` colocated with source, run via `node:test` against compiled `dist/`. No transpilation shortcut, no bundler.
 
 Detailed domain notes and known traps live in `docs/GOTCHAS.md`; product roadmap and phase state live in `docs/ROADMAP.md` and `MENTOR_BRIEF.md` §2.
