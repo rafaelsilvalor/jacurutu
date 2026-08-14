@@ -113,7 +113,7 @@ test("adfExtractUrls returns empty for a non-record node", () => {
 
 // --- adfExtractText ---------------------------------------------------------
 
-test("adfExtractText concatenates text nodes with single spaces", () => {
+test("adfExtractText separates sibling block nodes with a line break", () => {
   const node = {
     type: "doc",
     content: [
@@ -121,7 +121,81 @@ test("adfExtractText concatenates text nodes with single spaces", () => {
       { type: "paragraph", content: [{ type: "text", text: "world" }] },
     ],
   };
-  assert.strictEqual(adfExtractText(node), "hello world");
+  assert.strictEqual(adfExtractText(node), "hello\nworld");
+});
+
+// A mark splits one phrase into two text nodes. The space belongs to the first
+// of them and is the only one the projection may carry.
+test("adfExtractText joins inline runs without inserting a space", () => {
+  const node = {
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "Pauta " },
+          { type: "text", text: "415", marks: [{ type: "strong" }] },
+        ],
+      },
+    ],
+  };
+  assert.strictEqual(adfExtractText(node), "Pauta 415");
+});
+
+test("adfExtractText renders a hardBreak as a line break", () => {
+  const node = {
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "first" },
+          { type: "hardBreak" },
+          { type: "text", text: "second" },
+        ],
+      },
+    ],
+  };
+  assert.strictEqual(adfExtractText(node), "first\nsecond");
+});
+
+test("adfExtractText gives each nested list item its own line", () => {
+  const item = (text: string) => ({
+    type: "listItem",
+    content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+  });
+  const node = {
+    type: "doc",
+    content: [{ type: "bulletList", content: [item("one"), item("two")] }],
+  };
+  assert.strictEqual(adfExtractText(node), "one\ntwo");
+});
+
+// F6 regression (docs/explorations/jira-copy-locality.md): the flattened
+// projection capped this count at 1 however many frames the source carried.
+// The regex is written here rather than imported — the production marker
+// parser is out of scope and has no site in this repository.
+test("adfExtractText keeps one frame marker per line for an anchored regex", () => {
+  const frame = (n: number) => ({
+    type: "paragraph",
+    content: [{ type: "text", text: `L${n}: frame copy` }],
+  });
+  const node = { type: "doc", content: [frame(1), frame(2), frame(3)] };
+  const markers = adfExtractText(node).match(/^\s*L\d+\s*:/gm) ?? [];
+  assert.strictEqual(markers.length, 3);
+});
+
+test("adfExtractText absorbs an empty paragraph and a non-record child", () => {
+  const node = {
+    type: "doc",
+    content: [
+      { type: "paragraph", content: [{ type: "text", text: "kept " }] },
+      { type: "paragraph" },
+      "not a node",
+      { type: "paragraph", content: [{ type: "text", text: "also kept" }] },
+    ],
+  };
+  assert.strictEqual(adfExtractText(node), "kept\nalso kept");
 });
 
 test("adfExtractText returns empty for a non-record node", () => {
