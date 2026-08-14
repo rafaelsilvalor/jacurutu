@@ -303,9 +303,9 @@ machine can be loaded and continued on another via its Drive manifest.
 
 **Goal:** the app-owned production state becomes shareable across designer
 instances, and the team-level coordination view is rebuilt as a **reader of a
-projection off that shared state** — never a state holder. The Python
-`automation/` retires once a coordination consumer reads Saci's state instead of
-the legacy Sheet.
+projection off that shared state** — never a state holder. The legacy Python
+coordination pipeline retires once a coordination consumer reads Saci's state
+instead of the legacy Sheet.
 
 **Items:**
 
@@ -321,7 +321,8 @@ the legacy Sheet.
 - `[coord]` Composition root for coordination mode in the `cli` package.
 
 **Exit criterion:** Rafael's coordination view runs entirely on TS Saci, reading
-a projection of app-owned shared state; the Python `automation/` is archived.
+a projection of app-owned shared state; the legacy Python coordination pipeline
+is archived.
 
 **Dependencies:** Phase 3 — there is no shared state to consolidate until
 production instances own and accumulate state at runtime. Phase 4 follows
