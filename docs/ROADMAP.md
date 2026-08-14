@@ -111,12 +111,15 @@ remote later). A spreadsheet is no longer a state-holding surface; it becomes
 **one optional one-way projection target among others** (flat files, BI
 platforms).
 
-Grounding fact: there are no production users of the Python `automation/` today,
-so `sync.py` / `lib_sheets.py` carry no behavior-preserving mandate — they are
-legacy reference only. The sync diff engine (cell ownership, write-conditionals,
-formulas) existed solely because the Sheet held state; with the app owning
-state, none of it is ported. What survives is the issue → row projection, now
-`packages/core/src/export.ts` (shipped in brief 023).
+Grounding fact: there are no production users of the Python laboratory today, so
+`sync.py` / `lib_sheets.py` carry no behavior-preserving mandate — they are
+legacy reference only. (This sentence named `automation/` when it was written,
+which was a misattribution: that folder is a frozen snapshot, not the lab, and
+the laboratory of record is the `buraqueira` repository. What it grounds is
+unchanged. Corrected 2026-08-14.) The sync diff engine (cell ownership,
+write-conditionals, formulas) existed solely because the Sheet held state; with
+the app owning state, none of it is ported. What survives is the issue → row
+projection, now `packages/core/src/export.ts` (shipped in brief 023).
 
 The real target surfaced: feeding BI dashboards (Looker Studio / Power BI /
 Grafana) and consolidating production across designers over time. Export is a
@@ -136,11 +139,14 @@ laboratory that renders a PNG from a spec by driving a headless browser. Its
 contract was defined before Saci had any consumer for it; the art-chain spike
 (`docs/tasks/2026-08-12-spike-art-chain/`) measured the seam between the two.
 
-**Suindara's engine is ported into this monorepo, not called across a process
-boundary.** The reason is control, not size: Suindara carries none of this
-project's rules, gates or test discipline — it is closer to a test bench than to
-a product, and a product arm living outside every gate is an arm nobody can hold
-to account.
+**Suindara's engine will be ported into this monorepo, not called across a
+process boundary.** The reason is control, not size: Suindara carries none of
+this project's rules, gates or test discipline — it is closer to a test bench
+than to a product, and a product arm living outside every gate is an arm nobody
+can hold to account. (This sentence read "is ported" when it was written, which
+puts a ruling in the tense of a status. Nothing had been ported: on 2026-08-14
+`packages/` held no `adapter-render`, `adapter-http` or `web`, and no
+Suindara-derived source. Corrected 2026-08-14.)
 
 This supersedes, on this point only, the topology in
 `docs/sessions/2026-08-12-orchestrator-spike-art-chain.md`, which justified a

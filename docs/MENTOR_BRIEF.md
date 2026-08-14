@@ -47,7 +47,7 @@
   state** (local now, remote later). A spreadsheet is demoted from a
   state-holding surface to one optional one-way projection target among others
   (flat files, BI platforms). With no production users of the Python
-  `automation/`, `sync.py` / `lib_sheets.py` are legacy reference only — the sync
+  laboratory, `sync.py` / `lib_sheets.py` are legacy reference only — the sync
   diff engine is never ported; only the issue → row projection survives, as
   `packages/core/src/export.ts`. Export is a fact table (one row per issue, zero
   aggregation); aggregation and history belong to the BI layer and to Phase 3
