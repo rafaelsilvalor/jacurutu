@@ -13,7 +13,7 @@ The **production loop is the core**: pull a Jira task → scaffold its folder (t
 | Read / data (Jira fetch) | Fuel | **Built** — `saci fetch` (026/028/029); per-project input resolution is **Axis A only** (entrega + vertical field ids). Axis B/C and `config project add` not built. |
 | Curated template management | Loop | **Planned** — only `appliedTemplate` / `templateUsed` type fields exist; no catalog, match, or apply code. |
 | Workflow actions — start / close / drive upload | Loop | **In progress** — `saci start --local` shipped (036, smoke-confirmed 2026-07-26); `close` / `ship` not built; `DriveGateway` is a five-primitive port implemented by `adapter-drive` (047, all five confirmed live 2026-08-02), not yet wired into a command. |
-| BI export | Periphery | **Built** — `saci export` CSV/JSON fact table (023). Sheets projection parked (`adapter-sheets` is a placeholder). |
+| BI export | Periphery | **Built** — `saci export` CSV/JSON fact table (023). Sheets projection left the parking lot 2026-08-14 (it becomes a team report, plus spreadsheet creation and workspace sharing), but nothing is built: `adapter-sheets` is still a placeholder and no brief is written. |
 
 (Status cells reflect the v2 source as of this writing, verified against the command surface and adapter implementations — not the prose elsewhere in this doc.)
 
@@ -126,6 +126,19 @@ Grafana) and consolidating production across designers over time. Export is a
 **fact table**; aggregation and history accumulation belong to the BI layer and
 to Phase 3 state, not to the export. Phase 4 is rescoped accordingly and
 `adapter-sheets` moves to the parking lot.
+
+> **Superseded in part, 2026-08-14 — the Sheets code, not the state ruling.**
+> The state half of this entry stands unchanged: the application owns production
+> state and a spreadsheet is a one-way projection target. What the owner reversed
+> is the fate of the Python Sheets code and the parking of `adapter-sheets`. The
+> spreadsheet becomes a **report for the team** — read by people who never run
+> Saci, leaned on heavily in recent months — and Saci is to create spreadsheets
+> and share them inside the Google workspace. That is the concrete consumer the
+> parking decision was waiting for, so `sync.py` and `lib_sheets.py` are portable
+> again. The projection is what ports; the cell-by-cell reconciliation still does
+> not, because its only reason for existing was the Sheet holding state. Measured
+> effect on the laboratory's portable surface (4,714 → 7,251):
+> `docs/explorations/python-laboratory-lane.md`.
 
 ### 2026-08-13 — Production assistant → production assistant with an art arm
 

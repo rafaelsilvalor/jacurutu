@@ -46,16 +46,19 @@ behavior check whose scope is narrower than the sentence describing it.
 
 ## Open, from this task's measurement
 
-- **Addressed 2026-08-14, in the note itself.** The note's 12,532-line figure for
-  `buraqueira` was measured 2026-08-08 and has grown since — root + `tests/` +
-  `scripts/` measured 15,367 on 2026-08-14 (exactly, not the `~15,367` first
-  recorded here). Re-measuring means re-running the five-bucket classification,
-  not summing. Deliberately untouched under this task's constraint 5; dated in
-  place afterwards instead, with a freshness note recording the four buckets that
-  re-measure and the fifth that does not
-  (`docs/explorations/python-laboratory-lane.md`). The figure was **not**
-  replaced: the portable surface it feeds cannot be re-derived from what the note
-  wrote down.
+- **Closed 2026-08-14 — the classification was rebuilt and the figure replaced.**
+  The note's 12,532-line figure for `buraqueira` was measured 2026-08-08 and has
+  grown since — root + `tests/` + `scripts/` measured 15,367 on 2026-08-14
+  (exactly, not the `~15,367` first recorded here). Re-measuring meant re-running
+  the five-bucket classification, not summing, and it initially failed: two of the
+  five buckets named no files, so the figure was dated in place with a freshness
+  note instead. Both were recovered afterwards by reconstruction against
+  `27ca450`, the tree the 2026-08-08 figures were taken from — the four named
+  buckets reproduce to the unit and serve as an oracle, and exactly one subset of
+  the residual sums to the recorded 367. The rule is now written into the note as
+  file sets, and the portable surface is **7,251** — 5,796 of it under the
+  2026-08-08 doctrine plus 1,451 from the owner's 2026-08-14 ruling that the
+  Sheets code ports (`docs/explorations/python-laboratory-lane.md`).
 - **Resolved 2026-08-14 — it was never in the denominator.** `buraqueira`'s
   `.claude/` holds 46,101 lines of `.py`, assumed here to be worktrees or vendored
   code and not opened. It is untracked, so the question is moot:
