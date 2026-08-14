@@ -1,6 +1,14 @@
 # Notes — 2026-08-14-python-lab-of-record
 
-## Queued follow-up — `docs/ROADMAP.md:49`
+## Closed follow-up — `docs/ROADMAP.md:49`
+
+**Closed 2026-08-14 by #145 (`33b970b`).** The superseding note the owner
+specified is in place, as a blockquote beneath the dated entry, at
+`docs/ROADMAP.md:58`. The citation in this heading still resolves: #145 added its
+13 lines *below* line 49, and #146 (`b63cbf6`) left both positions unchanged, so
+line 49 is still the sentence this entry names. The closure was recorded in
+#145's recap (`docs/sessions/2026-08-14-orchestrator-roadmap-operating-claim.md`)
+and is recorded here now.
 
 **Owner ruling, 2026-08-14, at the close of this task:** queue it; do not
 rewrite the dated entry.
@@ -38,13 +46,22 @@ behavior check whose scope is narrower than the sentence describing it.
 
 ## Open, from this task's measurement
 
-- The note's 12,532-line figure for `buraqueira` was measured 2026-08-08 and has
-  grown since — root + `tests/` + `scripts/` measured ~15,367 on 2026-08-14.
-  Re-measuring means re-running the five-bucket classification, not summing.
-  Deliberately untouched here (constraint 5).
-- `buraqueira`'s `.claude/` holds 46,101 lines of `.py`, assumed to be worktrees
-  or vendored code and not opened. If any of it is laboratory code, every size
-  comparison in this task understates the lab.
+- **Addressed 2026-08-14, in the note itself.** The note's 12,532-line figure for
+  `buraqueira` was measured 2026-08-08 and has grown since — root + `tests/` +
+  `scripts/` measured 15,367 on 2026-08-14 (exactly, not the `~15,367` first
+  recorded here). Re-measuring means re-running the five-bucket classification,
+  not summing. Deliberately untouched under this task's constraint 5; dated in
+  place afterwards instead, with a freshness note recording the four buckets that
+  re-measure and the fifth that does not
+  (`docs/explorations/python-laboratory-lane.md`). The figure was **not**
+  replaced: the portable surface it feeds cannot be re-derived from what the note
+  wrote down.
+- **Resolved 2026-08-14 — it was never in the denominator.** `buraqueira`'s
+  `.claude/` holds 46,101 lines of `.py`, assumed here to be worktrees or vendored
+  code and not opened. It is untracked, so the question is moot:
+  `git ls-files '*.py'` returns 47 files totalling 15,367 lines across root,
+  `tests/` and `scripts/` only. No size comparison in this task understated the
+  lab.
 - The `grep -c` verifications in this brief count *lines*, not occurrences. They
   were cross-checked site by site with `grep -n`, but a future brief wanting an
   occurrence count must say so explicitly.
