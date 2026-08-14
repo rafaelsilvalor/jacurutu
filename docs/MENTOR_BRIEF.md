@@ -186,8 +186,8 @@
   - **Phase 4 consolidates app-owned shared state** — production
     instances sync their state to a shared store; the team-level view
     reads a projection of it. Any Sheets or BI surface is a projection
-    consumer, not the source of aggregation. Retires the Python
-    `automation/` for coordination.
+    consumer, not the source of aggregation. Retires the legacy
+    Python coordination pipeline.
   - **Full v2 roadmap** with phases (tagged `[coord]` / `[prod]` per
     item): `docs/ROADMAP.md`. Parked ideas and open decisions live as
     notes in `docs/explorations/` (brief 051). Legacy v1 phases are

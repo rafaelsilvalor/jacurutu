@@ -18,7 +18,9 @@ Packages:
 - **`@saci/adapter-sheets`** — parking lot. A package shell exists, but a Sheets projection is built only when a concrete consumer (e.g. Looker Studio) exists. Not on the active path.
 - **`@saci/cli`** — the composition root and the only package with a `bin` (`saci`). Wires adapters into `core`. Composition functions live in `run-fetch.ts` / `run-export.ts`; `cli.ts` is the entry point.
 
-The Python `automation/` codebase is both the **seed reference** of v2's core (its `lib_transform.py` was ported into `core` in Phase 2) and a **permanent laboratory lane** — it does not migrate. Proven mechanisms are absorbed here one at a time, as briefs; the lab stays Python (decided 2026-08-08, `docs/explorations/python-laboratory-lane.md`). It carries no behavior-preserving mandate — there are no production users — and `sync.py` / `lib_sheets.py` are legacy reference only; the sync diff engine is never ported.
+The **Python laboratory lane** is the `buraqueira` repository — it does not migrate. It stays Python, and this monorepo absorbs proven mechanisms from it one at a time, as briefs (lane declared permanent 2026-08-08, `docs/explorations/python-laboratory-lane.md`; laboratory of record ruled 2026-08-14). It carries no behavior-preserving mandate — there are no production users — and `sync.py` / `lib_sheets.py` are legacy reference only; the sync diff engine is never ported.
+
+The `automation/` folder **in this repository** is a different thing: a frozen snapshot of that lab, vendored once in `8fada81` (2026-06-06) and untouched since — 15 files, 3,490 lines, no test suite. It is the **seed reference** of v2's core (its `lib_transform.py` was ported into `core` in Phase 2) and is cited for the provenance of code already ported, never as authority over what the laboratory does today. When a brief needs to know what the lab does, it reads `buraqueira`.
 
 The **art arm** is the product's second half: given a structured brief, Saci
 renders the deliverable rather than only routing the file a designer made. Its
@@ -108,7 +110,7 @@ The dev surface splits by *audience*, not by directory.
 **R25 — Hexagonal architecture: dependency direction.** The `core` package defines domain logic and port interfaces. Adapter packages (`adapter-jira`, `adapter-sheets`, future others) implement ports and depend on `core`. The `core` package never imports from adapters. The composition root (currently `cli`) wires adapters into `core`. Verification: `grep -rn 'from.*adapter' core/` returns no matches.
 
 **R26 — Laboratory code is normalized on arrival, never carried raw.** Two
-permanent laboratory lanes feed this repository: the Python `automation/` lane
+permanent laboratory lanes feed this repository: the Python `buraqueira` lane
 and the Suindara art lane (see "Architecture"). Code leaves them one mechanism
 at a time, as briefs, and whatever arrives is normalized in the same commit that
 introduces it — never in a follow-up.
