@@ -31,8 +31,9 @@
 - **Project:** Saci — an **individual production assistant** for the
   Estratégia design team. Saci v2 automates the repetitive actions
   around a Jira task — create the local folder, find the right
-  template, open it in the editor, ship the result to Drive — so the
-  designer only does art. A second use case rides on top: an
+  template, open it in the editor, ship the result to Drive — and,
+  since 2026-08-13, renders the art itself from a structured brief
+  through the art arm. A second use case rides on top: an
   aggregated Sheets view fed unidirectionally by the production
   instances, giving Rafael (and non-designer coordinators) a
   team-level picture without pulling designers into a coordination
@@ -69,6 +70,23 @@
   (dates from text-embedded summary/description), the `saci config project add`
   discovery generator, and per-project/`createmeta` screen-applicability
   validation (029 checks global field existence only).
+- **Art arm added 2026-08-13:** the product gained a rendering arm —
+  given a structured brief it produces the deliverable, instead of
+  only routing the file a designer made. The engine comes from
+  **Suindara**, an HTML art laboratory outside this repository, and it
+  is **ported in, not called across a process boundary**: Suindara
+  carries none of this project's rules or gates, and a product arm
+  outside every gate is one nobody can hold to account. This reverses
+  the "earned boundary" topology in
+  `docs/sessions/2026-08-12-orchestrator-spike-art-chain.md`. Three
+  packages are planned and none exists: `adapter-render`,
+  `adapter-http`, `web`. The vocabulary is fixed — `template` stays
+  the source PSD/AI, an `artTemplate` is the HTML renderer — and
+  `R26` governs what absorbed laboratory code pays on arrival. The
+  Python lane is unaffected and stays a permanent laboratory. Neither
+  the phase placement nor the port's scope is decided, and the art
+  chain's two stacked blockers (Drive scope, `.docx` format) are
+  untouched by this. Full record: `docs/ROADMAP.md` identity shifts.
 - **Phase transition (recorded 2026-05-15, still in force):**
   - **Saci-Electron-v1** (the existing pure-JS codebase) is in
     **freeze** — critical bugs only, no new features.

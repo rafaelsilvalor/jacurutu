@@ -20,6 +20,29 @@ Packages:
 
 The Python `automation/` codebase is both the **seed reference** of v2's core (its `lib_transform.py` was ported into `core` in Phase 2) and a **permanent laboratory lane** — it does not migrate. Proven mechanisms are absorbed here one at a time, as briefs; the lab stays Python (decided 2026-08-08, `docs/explorations/python-laboratory-lane.md`). It carries no behavior-preserving mandate — there are no production users — and `sync.py` / `lib_sheets.py` are legacy reference only; the sync diff engine is never ported.
 
+The **art arm** is the product's second half: given a structured brief, Saci
+renders the deliverable rather than only routing the file a designer made. Its
+engine comes from **Suindara**, an HTML art laboratory that drives a headless
+browser to turn a spec into a PNG. Suindara's engine is **ported into this
+monorepo** (2026-08-13, `docs/ROADMAP.md`), one mechanism at a time under R26;
+it is not spawned as a subprocess and it is not a dependency. The laboratory
+itself, and the `suindara-tmpl-*` art-template repositories it publishes, stay
+outside — they are an installable versioned ecosystem on their own release
+rhythm.
+
+**Vocabulary, fixed before the first identifier.** This repository uses
+`template` for exactly one thing: the source PSD/AI that `start` copies into a
+task folder to produce the `editable` (`templateSource`, `templatesRoot`,
+`copyTemplate` — 142 sites as of 2026-08-13). An **`artTemplate`** is the other
+thing entirely: an HTML package that renders a PNG from a spec, with no human
+editing step. The two never share a word. Code absorbed from Suindara is renamed
+on arrival — its `template` is our `artTemplate`. In prose, "art template" with
+the space; in identifiers, `artTemplate`. Three packages are planned for the arm
+and **none exists yet**: `adapter-render` (drives the headless browser),
+`adapter-http` and `web` (the brief UI, which replaces Suindara's own panel
+rather than porting it). Do not create them ahead of a brief that needs them
+(A3).
+
 Build: each workspace compiles via `tsc -p .` into its own `dist/`; tests are `*.test.ts` colocated with source, run via `node:test` against compiled `dist/`. No transpilation shortcut, no bundler.
 
 Detailed domain notes and known traps live in `docs/GOTCHAS.md`; product roadmap and phase state live in `docs/ROADMAP.md` and `MENTOR_BRIEF.md` §2.
@@ -83,6 +106,37 @@ The dev surface splits by *audience*, not by directory.
 **R24 — No `any` type.** Use `unknown` for inputs requiring type narrowing. `any` is reserved for justified escape hatches and requires a one-line comment with the rationale.
 
 **R25 — Hexagonal architecture: dependency direction.** The `core` package defines domain logic and port interfaces. Adapter packages (`adapter-jira`, `adapter-sheets`, future others) implement ports and depend on `core`. The `core` package never imports from adapters. The composition root (currently `cli`) wires adapters into `core`. Verification: `grep -rn 'from.*adapter' core/` returns no matches.
+
+**R26 — Laboratory code is normalized on arrival, never carried raw.** Two
+permanent laboratory lanes feed this repository: the Python `automation/` lane
+and the Suindara art lane (see "Architecture"). Code leaves them one mechanism
+at a time, as briefs, and whatever arrives is normalized in the same commit that
+introduces it — never in a follow-up.
+
+- **Language.** Identifiers, comments, log and error messages, and test
+  descriptions are rewritten in English (R9). A laboratory's language convention
+  does not travel with its code, and a half-translated file is worse than either
+  end state: it teaches that the rule is optional.
+- **Rule identifiers.** `R*`, `A*` and `E*` here mean what this file says they
+  mean. A citation inherited from another repository's rulebook is a false
+  citation however true it was at the origin — requalify it with the origin's
+  name (`SUINDARA-R2`) or drop it and keep its reasoning in plain words.
+- **Rationale.** Design reasoning carried in a laboratory's comments is
+  preserved, not deleted to satisfy R8. Where it exceeds R8's one-short-line
+  default it moves into the porting brief or the package's own doc, and the
+  comment keeps a one-line pointer. R8 forbids restating *what* code does; it
+  does not license discarding *why* — that reasoning is the most expensive thing
+  a laboratory produces and the easiest to lose in transit.
+
+Verification is per-brief, not global: a porting brief lists the units it moves
+and each one's normalization is a Done-criteria checkbox.
+
+Numbering note: `docs/sessions/2026-08-12-orchestrator-spike-art-chain.md`
+queued `R26` for a different rule — composition functions being
+transport-agnostic. That rule was measured on 2026-08-13 and is not yet true
+(six `console` sites in `run-fetch.ts` and `run-start.ts`, all of them R4
+compliance), so it was deferred and will take the next free number. That
+citation is superseded.
 
 ## Anti-patterns
 
