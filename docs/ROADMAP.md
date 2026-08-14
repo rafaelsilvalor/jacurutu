@@ -55,6 +55,19 @@ Two operating modes are designed from day one:
 
 The same core serves both modes; each mode has its own command set.
 
+> **Superseded on the operating claim, 2026-08-14.** This entry stays as
+> written; the note records that one sentence in it was overtaken — "Until v2's
+> coordination adapters land (Phase 4), the Python automation continues to
+> operate as the live coordination pipeline." The seed-of-v2's-core claim beside
+> it holds. This one does not: `automation/` is a frozen snapshot of the Python
+> laboratory — vendored once in `8fada81` (2026-06-06), untouched since — and
+> the laboratory of record is the `buraqueira` repository (ruled 2026-08-14,
+> `CLAUDE.md` "Architecture"). Phase 4 no longer names the folder either:
+> `bf057b0` (#144) rewrote its goal and exit criterion to retire **the legacy
+> Python coordination pipeline**, which is what the sentence was always about.
+> Whether that pipeline still runs from any checkout was not measured; what is
+> corrected here is its identification with this repository's `automation/`.
+
 ### 2026-05-28 — Coordination pipeline → individual production assistant
 
 The 2026-05-15 framing kept coordination (Jira → Sheets) and production
