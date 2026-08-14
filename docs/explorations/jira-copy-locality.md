@@ -154,6 +154,11 @@ counts **1** marker and an unanchored form counts **2**.
 The anchored regex caps at one match per card however many frames the copy has.
 A Jira-authored carousel would silently look like a one-frame piece.
 
+**Closed 2026-08-14** by `docs/tasks/2026-08-14-adf-text-fidelity/`. Block
+nodes and `hardBreak` now end a line in `adfExtractText`, and the anchored
+count is a regression test. The measurement above is preserved as the record
+of the 2026-08-12 run, not as current behavior.
+
 ## 5. Verdict
 
 **Dead end — not a real alternative, and not a partial mitigation.**
@@ -201,3 +206,7 @@ need Drive at all".
   enough to become a brief are the two findings §6 names as brief-shaped — F6
   (the frame regex does not survive the ADF path) and F3 (26% of cards carry no
   copy pointer at all). Neither depends on the Drive-scope decision.
+- 2026-08-14 — F6 closed by `2026-08-14-adf-text-fidelity`
+  (`fix(adapter-jira)`): the ADF projection now ends a line at every block node
+  and joins inline runs with nothing, and the anchored marker count is pinned
+  by a regression test. F3 remains open and brief-shaped.
