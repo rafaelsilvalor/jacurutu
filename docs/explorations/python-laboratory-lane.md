@@ -10,7 +10,9 @@ from the report's by classification boundary and is the one below.
 Roadmap link: refines ROADMAP Identity shifts 2026-05-15 (the Python
 `automation/` as v2's seed); bears on [[v1-v2-overlap]]
 
-The Python repo is not a temporary overlap awaiting Phase 4. It is a permanent
+The Python repo measured throughout this note is `buraqueira` — not this
+repository's `automation/` snapshot, which is a different and much smaller
+thing. It is not a temporary overlap awaiting Phase 4. It is a permanent
 laboratory lane: it stays Python, and this monorepo absorbs proven mechanisms
 one at a time, as briefs.
 
@@ -70,3 +72,9 @@ reason is the alternative.
 
 - 2026-08-08 — authored from the `buraqueira` cost exploration; disposition
   proposed as `deferred` with trigger.
+- 2026-08-14 — named `buraqueira` in the body. The measurements were always
+  buraqueira's, as the `Origin:` line said, but the body called it only "the
+  Python repo" while `CLAUDE.md` named `automation/` as the lab — so a reader
+  arriving from there read 12,532 lines as the snapshot's. The laboratory of
+  record was ruled the same day; the doctrine correction is task
+  `2026-08-14-python-lab-of-record`.
