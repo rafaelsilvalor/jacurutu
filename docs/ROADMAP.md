@@ -137,9 +137,11 @@ unedited; this subsection is what supersedes it.
 
 Two things the shift deliberately does **not** change:
 
-- **The Python lane is untouched.** `automation/` was declared a permanent
-  laboratory on 2026-08-08 and stays one. Suindara's status changed; no argument
-  here reaches the Python lane.
+- **The Python lane is untouched.** The Python laboratory — the `buraqueira`
+  repository — was declared permanent on 2026-08-08 and stays one. (This bullet
+  named `automation/` when it was written, which was a misattribution: that
+  folder is a frozen snapshot, not the lab. Corrected 2026-08-14.) Suindara's
+  status changed; no argument here reaches the Python lane.
 - **The art-template repositories stay outside.** `suindara-tmpl-*` remains an
   installable versioned ecosystem with its own release rhythm. Only the engine
   moves.
