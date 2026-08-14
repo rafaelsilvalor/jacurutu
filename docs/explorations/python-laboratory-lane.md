@@ -16,12 +16,12 @@ thing. It is not a temporary overlap awaiting Phase 4. It is a permanent
 laboratory lane: it stays Python, and this monorepo absorbs proven mechanisms
 one at a time, as briefs.
 
-**What was measured.** Of 12,532 lines in the Python repo: 3,750 are pytest,
-2,459 are `scripts/**` (debug, archive, maintenance), 1,082 are sentenced
-(`sync.py`, `lib_sheets.py`), 367 are Sheets-side runners, and 160 are already
-ported here as `transform.ts`. The portable surface is the remaining **4,714**
-lines — the pure `core`, the query layer, the parent-map runner, and the two
-small adapters.
+**What was measured.** Of 12,532 lines in the Python repo (measured 2026-08-08):
+3,750 are pytest, 2,459 are `scripts/**` (debug, archive, maintenance), 1,082 are
+sentenced (`sync.py`, `lib_sheets.py`), 367 are Sheets-side runners, and 160 are
+already ported here as `transform.ts`. The portable surface is the remaining
+**4,714** lines — the pure `core`, the query layer, the parent-map runner, and
+the two small adapters.
 
 At the one measured Py→TS ratio (`lib_transform.py` 160 → `transform.ts` 190 =
 1.19), and 1.3-1.4 for the data layer (dynamic dicts, dotted-path resolution, a
@@ -29,6 +29,23 @@ hand-rolled `where` parser under `strict` with no `any`), a full migration is
 **9,000-11,000 lines of TS** — about the size of this monorepo today (9,665,
 ~49% of it test). At the measured ~200 TS lines per brief across 49 briefs, that
 is roughly 30-45 briefs.
+
+**Freshness, measured 2026-08-14.** The split above is a *classified* total and is
+not fully re-derivable today. The tracked Python surface has grown to **15,367
+lines** (rule: `git ls-files '*.py'` — 47 files, root + `tests/` + `scripts/`),
+and four of the five buckets re-measure because the note names their files: pytest
+3,750 → **4,656**, `scripts/**` 2,459 → **2,712**, the sentenced pair 1,082 →
+**1,451**, `lib_transform.py` 160 → **201**. The fifth does not: "367 Sheets-side
+runners" names no file, and the lab's own `PORTING.md` marks only `sync.py` and
+`lib_sheets.py` as never-ports, which is already the sentenced bucket. The
+portable remainder is likewise described as "the two small adapters" against five
+`adapter_*.py` in the tree today. The residual those two buckets share is 6,347
+lines and cannot be split without a classification rule this note never recorded
+— so **the 4,714 portable surface, and the 9,000-11,000 and 30-45 figures derived
+from it, stand as 2026-08-08 measurements and were not refreshed.** Re-measuring
+did settle one open question: `buraqueira`'s `.claude/` holds 46,101 lines of
+`.py`, but it is untracked and was never inside this denominator, so no size
+comparison here understated the lab.
 
 **Why it was dropped.** The Python repo produces ~1,300 lines per active day;
 this one ~220. The 6x gap is the brief pipeline, the PR gate and Pause-3 —
@@ -78,3 +95,8 @@ reason is the alternative.
   arriving from there read 12,532 lines as the snapshot's. The laboratory of
   record was ruled the same day; the doctrine correction is task
   `2026-08-14-python-lab-of-record`.
+- 2026-08-14 — dated the 12,532 figure in place and added the freshness note. The
+  figure was not replaced: four of the five buckets re-measure from the file sets
+  this note names, the fifth names none, and the portable surface therefore cannot
+  be re-derived. A raw `wc -l` total would have read as a refresh of a classified
+  number while silently changing what it counted.
