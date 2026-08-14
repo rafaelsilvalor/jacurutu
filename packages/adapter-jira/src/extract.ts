@@ -3,7 +3,9 @@
 // automation/fetch.py (frozen seed): adf_extract_urls, adf_extract_drive_urls,
 // adf_extract_text, extract_urls_from_comments, safe_get_entrega,
 // safe_get_vertical. ADF nodes arrive as untyped Jira wire data, so they are
-// `unknown` and narrowed at each step (R24 — no `any`).
+// `unknown` and narrowed at each step (R24 — no `any`). One exception to the
+// behavior-preserving port: adfExtractText, which diverged on 2026-08-14 for
+// the reason its own doc comment states.
 
 // Google Drive/Docs URL pattern. Same pattern as the seed's DRIVE_URL_RE; the
 // `g` flag supports finditer-style scanning of raw text, and `match` semantics
@@ -22,6 +24,22 @@ const URL_ATTR_NODE_TYPES: ReadonlySet<string> = new Set([
 // Markdown-ish suffix separators stripped from a captured URL (seed clean-up
 // against trailing `)`, `]`, `>`, `"`). Order matches the seed.
 const URL_SUFFIX_SEPARATORS: readonly string[] = [")", "]", ">", '"'];
+
+// ADF block-level node types: each one ends a line in the plain-text
+// projection. Measured 2026-08-12 — with every node joined by a space instead,
+// a line-anchored marker regex counted 1 however many frames the source
+// carried (F6, docs/explorations/jira-copy-locality.md).
+const BLOCK_NODE_TYPES: ReadonlySet<string> = new Set([
+  "paragraph",
+  "heading",
+  "blockquote",
+  "codeBlock",
+  "listItem",
+  "panel",
+  "tableCell",
+  "tableHeader",
+  "rule",
+]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -113,22 +131,49 @@ export function adfExtractDriveUrls(node: unknown): string[] {
 }
 
 /**
- * Plain-text concatenation of all text nodes in an ADF tree. Fallback utility
- * (seed: adf_extract_text). Joins non-empty parts with a single space.
+ * A node's text, with one line break after every block node and in place of
+ * every `hardBreak`. Breaks are emitted unconditionally; the runs that nesting
+ * produces (`listItem > paragraph`) are collapsed downstream.
  */
-export function adfExtractText(node: unknown): string {
+function walkText(node: unknown): string {
   if (!isRecord(node)) {
     return "";
   }
-  const parts: string[] = [];
-  if (node.type === "text") {
-    parts.push(asString(node.text));
+  const nodeType = asString(node.type);
+  if (nodeType === "text") {
+    return asString(node.text);
+  }
+  if (nodeType === "hardBreak") {
+    return "\n";
   }
   const content = Array.isArray(node.content) ? node.content : [];
+  let out = "";
   for (const child of content) {
-    parts.push(adfExtractText(child));
+    out += walkText(child);
   }
-  return parts.filter((p) => p).join(" ");
+  return BLOCK_NODE_TYPES.has(nodeType) ? `${out}\n` : out;
+}
+
+/** Trimmed non-empty lines, joined by one break. Collapses nesting's runs. */
+function normalizeLines(text: string): string {
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line)
+    .join("\n");
+}
+
+/**
+ * Plain-text projection of an ADF tree: block nodes end a line, inline runs
+ * concatenate with nothing between them, and no line carries surrounding
+ * whitespace.
+ *
+ * Diverges from the seed's `adf_extract_text` deliberately. The seed joins
+ * every text node with a space, which drops the source's line structure and
+ * inserts a space wherever a mark splits a phrase in two.
+ */
+export function adfExtractText(node: unknown): string {
+  return normalizeLines(walkText(node));
 }
 
 /**
