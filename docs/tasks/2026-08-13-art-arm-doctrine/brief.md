@@ -294,7 +294,12 @@ Verification:
       the art-arm paragraph, two in the vocabulary paragraph
 - [ ] every `Suindara` match falls between the `## Architecture` and
       `## Hard Rules` headings
-- [ ] `grep -nE '[A-Z]:\\\\|/Users/|\.\./suindara' CLAUDE.md` returns nothing (D6)
+- [ ] No line added by this Edit locates Suindara on disk (D6). Verify against
+      the diff, not the file:
+      `git diff -U0 CLAUDE.md | grep '^+' | grep -v '^+++' | grep -E '[A-Z]:\\\\|/Users/|\.\./suindara'`
+      returns nothing. The file-scoped form cannot pass: R1 and A4 quote example
+      paths in order to forbid them, and a path pattern cannot tell a
+      prohibition from a violation.
 - [ ] `git diff --numstat CLAUDE.md` shows `0` deletions
 
 Commit: `docs(architecture): declare the art arm and its vocabulary`
@@ -425,8 +430,9 @@ Commit: `docs(mentor): update the project state for the art arm`
 3. `docs(architecture): declare the art arm and its vocabulary`
 4. `docs(rules): add R26 for normalizing laboratory code`
 5. `docs(mentor): update the project state for the art arm`
+6. `docs(tasks): fix the D6 check scope in the art-arm brief`
 
-All five verified ≤ 72 characters. All five verbs are in `VERB_ALLOWLIST`.
+All six verified ≤ 72 characters. All six verbs are in `VERB_ALLOWLIST`.
 
 ### Automated checks (run before each commit)
 
