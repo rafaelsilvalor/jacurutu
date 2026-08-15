@@ -85,7 +85,7 @@ interface Fake {
 }
 
 /** In-memory SpreadsheetGateway recording every call in order. */
-function makeFake(writeGridError?: unknown): Fake {
+function makeFake(writeGridError?: unknown, shareError?: unknown): Fake {
   const calls: string[] = [];
   const grids: ColumnSelection[] = [];
   const recipients: string[] = [];
@@ -103,6 +103,9 @@ function makeFake(writeGridError?: unknown): Fake {
     },
     async shareAsReader(spreadsheetId: string, recipient: string): Promise<void> {
       calls.push(`shareAsReader:${spreadsheetId}`);
+      if (shareError !== undefined) {
+        throw shareError;
+      }
       recipients.push(recipient);
     },
   };
@@ -163,10 +166,11 @@ test("first run with no state creates, persists the id, shares, and writes the g
       rowCount: 2,
       share: "granted",
     });
+    // Grid BEFORE share: the report is complete before the share is attempted.
     assert.deepStrictEqual(fake.calls, [
       `createSpreadsheet:Saci report: team`,
-      `shareAsReader:${CREATED_ID}`,
       `writeGrid:${CREATED_ID}`,
+      `shareAsReader:${CREATED_ID}`,
     ]);
     assert.deepStrictEqual(fake.recipients, [RECIPIENT]);
     // The exact stored string, against the injected clock — not a shape check.
@@ -222,6 +226,48 @@ test("second run with state reuses the id, creates nothing, and shares nothing",
   }
 });
 
+test("a share failure on a creating run still leaves the grid written and the id stored", async () => {
+  const { base, payloadPath, configPath, statePath } = makeSandbox();
+  try {
+    // The 2026-08-15 live failure, reproduced: a mistyped recipient, answered 400.
+    const fake = makeFake(undefined, sheetsError(400, "Bad Request. User message: ..."));
+    const { make } = makeThunk(fake.gateway);
+
+    await assert.rejects(
+      runReport(make, {
+        payloadPath,
+        configPath,
+        profileName: "team",
+        statePath,
+        shareWith: RECIPIENT,
+        now: () => FIXED_NOW,
+      }),
+      /status=400/,
+    );
+
+    // What the live incident cost, and what this pins: the share threw, but the
+    // report is COMPLETE. Before the fix the run aborted before writeGrid and left
+    // an empty spreadsheet that no later run could fill, because the state entry
+    // was already stored and every later run took the reuse path.
+    assert.deepStrictEqual(
+      fake.calls,
+      [
+        `createSpreadsheet:Saci report: team`,
+        `writeGrid:${CREATED_ID}`,
+        `shareAsReader:${CREATED_ID}`,
+      ],
+      "the share was attempted before the grid was written: a share failure now leaves an empty report behind",
+    );
+    assert.strictEqual(fake.grids.length, 1, "the grid never reached the spreadsheet");
+    assert.deepStrictEqual(await readReportEntry(statePath, "team"), {
+      spreadsheetId: CREATED_ID,
+      createdAt: FIXED_NOW,
+    });
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
 test("first run without --share-with creates and writes but never calls shareAsReader", async () => {
   const { base, payloadPath, configPath, statePath } = makeSandbox();
   try {
@@ -242,6 +288,7 @@ test("first run without --share-with creates and writes but never calls shareAsR
       `createSpreadsheet:Saci report: team`,
       `writeGrid:${CREATED_ID}`,
     ]);
+    assert.strictEqual(fake.grids.length, 1);
     assert.deepStrictEqual(
       fake.recipients,
       [],

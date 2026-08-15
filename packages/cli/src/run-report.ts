@@ -93,6 +93,12 @@ function notFoundError(
  * Run the report. A stored id that Google answers 404 for FAILS and creates nothing
  * (D5): a silent recreate would produce a second report nobody is shared into, while
  * the team keeps opening the old link and reading data that stopped moving.
+ *
+ * On a creating run the grid is written BEFORE the share is attempted. Measured, not
+ * reasoned: on 2026-08-15 a mistyped recipient made `shareAsReader` fail 400, the run
+ * aborted, and the spreadsheet was left empty — while the state entry, persisted
+ * earlier, made every later run take the reuse path. A share failure must leave a
+ * complete report behind, because the report is the deliverable and the share is not.
  */
 export async function runReport(
   makeGateway: MakeSpreadsheetGateway,
@@ -127,16 +133,15 @@ export async function runReport(
   }
 
   const created = await gateway.createSpreadsheet(spreadsheetName(profileName));
-  // Persist BEFORE writing the grid: a failure after this line leaves an id the next
-  // run reuses, instead of a spreadsheet nothing points at and a duplicate beside it.
+  // Persist, then fill, then share — each step survives the next one failing.
   await writeReportEntry(statePath, profileName, {
     spreadsheetId: created.id,
     createdAt: now(),
   });
+  await gateway.writeGrid(created.id, selection);
   if (shareWith !== undefined) {
     await gateway.shareAsReader(created.id, shareWith);
   }
-  await gateway.writeGrid(created.id, selection);
   return {
     spreadsheetId: created.id,
     created: true,
