@@ -45,8 +45,8 @@ and clicking through destroys the evidence of what.
 **This run touches your real production state.** It creates
 `~/.saci/report.json` if absent and writes an entry into it. The file was removed before
 this round, so step 1 exercises the genuine absent-file path rather than a stale entry.
-Step 6 deliberately leaves a dead entry there; the cleanup section of `report-smoke.md`
-removes it.
+Step 6b deliberately leaves a dead entry there; the cleanup section of
+`report-smoke.md` removes it.
 
 **One spreadsheet is created in your My Drive root**, on step 1. Step 6 asks you to
 delete it. If you stop before step 6, delete it by hand — deleting is not on the port,
@@ -72,13 +72,20 @@ The six steps and what each one is for:
 | 2 | second run, separate process, trimmed payload | one identity across runs; state survives process exit; a run that creates nothing still shares |
 | 3 | open the sheet and count rows | clear-then-write, through the command — no stale tail |
 | 4 | unknown profile | a config typo fails before any authorization |
-| 5 | share with a deliberately bad address | the grid is written anyway; the address is stripped from the message; the 400 is classified |
-| 6 | delete the sheet, run again | D5: a dead id fails naming the fix and creates nothing |
+| 5 | share with a deliberately bad address, FULL payload | the grid is written anyway (1 row -> 3); the address is stripped from the message; the 400 is classified |
+| 6a | trash the sheet, run again | a trashed file still accepts writes — the command reports success on a report the team can no longer open (`G-SHEETS-4`) |
+| 6b | empty the trash, run again | D5: a dead id fails naming the fix and creates nothing |
 
 Step 5 is a regression step for a regression that happened: on 2026-08-15 a mistyped
 address aborted the run before the grid was written, left the report empty and
 unshareable forever, and printed the address back in the failure. Three separate
-observations, not one — read its entry in `report-smoke.md` before running it.
+observations, not one — read its entry in `report-smoke.md` before running it. It uses
+the FULL payload deliberately: with the trimmed one the sheet would look the same
+whether the grid was written or not, so the observation would prove nothing.
+
+Step 6 has two halves and they answer differently. Trashing a Drive file is not deleting
+it — 6a shows the write succeeding against a trashed report, which is the silent failure
+`G-SHEETS-4` records; only 6b's permanent deletion produces the 404 that D5 is built on.
 
 Step 1 is the one this round exists for in the largest sense: `createSpreadsheetGateway`
 has never executed, anywhere, in this repository's history.
@@ -130,7 +137,9 @@ of them are STOP conditions rather than problems to solve at the terminal:
   The cause gets diagnosed before any fix is written.
 - **The address appearing in step 5's failure message — STOP.** The adapter strips it;
   seeing it means the redaction did not cover the path that printed.
-- **Step 6 creating a replacement instead of failing — STOP.** D5 is not negotiable at
+- **Step 5 leaving the sheet unchanged at one row — STOP.** The grid must be written
+  before the share is attempted; an unchanged sheet means that ordering regressed.
+- **Step 6b creating a replacement instead of failing — STOP.** D5 is not negotiable at
   the evidence round; a silent recreate is the exact failure the design exists to
   prevent.
 

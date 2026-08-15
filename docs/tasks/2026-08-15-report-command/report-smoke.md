@@ -146,23 +146,33 @@ must never cost a designer a browser round-trip.
 This step re-runs the exact failure that produced the amendments, now with the fix in
 place. It is not destructive — the report survives, which is the whole point.
 
-Run step 2's command again, but put a deliberately malformed address after
-`--share-with`: a string that is not an address at all, or an address at a domain with
-no Google account behind it. Do NOT use a real colleague's address here.
+Run the command with the **full** payload — `smoke-payload.json`, three rows, NOT the
+trimmed one — and a deliberately malformed address after `--share-with`: a string that
+is not an address at all, or an address at a domain with no Google account behind it. Do
+NOT use a real colleague's address here.
+
+**The payload must differ from step 2's, and that is the whole design of this step.**
+Step 2 left the sheet holding one row. If this step wrote one row too, the sheet would
+look identical whether the grid was written or not, and observation 1 below would hold
+just as well against the broken code it exists to detect. An expectation that is
+satisfied whether or not the code works is not an observation. Three rows over one row
+is a visible change that only a successful write can produce.
 
 ```powershell
-node packages\cli\dist\cli.js report --payload docs\tasks\2026-08-15-report-command\smoke-payload-trimmed.json --config docs\tasks\2026-08-15-report-command\smoke-export-config.json --profile smoke --share-with BAD-ADDRESS
+node packages\cli\dist\cli.js report --payload docs\tasks\2026-08-15-report-command\smoke-payload.json --config docs\tasks\2026-08-15-report-command\smoke-export-config.json --profile smoke --share-with BAD-ADDRESS
 ```
 
 The command FAILS, and there are **three separate things to look for** in what it
 printed. Check all three; "did it fail" is not the observation.
 
-1. **The report was written anyway.** Open the spreadsheet: it still holds the header
-   plus the single `DES-1001` row. Before the fix the run aborted before writing and
-   left the sheet empty. The share is not the deliverable; the report is.
+1. **The report was written anyway.** Open the spreadsheet: it must now hold the header
+   plus **three** rows — `DES-1001`, `DES-1002`, `DES-1003` — where step 3 confirmed one.
+   Before the fix the run aborted before writing, so the grid never changed. The share is
+   not the deliverable; the report is.
 2. **The address is NOT in the message.** Google quotes the invitee back inside its own
    text; the adapter now strips it and prints `<recipient>` in its place. Read the whole
-   line: if the address you typed appears anywhere in it, that is a STOP and a finding.
+   line: if the address you typed appears anywhere in it, that is a **STOP**, not a note
+   — it would mean the redaction misses a site.
 3. **The 400 arrives classified, not unclassified.** The hint should name the two
    candidate causes — no Google account behind the address, or a grant needing the
    notification flag — and claim neither. If it says `unclassified`, the operation rule
@@ -172,16 +182,42 @@ printed. Check all three; "did it fail" is not the observation.
 replaced by a placeholder. This is a regression step for a regression that actually
 happened, so a partial pass is worth recording exactly as it comes.
 
-## Step 6 — DESTRUCTIVE, RUN LAST: delete the spreadsheet, then run again
+Note that the sheet now holds three rows again, which is the state step 6 expects.
+
+## Step 6 — DESTRUCTIVE, RUN LAST: trash it, then permanently delete it
 
 **This step destroys the report on purpose.** It is the only live proof of D5, and it is
 also the case the owner will eventually hit for real — someone tidies Drive and the
 stored id stops resolving. Run it only after steps 1 to 5 are recorded, because every
 one of them needs the spreadsheet this step deletes.
 
-1. In Drive, delete the report created in step 1, and empty the trash so the id
-   genuinely stops resolving.
-2. Run step 2's command again, unchanged.
+It has **two halves, and they answer differently.** Trashing a Drive file is not
+deleting it: the id survives, and so does everything that addresses the file by id. Run
+6a before 6b, and do not skip 6a — the difference between them is the finding.
+
+### 6a — move it to the trash, keep the state entry, run again
+
+1. In Drive, send the report to the trash. Do **not** empty the trash yet.
+2. Run step 2's command again, unchanged (trimmed payload, no share flag).
+
+Expected — and this is not the failure you might assume:
+
+```
+Updated report SPREADSHEET-ID with 1 rows; not shared — pass --share-with to give someone access.
+```
+
+**The write SUCCEEDS.** A trashed file keeps its id, the Sheets values API keeps writing
+to it, and the command reports a normal update. Meanwhile the link the team holds is
+dead — the report is in the trash. Saci cannot currently tell the difference (see
+`G-SHEETS-4` in `docs/GOTCHAS.md`).
+
+**Record:** the printed line, that it says `Updated` and not an error, and that the
+spreadsheet is in the trash while this is printed.
+
+### 6b — empty the trash, then run again
+
+1. Empty Drive's trash so the file is permanently gone and the id stops resolving.
+2. Run the same command again, unchanged.
 
 Expected: a failure on stderr naming four things — the profile, the id, the state file's
 path, and the fix:
@@ -196,6 +232,10 @@ appeared in Drive**.
 **STOP if a replacement was created.** D5 is not negotiable at the evidence round: a
 silent recreate produces a report nobody is shared into while the team keeps opening the
 dead link.
+
+The state entry is kept across BOTH halves on purpose: the variable under test is the
+file's state in Drive, and rewriting the entry between them would change two things at
+once.
 
 ## Cleanup
 
