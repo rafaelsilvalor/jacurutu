@@ -106,9 +106,13 @@ destination is "ports", not "ports as written": most of `sync.py` is diff engine
 cell ownership and write-conditionals — machinery that exists because the Sheet
 was reconciled cell by cell — and a report Saci creates and shares needs
 create/write/share rather than diff, so these lines likely shrink sharply in
-translation. And creating and sharing a spreadsheet exceeds `adapter-drive`'s
-current OAuth scopes (`drive.file` + `drive.metadata.readonly`); it needs Sheets
-and permission scopes, so it is new authorization, not only new code.
+translation. And whether creating and sharing a spreadsheet exceeds
+`adapter-drive`'s current OAuth scopes (`drive.file` + `drive.metadata.readonly`)
+is open, not settled: `drive.file` is per-file access to files the app creates,
+and a CSV-with-conversion path may stay inside it. The spike
+`docs/tasks/2026-08-15-spike-sheets-report/` measures it before anything widens,
+because a scope change forces every existing user through browser consent again
+(`G-DRIVE-1`).
 
 **Why the derived figures were not refreshed.** The 9,000-11,000 TS lines and
 30-45 briefs are the portable surface times a factor this note never recorded.
@@ -199,3 +203,10 @@ reason is the alternative.
   in §2 and §6, with both caveats — "ports, not as written" and the OAuth scope
   gap. The lifecycle tooling and the diagnostics were left sentenced, on their
   own grounds. The `—` destination lost one of its three meanings as a result.
+- 2026-08-15 — downgraded the OAuth scope caveat from a certainty to an open
+  question. Both this note and `CLAUDE.md` stated that create-and-share exceeds
+  `adapter-drive`'s scopes; neither had measured it, and `drive.file` may already
+  cover a spreadsheet the app creates and shares. The claim was load-bearing in
+  the wrong direction — under `G-DRIVE-1` it justified forcing every user through
+  consent again — so it now points at the spike that settles it,
+  `docs/tasks/2026-08-15-spike-sheets-report/`.
