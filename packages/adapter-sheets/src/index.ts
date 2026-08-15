@@ -2,8 +2,9 @@
 // core port, the injected Google-call seam, and one convenience factory. The
 // composition root wires this adapter into core (R25); core never imports it.
 //
-// No command wires it yet — the `saci` subcommand that produces a real report, and the
-// product decisions about what the report shows, belong to the next brief.
+// `saci report --profile <name>` wires it: the composition root builds this gateway and
+// hands it the rows an export profile already selects. What the report shows is that
+// profile's business, so it is configured rather than decided here.
 
 import {
   authorize,
@@ -35,9 +36,10 @@ export interface CreateSpreadsheetGatewayOptions {
 }
 
 /**
- * Resolve credentials, authorize, and return a ready gateway — the one call the smoke
- * and the future report command need. Authorization is adapter-drive's: one Google
- * grant, one `~/.saci/token.json`, no second browser round-trip for the same user (D8).
+ * Resolve credentials, authorize, and return a ready gateway — the one call `saci
+ * report` makes, in cli.ts and nowhere else. Authorization is adapter-drive's: one
+ * Google grant, one `~/.saci/token.json`, no second browser round-trip for the same
+ * user (D8).
  */
 export async function createSpreadsheetGateway(
   options: CreateSpreadsheetGatewayOptions = {},

@@ -1,6 +1,7 @@
 // Policy constants for the Sheets adapter (R7). Every value here is either proven by
-// the 2026-08-15 spike or closed by a brief decision — with exactly one exception,
-// CLEAR_RANGE, which says so where it is declared rather than in a doc nobody opens.
+// the 2026-08-15 spike, measured by the owner-run smoke of the same date, or closed by
+// a brief decision — each saying which, where it is declared rather than in a doc
+// nobody opens. CLEAR_RANGE was the one unmeasured literal; the smoke closed it.
 
 /** Sheets API version: the surface `values.update` and `values.clear` live on. */
 export const SHEETS_API_VERSION = "v4";
@@ -23,14 +24,17 @@ export const VALUES_RANGE = "A1";
  * The range cleared before every write: whole columns of that same first sheet,
  * unqualified for the same locale reason as VALUES_RANGE.
  *
- * THIS LITERAL IS NOT MEASURED. The 2026-08-15 spike never called `values.clear`, so
- * no evidence covers whether Google accepts `A:ZZZ` against a default grid. What
- * closes it is the live smoke's shrinking step — a second, shorter run must leave no
- * row of the first run visible. If Google rejects this range as exceeding grid
- * limits, narrow it and record both the rejected and the accepted form; never drop
- * the clear. `values.update` writes over only the cells the new grid covers and
- * leaves everything below untouched, so without the clear a run with fewer rows
- * shows the previous run's tail inside a report the team reads as current.
+ * Measured on 2026-08-15 by the owner-run smoke of `docs/tasks/
+ * 2026-08-15-adapter-sheets-report/`, steps 4 and 5: a header plus one row written
+ * over a grid holding a header plus three read back as exactly two rows. Google
+ * accepts `A:ZZZ` against a default grid, and clearing it removes what the previous
+ * write left behind — the two stale rows were gone.
+ *
+ * Never drop the clear. `values.update` writes over only the cells the new grid
+ * covers and leaves everything below untouched, so without it a run with fewer rows
+ * shows the previous run's tail inside a report the team reads as current. If a
+ * future grid ever makes Google reject this range for exceeding grid limits, narrow
+ * it and record both the rejected and the accepted form.
  */
 export const CLEAR_RANGE = "A:ZZZ";
 
