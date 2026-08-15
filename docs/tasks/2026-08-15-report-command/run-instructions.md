@@ -43,34 +43,42 @@ through it.** A consent prompt means something changed that this task did not ch
 and clicking through destroys the evidence of what.
 
 **This run touches your real production state.** It creates
-`~/.saci/report.json` if absent and writes an entry into it. Step 5 deliberately leaves
-a dead entry there; the cleanup section of `report-smoke.md` removes it.
+`~/.saci/report.json` if absent and writes an entry into it. The file was removed before
+this round, so step 1 exercises the genuine absent-file path rather than a stale entry.
+Step 6 deliberately leaves a dead entry there; the cleanup section of `report-smoke.md`
+removes it.
 
-**One spreadsheet is created in your My Drive root**, on step 1. Step 5 asks you to
-delete it. If you stop before step 5, delete it by hand — deleting is not on the port,
+**One spreadsheet is created in your My Drive root**, on step 1. Step 6 asks you to
+delete it. If you stop before step 6, delete it by hand — deleting is not on the port,
 so no step does it for you.
 
 ## 3. Running it
 
-Follow `report-smoke.md` steps 1 to 5 **in order**. The order is not cosmetic:
+Follow `report-smoke.md` steps 1 to 6 **in order**. The order is not cosmetic:
 
 - steps 2, 3 and 5 all need the spreadsheet step 1 creates;
 - step 2 must run as its **own process**, because the property it proves is that the
   stored id survives process exit;
-- **step 5 is destructive by design.** It deletes the report to prove that a stored id
+- **step 6 is destructive by design.** It deletes the report to prove that a stored id
   which no longer resolves fails loudly instead of silently creating a replacement. Run
   it last, after everything else is recorded. Running it early costs you the whole
   procedure and a second live round.
 
-The five steps and what each one is for:
+The six steps and what each one is for:
 
 | Step | What it does | What it proves |
 |---|---|---|
-| 1 | first run, with the share flag | the factory composes; create + share + write work through the command |
-| 2 | second run, separate process, trimmed payload | one identity across runs; state survives process exit; a non-creating run shares nothing |
+| 1 | first run, with the share flag | the factory composes; create + write + share work through the command |
+| 2 | second run, separate process, trimmed payload | one identity across runs; state survives process exit; a run that creates nothing still shares |
 | 3 | open the sheet and count rows | clear-then-write, through the command — no stale tail |
 | 4 | unknown profile | a config typo fails before any authorization |
-| 5 | delete the sheet, run again | D5: a dead id fails naming the fix and creates nothing |
+| 5 | share with a deliberately bad address | the grid is written anyway; the address is stripped from the message; the 400 is classified |
+| 6 | delete the sheet, run again | D5: a dead id fails naming the fix and creates nothing |
+
+Step 5 is a regression step for a regression that happened: on 2026-08-15 a mistyped
+address aborted the run before the grid was written, left the report empty and
+unshareable forever, and printed the address back in the failure. Three separate
+observations, not one — read its entry in `report-smoke.md` before running it.
 
 Step 1 is the one this round exists for in the largest sense: `createSpreadsheetGateway`
 has never executed, anywhere, in this repository's history.
@@ -120,7 +128,9 @@ of them are STOP conditions rather than problems to solve at the terminal:
   thing to fix by widening `DRIVE_SCOPES`.
 - **A second spreadsheet appearing on step 2 — STOP.** The one-identity design failed.
   The cause gets diagnosed before any fix is written.
-- **Step 5 creating a replacement instead of failing — STOP.** D5 is not negotiable at
+- **The address appearing in step 5's failure message — STOP.** The adapter strips it;
+  seeing it means the redaction did not cover the path that printed.
+- **Step 6 creating a replacement instead of failing — STOP.** D5 is not negotiable at
   the evidence round; a silent recreate is the exact failure the design exists to
   prevent.
 

@@ -48,7 +48,7 @@ The steps run the built entry point at `packages\cli\dist\cli.js`, which is exac
 the `saci` bin resolves to. A stale `dist` measures the wrong code.
 
 **This writes to your real `~/.saci/report.json`.** It is created on step 1 if it does
-not exist. Step 5 leaves a dead entry behind on purpose; the cleanup section removes it.
+not exist. Step 6 leaves a dead entry behind on purpose; the cleanup section removes it.
 
 ## Step 1 — first run: creates, shares, writes
 
@@ -77,15 +77,19 @@ plus a `createdAt` timestamp.
 **Record:** the printed line (id redacted), and the state file's `smoke` entry (id
 redacted). Confirm the two ids are the same value.
 
-## Step 2 — second run, a SEPARATE process: rewrites, creates nothing, shares nothing
+The grid is written BEFORE the share is attempted (2026-08-15 evidence). Step 5 is what
+makes that ordering observable; here it is invisible because both succeed.
+
+## Step 2 — second run, a SEPARATE process: rewrites, creates nothing, shares again
 
 Close the terminal from step 1 and open a new one, or at minimum run this as its own
 process. The property under test is that state survives process exit — two runs sharing
 one process would prove less than they appear to.
 
-The payload is the **trimmed** one, and the share flag is passed again on purpose: D3
-says a run that creates nothing shares nothing, and passing the flag is what proves the
-command says so rather than silently ignoring it.
+The payload is the **trimmed** one, and the share flag is passed again on purpose. The
+brief's D3 confined sharing to the creating run; the 2026-08-15 evidence round withdrew
+it, because one failed share left a report nobody could ever be granted access to. So
+this run SHARES — and creates nothing, which is the pair of properties under test.
 
 ```powershell
 node packages\cli\dist\cli.js report --payload docs\tasks\2026-08-15-report-command\smoke-payload-trimmed.json --config docs\tasks\2026-08-15-report-command\smoke-export-config.json --profile smoke --share-with ADDRESS
@@ -94,7 +98,7 @@ node packages\cli\dist\cli.js report --payload docs\tasks\2026-08-15-report-comm
 Expected, one line:
 
 ```
-Updated report SPREADSHEET-ID with 1 rows; not shared — --share-with applies only to the run that creates the report.
+Updated report SPREADSHEET-ID with 1 rows; shared as reader with the address you gave.
 ```
 
 `1 rows` is not a typo: the row count is rendered without pluralization, exactly as
@@ -103,8 +107,8 @@ Updated report SPREADSHEET-ID with 1 rows; not shared — --share-with applies o
 Then read the state file again with `Get-Content $HOME\.saci\report.json`.
 
 **Record:** the printed line (id redacted); that the id is the SAME one as step 1; that
-the word `Updated` appears and `Created` does not; and that the stored `spreadsheetId`
-is unchanged.
+the word `Updated` appears and `Created` does not; that the line says the report was
+shared, on a run that created nothing; and that the stored `spreadsheetId` is unchanged.
 
 **STOP if a second spreadsheet appears in your Drive.** The one-identity design failed
 and the cause is diagnosed before anything is fixed.
@@ -137,11 +141,42 @@ Unknown export profile: "typo" (...\smoke-export-config.json)
 **Record:** the message, and explicitly that no consent screen appeared. A config typo
 must never cost a designer a browser round-trip.
 
-## Step 5 — DESTRUCTIVE, RUN LAST: delete the spreadsheet, then run again
+## Step 5 — a share that fails, with the report intact: the 2026-08-15 regression
+
+This step re-runs the exact failure that produced the amendments, now with the fix in
+place. It is not destructive — the report survives, which is the whole point.
+
+Run step 2's command again, but put a deliberately malformed address after
+`--share-with`: a string that is not an address at all, or an address at a domain with
+no Google account behind it. Do NOT use a real colleague's address here.
+
+```powershell
+node packages\cli\dist\cli.js report --payload docs\tasks\2026-08-15-report-command\smoke-payload-trimmed.json --config docs\tasks\2026-08-15-report-command\smoke-export-config.json --profile smoke --share-with BAD-ADDRESS
+```
+
+The command FAILS, and there are **three separate things to look for** in what it
+printed. Check all three; "did it fail" is not the observation.
+
+1. **The report was written anyway.** Open the spreadsheet: it still holds the header
+   plus the single `DES-1001` row. Before the fix the run aborted before writing and
+   left the sheet empty. The share is not the deliverable; the report is.
+2. **The address is NOT in the message.** Google quotes the invitee back inside its own
+   text; the adapter now strips it and prints `<recipient>` in its place. Read the whole
+   line: if the address you typed appears anywhere in it, that is a STOP and a finding.
+3. **The 400 arrives classified, not unclassified.** The hint should name the two
+   candidate causes — no Google account behind the address, or a grant needing the
+   notification flag — and claim neither. If it says `unclassified`, the operation rule
+   did not fire.
+
+**Record:** all three observations, plus the failure line itself with the bad address
+replaced by a placeholder. This is a regression step for a regression that actually
+happened, so a partial pass is worth recording exactly as it comes.
+
+## Step 6 — DESTRUCTIVE, RUN LAST: delete the spreadsheet, then run again
 
 **This step destroys the report on purpose.** It is the only live proof of D5, and it is
 also the case the owner will eventually hit for real — someone tidies Drive and the
-stored id stops resolving. Run it only after steps 1 to 4 are recorded, because every
+stored id stops resolving. Run it only after steps 1 to 5 are recorded, because every
 one of them needs the spreadsheet this step deletes.
 
 1. In Drive, delete the report created in step 1, and empty the trash so the id
@@ -164,7 +199,7 @@ dead link.
 
 ## Cleanup
 
-Step 5 leaves a dead entry in the real state file. Remove it, or delete the file:
+Step 6 leaves a dead entry in the real state file. Remove it, or delete the file:
 
 ```powershell
 Remove-Item $HOME\.saci\report.json
@@ -177,11 +212,11 @@ is untouched by every step above.
 
 Stated so that "the command is proven end to end" never stands unqualified:
 
-- **A refresh run without the share flag.** Step 2 passes it to prove the
-  skipped-existing path; the fourth rendering, an `Updated` line with no share clause at
-  all, is covered by unit test only.
-- **Every failure classification.** Only the 404 is provoked. Service-disabled, scope
-  and 5xx rules are covered by unit tests against fixtures in `adapter-sheets`.
+- **A refresh run without the share flag.** Step 2 passes it, so the `Updated ... not
+  shared` rendering is covered by unit test only.
+- **Every failure classification.** Only the 404 and the share 400 are provoked.
+  Service-disabled, scope and 5xx rules are covered by unit tests against fixtures in
+  `adapter-sheets`.
 - **A report with more than three rows**, more than one profile, or a profile whose
   filters exclude everything.
 - **Sharing beyond one reader**, folder placement, and a report URL — follow-ups 1 to 4
