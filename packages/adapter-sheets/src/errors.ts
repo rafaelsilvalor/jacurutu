@@ -74,6 +74,28 @@ const MESSAGE_RULES: readonly { pattern: RegExp; hint: string }[] = [
 ];
 
 /**
+ * Operation + status -> hint, consulted after the message rules and before the
+ * status-only table. Keyed on the operation and the HTTP status, never on message
+ * text: the 2026-08-15 live failure arrived as pt-BR prose, so a substring guard
+ * would have worked for whoever wrote it and failed for the next account
+ * (`G-JIRA-1`, now in a second vendor).
+ *
+ * The share entry names two candidate causes and picks neither. What was measured is
+ * that the request was rejected — not why — and the two readings that fit are that
+ * the address has no Google account behind it, or that the grant needed the
+ * notification flag. Choosing one here would be an inference dressed as a finding.
+ */
+const OPERATION_STATUS_HINTS: ReadonlyMap<string, string> = new Map([
+  [
+    "shareAsReader:400",
+    "Drive rejected the share as a bad request — the recipient may have no Google " +
+      "account behind that address, or the grant may require the notification flag; " +
+      "this was never measured, so check the address for a typo first. The report " +
+      "itself is unaffected: only the share failed",
+  ],
+]);
+
+/**
  * Status -> hint, for failures no message rule claimed. The 404 line states the
  * `drive.file` visibility caveat and stops there: what this scope does with items
  * created by other accounts was never measured (spike, "What was not measured"), so
@@ -138,8 +160,12 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-/** Apply the ordered rules: message signatures first, then status, then unknown. */
-function hintFor(status: number | string, message: string): string {
+/**
+ * Apply the ordered rules: message signatures first, then operation+status, then
+ * status, then unknown. The message rules stay FIRST — that order is what the spike
+ * paid for, and service-disabled must win over everything, including on a share.
+ */
+function hintFor(operation: string, status: number | string, message: string): string {
   for (const rule of MESSAGE_RULES) {
     if (rule.pattern.test(message)) {
       return rule.hint;
@@ -147,6 +173,10 @@ function hintFor(status: number | string, message: string): string {
   }
   if (typeof status !== "number") {
     return UNCLASSIFIED_HINT;
+  }
+  const byOperation = OPERATION_STATUS_HINTS.get(`${operation}:${status}`);
+  if (byOperation !== undefined) {
+    return byOperation;
   }
   const mapped = STATUS_HINTS.get(status);
   if (mapped !== undefined) {
@@ -168,6 +198,7 @@ export function sheetsErrorMessage(operation: string, target: string, error: unk
   const status = errorStatus(error);
   const message = errorMessage(error);
   return `Sheets ${operation} failed for ${target}: status=${status} message="${message}". Hint: ${hintFor(
+    operation,
     status,
     message,
   )}`;
