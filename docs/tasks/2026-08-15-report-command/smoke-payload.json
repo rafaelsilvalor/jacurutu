@@ -1,0 +1,45 @@
+{
+  "schema_version": "2.0",
+  "run_date": "2026-08-15",
+  "generated_at": "2026-08-15T09:00:00-03:00",
+  "issues": [
+    {
+      "key": "DES-1001",
+      "summary": "Fixture banner A",
+      "parent_key": "DES-1000",
+      "parent_summary": "Fixture project, not a real Jira project",
+      "status_jira": "FILA DE EXECUCAO",
+      "vertical_raw": "[EC] Fixture",
+      "entrega_iso": "2026-09-10T19:00:00.000-0300",
+      "copy_url": null,
+      "copy_source": "fallback",
+      "jira_updated_at": "2026-09-01T10:00:00-03:00"
+    },
+    {
+      "key": "DES-1002",
+      "summary": "Fixture banner B",
+      "parent_key": "DES-1000",
+      "parent_summary": "Fixture project, not a real Jira project",
+      "status_jira": "FILA DE EXECUCAO",
+      "vertical_raw": "[EC] Fixture",
+      "entrega_iso": "2026-09-11T19:00:00.000-0300",
+      "copy_url": null,
+      "copy_source": "fallback",
+      "jira_updated_at": "2026-09-01T10:00:00-03:00"
+    },
+    {
+      "key": "DES-1003",
+      "summary": "Fixture banner C",
+      "parent_key": "DES-1000",
+      "parent_summary": "Fixture project, not a real Jira project",
+      "status_jira": "FILA DE EXECUCAO",
+      "vertical_raw": "[EC] Fixture",
+      "entrega_iso": "2026-09-12T19:00:00.000-0300",
+      "copy_url": null,
+      "copy_source": "fallback",
+      "jira_updated_at": "2026-09-01T10:00:00-03:00"
+    }
+  ],
+  "filtered_out": [],
+  "warnings": []
+}
