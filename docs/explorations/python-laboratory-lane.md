@@ -69,8 +69,9 @@ measurement. The two small ones are `adapter_cache.py` (144) and
 MAP is the finer-grained classification and was tried first. It classifies
 functions rather than lines and offers no line attribution; `run_local.py`,
 `fetch.py` and `adapter_paths.py` have no row in it at all; its `—` destination
-means three different things (`NEVER PORTS`, "evaluate at port time", "do not
-port"); and its `wiring` kind would place `flow.py` — 1,345 lines that the
+is polysemous — "evaluate at port time" and "do not port" today, and
+`NEVER PORTS` as a third meaning until the lab applied this ruling on
+2026-08-14; and its `wiring` kind would place `flow.py` — 1,345 lines that the
 2026-08-08 arithmetic puts in the portable bucket — among the runners.
 
 **Measured 2026-08-14**, at `buraqueira` `42c624b`, with the rule applied to both
@@ -193,3 +194,8 @@ reason is the alternative.
   `sync.py` and `lib_sheets.py` moved to portable and the portable surface is
   7,251. `CLAUDE.md` and `docs/ROADMAP.md` carried the "never ported" and
   "parking lot" claims and were corrected in the same PR.
+- 2026-08-14 — the lab applied the ruling in its own `PORTING.md`, the same day:
+  `sync.py` and `lib_sheets.py` now carry `adapter-sheets` as their destination
+  in §2 and §6, with both caveats — "ports, not as written" and the OAuth scope
+  gap. The lifecycle tooling and the diagnostics were left sentenced, on their
+  own grounds. The `—` destination lost one of its three meanings as a result.
