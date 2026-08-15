@@ -424,6 +424,67 @@ operation+status classification and recipient redaction — shipped in the same 
 
 ---
 
+### G-SHEETS-4 — A trashed spreadsheet still accepts writes, and the command reports success
+
+**Symptom:** There is none. That is the entry.
+
+`saci report` prints its ordinary success line —
+
+```
+Updated report <SPREADSHEET-ID> with 1 rows; not shared — pass --share-with to give someone access.
+```
+
+— while the spreadsheet sits in Drive's trash and the link the team holds is dead. The
+exit code is 0, no warning is printed, nothing is logged, and the state file is intact
+and correct. Every run after the trashing behaves this way, indefinitely. **The absence
+of a complaint is the symptom**, which means the failure is found by a person opening
+the report and seeing a trash banner, or by nobody at all — the report simply stops
+being read and nobody says why.
+
+The related-looking failure is the one that DOES announce itself: a permanently deleted
+spreadsheet answers 404 and the command refuses to continue, naming the id, the state
+file and the fix. Meeting that message teaches the wrong lesson if you have not met this
+one — it suggests a dead report always fails loudly, and it does not.
+
+**Cause:** Trashing a Drive file is not deleting it. The file keeps its id, keeps its
+content, and keeps answering API calls that address it by id; `trashed` is a metadata
+flag, not a tombstone. The Sheets `values` surface neither reads that flag nor is asked
+to, so `values.clear` and `values.update` succeed exactly as they did before. Nothing in
+this application's write path consults file metadata at all — `SpreadsheetGateway` was
+built from operations measured on live files, and "is this file still in use" was never
+one of them. So the write succeeds, the port reports success, and the command reports
+success, each correctly, about a report no reader can reach.
+
+**Workaround:** There is none, and this entry does not invent one. Today the operator has
+to notice — by opening the report, or by a teammate saying the link is broken. Saci
+cannot currently tell the difference between a live report and a trashed one, and no
+amount of care at the call site changes that, because the information is not in any
+answer the command receives.
+
+What detecting it would cost, recorded so a future brief starts from a measurement
+rather than rediscovering this: a `files.get` on the spreadsheet id requesting the
+`trashed` field, before or after the write. **No method on `SpreadsheetGateway` offers
+it** — the port carries `createSpreadsheet`, `writeGrid` and `shareAsReader`, none of
+which reads metadata — so it is a port change and a new Drive call per run, not a
+tweak. Whether `drive.file` scope returns `trashed` for an app-created file was **not
+measured**; that measurement is where the work starts. Restoring from the trash, not
+just detecting it, is a separate question nothing here touches.
+
+**Evidence:** Measured 2026-08-15 during the second owner-run evidence round of
+`docs/tasks/2026-08-15-report-command/`, as the two halves of that procedure's step 6,
+with **the state file entry held constant across both** — that constancy is what makes
+the pair a measurement instead of two anecdotes, because the only variable between them
+was the file's state in Drive.
+
+- 6a, spreadsheet in the trash: `Updated report <SPREADSHEET-ID> with 1 rows; not shared
+  — pass --share-with to give someone access.` The write succeeded.
+- 6b, trash emptied, same id, same entry, same command: `status=404 message="Requested
+  entity was not found."`, surfaced as the fail-loud refusal.
+
+The procedure keeps both halves, in that order, for exactly this reason.
+
+---
+
 ## Maintenance
 
 Visit this file every 1–2 weeks during active development. Group related entries when the catalog grows past ~25 items. Promote frequent recurrences to `CLAUDE.md` rules so the next agent prevents them upfront instead of reacting.
