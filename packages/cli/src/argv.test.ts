@@ -100,6 +100,54 @@ test("export with all three flags parses payload, config, profile", () => {
   });
 });
 
+test("report with all three flags and --share-with parses every one", () => {
+  const result = parseArgv([
+    "report",
+    "--payload",
+    "payload.json",
+    "--config",
+    "config.json",
+    "--profile",
+    "team",
+    "--share-with",
+    "teammate@example.invalid",
+  ]);
+  assert.deepStrictEqual(result, {
+    kind: "report",
+    payload: "payload.json",
+    config: "config.json",
+    profile: "team",
+    shareWith: "teammate@example.invalid",
+  });
+});
+
+test("report without --share-with parses with shareWith undefined", () => {
+  const result = parseArgv([
+    "report",
+    "--payload",
+    "payload.json",
+    "--config",
+    "config.json",
+    "--profile",
+    "team",
+  ]);
+  // Forwarded undefined, like --templates-root: the flag is optional (D3) and its
+  // absence is the normal case for every run after the first.
+  assert.deepStrictEqual(result, {
+    kind: "report",
+    payload: "payload.json",
+    config: "config.json",
+    profile: "team",
+    shareWith: undefined,
+  });
+});
+
+test("report missing a required flag falls back to usage", () => {
+  const result = parseArgv(["report", "--payload", "payload.json", "--config", "config.json"]);
+  assert.strictEqual(result.kind, "usage");
+  assert.match(result.message, /--payload \/ --config \/ --profile for report/);
+});
+
 test("start with <KEY> and --workspace-root parses key, root, and defaults", () => {
   const result = parseArgv(["start", "MCA-101", "--workspace-root", "/work"]);
   // No --templates-root: forwarded undefined (P1 default resolved in cli.ts).

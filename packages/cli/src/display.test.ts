@@ -3,8 +3,16 @@ import assert from "node:assert";
 
 import type { Issue, Payload } from "@saci/core";
 
-import { renderFetch, renderExport, renderStart, EMPTY_CELL, EMPTY_STATE } from "./display.js";
+import {
+  renderFetch,
+  renderExport,
+  renderReport,
+  renderStart,
+  EMPTY_CELL,
+  EMPTY_STATE,
+} from "./display.js";
 import type { ExportRunResult } from "./run-export.js";
+import type { ReportRunResult } from "./run-report.js";
 import type { StartRunResult } from "./run-start.js";
 
 // All cases drive the PUBLIC surface (renderFetch / renderExport). The module
@@ -110,6 +118,50 @@ test("export confirmation states rowCount 0 explicitly", () => {
     rowCount: 0,
   };
   assert.strictEqual(renderExport(result), "wrote 0 rows to out/looker.json (json)\n");
+});
+
+function reportResult(overrides: Partial<ReportRunResult> = {}): ReportRunResult {
+  return {
+    spreadsheetId: "sheet-abc",
+    created: true,
+    rowCount: 12,
+    share: "granted",
+    ...overrides,
+  };
+}
+
+test("report on a creating run names the id, the rows, and the share", () => {
+  const out = renderReport(reportResult());
+  assert.strictEqual(
+    out,
+    "Created report sheet-abc with 12 rows; shared as reader with the address you gave.\n",
+  );
+  // The address is a personal identifier and never reaches this line (constraint 2);
+  // the id does, because it is the operator's only handle on the report.
+  assert.ok(!out.includes("@"));
+});
+
+test("report explains WHY an existing report was not shared", () => {
+  const out = renderReport(reportResult({ created: false, share: "skipped-existing" }));
+  assert.strictEqual(
+    out,
+    "Updated report sheet-abc with 12 rows; not shared — --share-with applies only to the run that creates the report.\n",
+  );
+});
+
+test("report renders not-requested differently on a creating run and on a refresh", () => {
+  // Same `share` value, two different worlds: a creating run leaves a report only
+  // the operator can open and must say so, while a refresh could not have shared
+  // anything anyway, so advice about --share-with would be unusable noise.
+  const creating = renderReport(reportResult({ share: "not-requested" }));
+  assert.strictEqual(
+    creating,
+    "Created report sheet-abc with 12 rows; not shared, so only you can open it.\n",
+  );
+
+  const refresh = renderReport(reportResult({ created: false, share: "not-requested" }));
+  assert.strictEqual(refresh, "Updated report sheet-abc with 12 rows.\n");
+  assert.notStrictEqual(creating, refresh);
 });
 
 test("start with a template names folder, editable dir, and the applied template", () => {
