@@ -131,16 +131,37 @@ function resolveScopes(flags) {
 
 // --- Failure reporting (R4: status and reason always logged, never swallowed) ---
 
-const SCOPE_SIGNAL = /insufficient|invalid_scope|PERMISSION_DENIED|forbidden|not authorized/i;
+/**
+ * Ordered failure classification; first match wins. The order is load-bearing, and
+ * it is a correction: the first version of this function called every 403 a scope
+ * signal, and the run of 2026-08-15 produced a 403 that meant "the Sheets API is
+ * not enabled in this Cloud project" — a step that never reached authorization at
+ * all. Filing that as a scope answer is exactly the assume-instead-of-measure
+ * failure the spike exists to prevent, so an unknown 403 now says it is unknown.
+ */
+const CLASSIFICATION_RULES = [
+  [/has not been used in project|SERVICE_DISABLED|API .* is disabled/i,
+    "API NOT ENABLED in the Cloud project — this step is UNMEASURED, not answered: enable it and re-run"],
+  [/insufficient authentication scopes|ACCESS_TOKEN_SCOPE_INSUFFICIENT|invalid_scope|insufficient permission/i,
+    "scope-insufficient signal — this is an S-question answer, not a bug"],
+  [/invalid_grant|expired or revoked|consent/i,
+    "the grant itself is broken — delete the token file and authorize again (G-DRIVE-1)"],
+];
+
+function classify(status, message) {
+  for (const [pattern, hint] of CLASSIFICATION_RULES) {
+    if (pattern.test(message)) return ` [${hint}]`;
+  }
+  if (status === 403 || status === 401) {
+    return " [authorization failure of UNKNOWN cause — read the message before calling it a scope answer]";
+  }
+  return "";
+}
 
 function describeError(error) {
   const status = error?.response?.status ?? error?.status ?? error?.code ?? "n/a";
   const message = String(error?.message ?? error);
-  const scopeHint =
-    SCOPE_SIGNAL.test(message) || status === 403 || status === 401
-      ? " [scope-insufficient signal — this is an S-question answer, not a bug]"
-      : "";
-  return `${status} ${message}${scopeHint}`;
+  return `${status} ${message}${classify(status, message)}`;
 }
 
 /**
