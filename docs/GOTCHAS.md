@@ -360,6 +360,70 @@ In code, classify by **message signature before status**, and put the service-di
 
 ---
 
+### G-SHEETS-3 — Google's error prose arrives in the account's locale
+
+**Symptom:** A guard that classifies a Drive or Sheets failure by reading its message
+text works on the machine of whoever wrote it and silently stops working on another
+account. There is no error and no log line: the branch simply never fires, and the
+caller proceeds as though the condition it was checking for did not occur.
+
+**Cause:** The message is written in the account's own language. Measured on
+2026-08-15: an authenticated `permissions.create` against the owner's Google workspace,
+rejecting a mistyped recipient, answered `400` with its user-facing text in **pt-BR** —
+on a request that asked for no language, from an adapter that sends no `Accept-Language`
+anywhere. Quoted as received, with only the address replaced:
+
+```
+Bad Request. User message: "Você está tentando convidar <address>. Como não há uma
+Conta do Google associada a esse endereço de e-mail, você precisará selecionar a caixa
+"Notificar pessoas" para convidar o destinatário."
+```
+
+The status code was stable and carried the whole of the machine-readable signal; only
+the prose moved. What the message *meant* was also never established — whether the
+address has no Google account behind it, or whether the grant needed the notification
+flag, are two readings the run cannot separate, and the classification deliberately
+names both and asserts neither.
+
+**Cross-reference — this is `G-JIRA-1` in a second vendor, and the pair is the point.**
+G-JIRA-1 recorded a Jira `400` answering in Chinese and refused to explain why: that
+probe ran with an invalid credential and, in one case, no `Authorization` header at all,
+so there was no authenticated account whose preference the response could have followed.
+This run closes that gap from the other side. The call was authenticated, the account
+was the owner's, the account's language is pt-BR, and the message came back in pt-BR —
+so here the locale explanation is the obvious one rather than an untested hypothesis.
+Neither entry alone supports a general rule; **two independent vendors do.** Treat the
+language of any vendor's error prose as a value this codebase neither sets, nor reads,
+nor has a way to predict, and never as a control-flow input.
+
+**Workaround:** Key on the operation and the HTTP status; never branch on response-body
+text. The live example is `packages/adapter-sheets/src/errors.ts`: `hintFor` consults
+`MESSAGE_RULES` first, then an `OPERATION_STATUS_HINTS` map keyed on the literal
+`` `${operation}:${status}` `` pair, then status alone. The `shareAsReader:400` entry
+exists precisely because this failure was previously reported as "unclassified", and it
+reads none of the message it classifies. `errors.test.ts` (p) pins that property by
+using the pt-BR message above as its fixture while asserting nothing about its contents,
+and (q) asserts a `400` on another operation does not borrow the share hint.
+
+The message-signature rules that remain in `MESSAGE_RULES` are not a contradiction:
+they match machine-stable identifiers Google emits alongside the prose
+(`SERVICE_DISABLED`, `ACCESS_TOKEN_SCOPE_INSUFFICIENT`, `invalid_grant`), not sentences.
+Matching a symbol is not matching a language. Where a rule matches English words rather
+than a symbol, it is a latent instance of this trap.
+
+A second consequence: a message in any language may quote a personal identifier. This
+one named the invitee, and the adapter carried it into its own error and its cause's
+stack until `redact` was added. See `G-DRIVE-3` for why a stack matters — it is what
+Node prints on an unhandled rejection.
+
+**Evidence:** Measured 2026-08-15 during the owner-run evidence round of
+`docs/tasks/2026-08-15-report-command/`, on an authenticated `permissions.create` call
+that had just succeeded at creating and writing a spreadsheet with the same token. The
+transcript, redacted, is in that task's `notes.md`. The adapter's response to it —
+operation+status classification and recipient redaction — shipped in the same task.
+
+---
+
 ## Maintenance
 
 Visit this file every 1–2 weeks during active development. Group related entries when the catalog grows past ~25 items. Promote frequent recurrences to `CLAUDE.md` rules so the next agent prevents them upfront instead of reacting.
