@@ -187,13 +187,22 @@ test("(i) a failed share carries no recipient address out of the adapter", async
   // The failure PAYLOAD carries the address, the way a real permissions.create failure
   // does — the outgoing request rides on the thrown error. Without this the test would
   // pass against an adapter that simply never had the address to leak, proving nothing.
-  const failure = Object.assign(new Error("Permission denied"), {
-    response: { status: 403 },
-    config: {
-      url: "https://www.googleapis.com/drive/v3/files/test-spreadsheet-id/permissions",
-      data: { type: SHARE_TYPE, role: SHARE_ROLE, emailAddress: PLACEHOLDER_RECIPIENT },
+  // Google's own MESSAGE also quotes the address, which is the 2026-08-15 live shape:
+  // a 400 whose pt-BR text named the invitee. The previous task wrote down that this
+  // case was uncovered before anyone had seen it; this fixture is that bound reached.
+  const failure = Object.assign(
+    new Error(
+      `Bad Request. User message: "Voce esta tentando convidar ${PLACEHOLDER_RECIPIENT}. ` +
+        `Como nao ha uma Conta do Google associada a esse endereco de e-mail..."`,
+    ),
+    {
+      response: { status: 400 },
+      config: {
+        url: "https://www.googleapis.com/drive/v3/files/test-spreadsheet-id/permissions",
+        data: { type: SHARE_TYPE, role: SHARE_ROLE, emailAddress: PLACEHOLDER_RECIPIENT },
+      },
     },
-  });
+  );
   // Non-vacuity guard: the fixture must actually carry the address, or this proves nothing.
   assert.ok(
     inspect(failure, { depth: null }).includes(PLACEHOLDER_RECIPIENT),
@@ -204,11 +213,19 @@ test("(i) a failed share carries no recipient address out of the adapter", async
   await assert.rejects(
     () => gateway.shareAsReader(SPREADSHEET_ID, PLACEHOLDER_RECIPIENT),
     (error: Error) => {
-      // Neither the message the adapter composes nor anything reachable from the
-      // thrown error carries the address (constraint 2). What this does NOT claim:
-      // that Google's own message text is scrubbed — if the API puts an address in
-      // its message, that message is quoted as received.
+      // The bound this test used to declare has MOVED: Google's own message text is
+      // now scrubbed too, because the adapter knows the recipient and strips it.
+      // Two separate proofs, because they are two separate objects.
+      // (1) the message the adapter composes:
       assert.ok(!error.message.includes(PLACEHOLDER_RECIPIENT));
+      assert.match(error.message, /<recipient>/, "the address was not replaced, only absent");
+      // (2) the sanitized cause — the object Node prints on an unhandled rejection,
+      // which is the path G-DRIVE-3 exists for. Redacting only (1) closes nothing.
+      const cause = error.cause;
+      assert.ok(cause instanceof Error);
+      assert.ok(!cause.message.includes(PLACEHOLDER_RECIPIENT));
+      assert.match(cause.message, /<recipient>/);
+      // (3) and nothing reachable from the thrown error at any depth (constraint 2).
       assert.ok(!inspect(error, { depth: null }).includes(PLACEHOLDER_RECIPIENT));
       assert.match(error.message, /^Sheets shareAsReader failed for spreadsheet test-spreadsheet-id: /);
       return true;

@@ -74,13 +74,19 @@ export class SpreadsheetGateway implements SpreadsheetGatewayPort {
    * identifier, and an error message is a log line waiting to happen (constraint 2).
    */
   async shareAsReader(spreadsheetId: string, recipient: string): Promise<void> {
-    await this.call("shareAsReader", `spreadsheet ${spreadsheetId}`, () =>
-      this.api.createPermission({
-        spreadsheetId,
-        recipient,
-        type: SHARE_TYPE,
-        role: SHARE_ROLE,
-      }),
+    await this.call(
+      "shareAsReader",
+      `spreadsheet ${spreadsheetId}`,
+      () =>
+        this.api.createPermission({
+          spreadsheetId,
+          recipient,
+          type: SHARE_TYPE,
+          role: SHARE_ROLE,
+        }),
+      // Google quotes the address back inside its own failure text (measured
+      // 2026-08-15), so the seam is told what to strip. Only this method knows it.
+      recipient,
     );
   }
 
@@ -89,12 +95,21 @@ export class SpreadsheetGateway implements SpreadsheetGatewayPort {
    * every message names the operation, the target, the status and a fix (R4). The
    * library's own error never travels whole — `toSheetsError` builds the sanitized
    * stand-in (G-DRIVE-3).
+   *
+   * `secret`, when given, is a value the CALLER knows is sensitive and Google may
+   * echo back inside its own message. It is stripped from both the composed message
+   * and the sanitized cause.
    */
-  private async call<T>(operation: string, target: string, run: () => Promise<T>): Promise<T> {
+  private async call<T>(
+    operation: string,
+    target: string,
+    run: () => Promise<T>,
+    secret?: string,
+  ): Promise<T> {
     try {
       return await run();
     } catch (error) {
-      throw toSheetsError(operation, target, error);
+      throw toSheetsError(operation, target, error, secret);
     }
   }
 }
