@@ -65,6 +65,20 @@ behavior check whose scope is narrower than the sentence describing it.
   `git ls-files '*.py'` returns 47 files totalling 15,367 lines across root,
   `tests/` and `scripts/` only. No size comparison in this task understated the
   lab.
-- The `grep -c` verifications in this brief count *lines*, not occurrences. They
-  were cross-checked site by site with `grep -n`, but a future brief wanting an
-  occurrence count must say so explicitly.
+- **Closed 2026-08-14 — measured, and it changed no verdict.** The `grep -c`
+  verifications in this brief count *lines*, not occurrences. Re-run against
+  `bf057b0`, the tree they were verified on, the two counts are identical for
+  all four checks: `buraqueira` in `CLAUDE.md` 3/3, `automation/` in `CLAUDE.md`
+  1/1, in `docs/ROADMAP.md` 4/4, in `docs/MENTOR_BRIEF.md` 2/2. No line carried
+  two matches, so every check passed as stated and would have passed identically
+  under an occurrence count. The caveat still stands for future briefs, and the
+  third check shows why: it reasons in *sites* ("the three out-of-scope sites,
+  lines 49, 101, 169, plus the one introduced by 2c") while measuring lines. That
+  vocabulary gap is what would bite. A brief wanting occurrences must say so and
+  use `grep -o … | wc -l`.
+
+  The same measurement surfaced a live defect it was not looking for:
+  `docs/MENTOR_BRIEF.md` still carried the 2026-06-12 pivot's "the sync diff
+  engine is never ported" in the present tense, un-superseded, after #148
+  corrected the twin claims in `CLAUDE.md` and `docs/ROADMAP.md`. Fixed in the
+  same PR as this closure.
