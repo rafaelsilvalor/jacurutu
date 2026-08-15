@@ -12,7 +12,7 @@ export { DriveGateway } from "./gateway.js";
 export type { DriveGatewayOptions } from "./gateway.js";
 
 export { createGoogleDriveFilesApi } from "./client.js";
-export type { CreateItemInput, DriveFilesApi } from "./client.js";
+export type { CreateItemInput, DriveAuthClient, DriveFilesApi } from "./client.js";
 
 export { authorize } from "./auth.js";
 export type { AuthorizeLog, AuthorizeOptions } from "./auth.js";
