@@ -4,19 +4,20 @@
 // applies the profile's filters and column selection, and writes the .csv /
 // .json output. All I/O lives here, never in core (R25 / D9). No credentials,
 // no network: the function is fixture-testable end to end.
+//
+// The projection half now lives in profile-projection.ts, because `saci report`
+// runs the same pipeline into a spreadsheet instead of a file. What remains here
+// is the file half: format dispatch, the two serializers, and the output path.
 
-import { readFile, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import {
-  applyColumns,
-  matchesFilters,
-  projectIssue,
-  type ColumnSpec,
-  type ExportContext,
-  type ExportFilters,
-  type Payload,
-} from "@saci/core";
+import { projectProfile, type CsvOptions } from "./profile-projection.js";
+
+// The three config types moved with the pipeline they describe. Re-exported so
+// this module's public type surface is what it was before the extraction —
+// a caller cannot tell the move happened (R14).
+export type { CsvOptions, ExportConfig, ExportProfile } from "./profile-projection.js";
 
 /** Default CSV delimiter — pt-BR Excel expects ";" (D4). */
 const DEFAULT_CSV_DELIMITER = ";";
@@ -28,31 +29,6 @@ const CSV_BOM = "\uFEFF";
 const CSV_LINE_TERMINATOR = "\r\n";
 /** JSON serialization indent, mirroring the run-fetch precedent. */
 const JSON_INDENT = 2;
-
-/** Per-profile CSV options (D4). Defaults: delimiter ";", BOM on. */
-export interface CsvOptions {
-  delimiter?: string;
-  includeBom?: boolean;
-}
-
-/** One named export profile (D3): selection / order / rename only. */
-export interface ExportProfile {
-  format: "csv" | "json";
-  columns: ColumnSpec[];
-  filters?: ExportFilters;
-  csv?: CsvOptions;
-  /** Stable output path, overwritten each run; relative paths resolve against the config file's directory. */
-  output: string;
-}
-
-/** Export config root (D3): provenance fields live outside the profiles. */
-export interface ExportConfig {
-  /** Operator label stamped on every row; `""` when absent (D8). */
-  operator?: string;
-  /** Jira base URL injected into the projection; URL columns are `""` when absent (D2). */
-  jiraBaseUrl?: string;
-  profiles: Record<string, ExportProfile>;
-}
 
 /** Run summary returned to the caller. */
 export interface ExportRunResult {
@@ -97,36 +73,18 @@ function toJson(headers: string[], rows: string[][]): string {
 }
 
 /**
- * Run the export: read the payload and the config, apply the named profile,
- * write the output file, and return a summary. The profile lookup and the
- * format dispatch both fail loudly — a typo'd config must never silently
- * produce an empty or mis-formatted export.
+ * Run the export: project the named profile, write the output file, and return
+ * a summary. The profile lookup (in profile-projection.ts) and the format
+ * dispatch both fail loudly — a typo'd config must never silently produce an
+ * empty or mis-formatted export.
  */
 export async function runExport(
   payloadPath: string,
   configPath: string,
   profileName: string,
 ): Promise<ExportRunResult> {
-  const payload = JSON.parse(await readFile(payloadPath, "utf8")) as Payload;
-  const config = JSON.parse(await readFile(configPath, "utf8")) as ExportConfig;
-
-  const profile = config.profiles?.[profileName];
-  if (!profile) {
-    throw new Error(`Unknown export profile: "${profileName}" (${configPath})`);
-  }
-
-  const context: ExportContext = {
-    operator: config.operator ?? "",
-    runDate: payload.run_date,
-    generatedAt: payload.generated_at,
-    jiraBaseUrl: config.jiraBaseUrl,
-  };
-
-  const records = payload.issues
-    .map((issue) => projectIssue(issue, context))
-    .filter((record) => matchesFilters(record, profile.filters));
-
-  const { headers, rows } = applyColumns(records, profile.columns);
+  const { profile, selection } = await projectProfile(payloadPath, configPath, profileName);
+  const { headers, rows } = selection;
 
   let content: string;
   if (profile.format === "csv") {
