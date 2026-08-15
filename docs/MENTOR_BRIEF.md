@@ -52,6 +52,18 @@
   `packages/core/src/export.ts`. Export is a fact table (one row per issue, zero
   aggregation); aggregation and history belong to the BI layer and to Phase 3
   state.
+
+  > **Superseded in part, 2026-08-14 — the Sheets code, not the state ruling.**
+  > The state half of this entry stands: the application owns production state
+  > and a spreadsheet is a one-way projection target, not a state surface. What
+  > the owner reversed is the fate of the Python Sheets code. The spreadsheet
+  > becomes a **report for the team** — read by people who never run Saci — and
+  > Saci is to create spreadsheets and share them inside the Google workspace.
+  > `sync.py` and `lib_sheets.py` are portable again; what ports is the
+  > projection, not the cell-by-cell reconciliation, which existed only because
+  > the Sheet held state. `docs/ROADMAP.md` carries the same note beneath its own
+  > 2026-06-12 entry, and the measured effect on the laboratory's portable
+  > surface (4,714 → 7,251) is in `docs/explorations/python-laboratory-lane.md`.
 - **CLI on-ramp shipped 2026-06-19 (brief 026):** the test-only `runFetch`
   (022) / `runExport` (023) composition functions are now wired into real
   `saci fetch --jql … [--out …]` and `saci export --payload … --config …
