@@ -110,22 +110,16 @@ export function renderExport(result: ExportRunResult): string {
 }
 
 /**
- * The share clause of the report line. Three outcomes, but FOUR renderings: a run
- * that requested no share reads differently depending on whether it created the
- * report. On a creating run the operator needs to know the report is private to
- * them; on a refresh, sharing was never in question (D3 confines it to creation),
- * so the line says nothing about it rather than offering advice that cannot be
- * acted on for a report that already exists.
+ * The share clause of the report line. Two outcomes, two clauses, and no dependence
+ * on whether the run created the report: `--share-with` acts on every run, so the
+ * advice is actionable whatever the run did. This function used to branch on
+ * `created` — that branching existed only while sharing was confined to the creating
+ * run, and it went away with the confinement (2026-08-15 evidence).
  */
 function renderShare(result: ReportRunResult): string {
-  switch (result.share) {
-    case "granted":
-      return "; shared as reader with the address you gave";
-    case "skipped-existing":
-      return "; not shared — --share-with applies only to the run that creates the report";
-    case "not-requested":
-      return result.created ? "; not shared, so only you can open it" : "";
-  }
+  return result.share === "granted"
+    ? "; shared as reader with the address you gave"
+    : "; not shared — pass --share-with to give someone access";
 }
 
 /**

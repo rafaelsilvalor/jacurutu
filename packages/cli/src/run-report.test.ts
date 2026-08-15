@@ -184,7 +184,7 @@ test("first run with no state creates, persists the id, shares, and writes the g
   }
 });
 
-test("second run with state reuses the id, creates nothing, and shares nothing", async () => {
+test("second run with state reuses the id, creates nothing, and DOES share when asked", async () => {
   const { base, payloadPath, configPath, statePath } = makeSandbox();
   try {
     seedState(statePath, "team", STORED_ID);
@@ -197,7 +197,7 @@ test("second run with state reuses the id, creates nothing, and shares nothing",
       configPath,
       profileName: "team",
       statePath,
-      // --share-with on a run that creates nothing is not an error and not silent (D3).
+      // D3 withdrawn 2026-08-15: --share-with acts on every run, not only creation.
       shareWith: RECIPIENT,
       now: () => "2026-09-01T00:00:00.000Z",
     });
@@ -206,21 +206,58 @@ test("second run with state reuses the id, creates nothing, and shares nothing",
       spreadsheetId: STORED_ID,
       created: false,
       rowCount: 2,
-      share: "skipped-existing",
+      share: "granted",
     });
-    // One identity across runs: no second spreadsheet, and no second share.
+    // One identity across runs — no second spreadsheet — but the share is retried,
+    // which is the whole reason D3 fell: a report whose only share attempt failed
+    // was otherwise unshareable forever.
     assert.deepStrictEqual(
       fake.calls,
-      [`writeGrid:${STORED_ID}`],
-      "a second run created or shared something: the team's link now points at a report Saci stopped updating",
+      [`writeGrid:${STORED_ID}`, `shareAsReader:${STORED_ID}`],
+      "a second run created a spreadsheet, or refused to share one it could have shared",
     );
-    assert.deepStrictEqual(fake.recipients, []);
+    assert.deepStrictEqual(fake.recipients, [RECIPIENT]);
+    // The result's claim and the call record must agree. `share` is assigned after
+    // the await, so a "granted" with no shareAsReader call cannot be produced — this
+    // asserts that property directly, because without it a reversal is invisible:
+    // computed from the flag, the field reported "granted" while nothing was shared.
+    assert.strictEqual(
+      result.share === "granted",
+      fake.calls.some((call) => call.startsWith("shareAsReader:")),
+      "the result says a share happened but no shareAsReader call is on record",
+    );
     assert.strictEqual(
       readFileSync(statePath, "utf8"),
       before,
       "a run that created nothing rewrote the state file",
     );
     assert.strictEqual(counter.calls, 1, "the gateway thunk must be awaited exactly once");
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+test("a refresh run without --share-with shares nothing and reports not-requested", async () => {
+  const { base, payloadPath, configPath, statePath } = makeSandbox();
+  try {
+    seedState(statePath, "team", STORED_ID);
+    const fake = makeFake();
+    const { make } = makeThunk(fake.gateway);
+
+    const result = await runReport(make, {
+      payloadPath,
+      configPath,
+      profileName: "team",
+      statePath,
+      now: () => FIXED_NOW,
+    });
+
+    assert.strictEqual(result.created, false);
+    assert.strictEqual(result.share, "not-requested");
+    // Sharing is now possible on any run, so the flag's ABSENCE is the only thing
+    // that keeps a run from sharing — no address, no share attempt.
+    assert.deepStrictEqual(fake.calls, [`writeGrid:${STORED_ID}`]);
+    assert.deepStrictEqual(fake.recipients, []);
   } finally {
     rmSync(base, { recursive: true, force: true });
   }

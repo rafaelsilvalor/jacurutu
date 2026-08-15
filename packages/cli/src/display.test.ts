@@ -141,27 +141,31 @@ test("report on a creating run names the id, the rows, and the share", () => {
   assert.ok(!out.includes("@"));
 });
 
-test("report explains WHY an existing report was not shared", () => {
-  const out = renderReport(reportResult({ created: false, share: "skipped-existing" }));
+test("report announces a share granted on a refresh run, not only on creation", () => {
+  // The case D3 made unreachable: a report that already exists, shared now. It is
+  // how a failed first share is ever recovered from (2026-08-15 evidence).
+  const out = renderReport(reportResult({ created: false, share: "granted" }));
   assert.strictEqual(
     out,
-    "Updated report sheet-abc with 12 rows; not shared — --share-with applies only to the run that creates the report.\n",
+    "Updated report sheet-abc with 12 rows; shared as reader with the address you gave.\n",
   );
+  assert.ok(!out.includes("@"));
 });
 
-test("report renders not-requested differently on a creating run and on a refresh", () => {
-  // Same `share` value, two different worlds: a creating run leaves a report only
-  // the operator can open and must say so, while a refresh could not have shared
-  // anything anyway, so advice about --share-with would be unusable noise.
+test("report gives the same, actionable share advice on a creating run and a refresh", () => {
+  // The clause no longer depends on `created`: --share-with works on either run, so
+  // the advice is usable in both. Only the verb differs.
   const creating = renderReport(reportResult({ share: "not-requested" }));
+  const refresh = renderReport(reportResult({ created: false, share: "not-requested" }));
   assert.strictEqual(
     creating,
-    "Created report sheet-abc with 12 rows; not shared, so only you can open it.\n",
+    "Created report sheet-abc with 12 rows; not shared — pass --share-with to give someone access.\n",
   );
-
-  const refresh = renderReport(reportResult({ created: false, share: "not-requested" }));
-  assert.strictEqual(refresh, "Updated report sheet-abc with 12 rows.\n");
-  assert.notStrictEqual(creating, refresh);
+  assert.strictEqual(
+    refresh,
+    "Updated report sheet-abc with 12 rows; not shared — pass --share-with to give someone access.\n",
+  );
+  assert.strictEqual(creating.replace("Created", "Updated"), refresh);
 });
 
 test("start with a template names folder, editable dir, and the applied template", () => {

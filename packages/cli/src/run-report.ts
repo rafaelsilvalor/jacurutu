@@ -40,7 +40,12 @@ export interface ReportRunResult {
   spreadsheetId: string;
   created: boolean;
   rowCount: number;
-  share: "granted" | "skipped-existing" | "not-requested";
+  /**
+   * Whether a share was performed. Two values, not three: `--share-with` acts on
+   * ANY run, so a requested share either happened or threw. The former
+   * `skipped-existing` described a run that refused to share, which no longer exists.
+   */
+  share: "granted" | "not-requested";
 }
 
 function spreadsheetName(profileName: string): string {
@@ -99,6 +104,16 @@ function notFoundError(
  * aborted, and the spreadsheet was left empty — while the state entry, persisted
  * earlier, made every later run take the reuse path. A share failure must leave a
  * complete report behind, because the report is the deliverable and the share is not.
+ *
+ * `shareWith` acts on EVERY run. The brief's D3 confined sharing to the creating run;
+ * the same 2026-08-15 evidence withdrew it, because a one-shot share with no retry
+ * leaves a report that is permanently unshareable the moment the one attempt fails —
+ * no later run creates, so under D3 no later run could ever share.
+ *
+ * `share` is assigned AFTER `shareAsReader` resolves, so the returned value records
+ * what happened instead of restating what was asked for. Computed from the flag alone
+ * it was right only by coincidence of structure: a falsification that stopped the call
+ * from running left the result still reporting a share that never occurred.
  */
 export async function runReport(
   makeGateway: MakeSpreadsheetGateway,
@@ -114,8 +129,11 @@ export async function runReport(
 
   const gateway = await makeGateway();
 
+  const created = existing === null;
+  let spreadsheetId: string;
+
   if (existing !== null) {
-    const { spreadsheetId } = existing;
+    spreadsheetId = existing.spreadsheetId;
     try {
       await gateway.writeGrid(spreadsheetId, selection);
     } catch (error) {
@@ -124,28 +142,25 @@ export async function runReport(
         ? notFoundError(profileName, spreadsheetId, statePath, error)
         : error;
     }
-    return {
-      spreadsheetId,
-      created: false,
-      rowCount: selection.rows.length,
-      share: shareWith === undefined ? "not-requested" : "skipped-existing",
-    };
+  } else {
+    const sheet = await gateway.createSpreadsheet(spreadsheetName(profileName));
+    spreadsheetId = sheet.id;
+    // Persist, then fill — each step survives the next one failing.
+    await writeReportEntry(statePath, profileName, { spreadsheetId, createdAt: now() });
+    await gateway.writeGrid(spreadsheetId, selection);
   }
 
-  const created = await gateway.createSpreadsheet(spreadsheetName(profileName));
-  // Persist, then fill, then share — each step survives the next one failing.
-  await writeReportEntry(statePath, profileName, {
-    spreadsheetId: created.id,
-    createdAt: now(),
-  });
-  await gateway.writeGrid(created.id, selection);
+  // Share on ANY run, creating or not — one call site, after the grid is written.
+  let share: ReportRunResult["share"] = "not-requested";
   if (shareWith !== undefined) {
-    await gateway.shareAsReader(created.id, shareWith);
+    await gateway.shareAsReader(spreadsheetId, shareWith);
+    share = "granted";
   }
+
   return {
-    spreadsheetId: created.id,
-    created: true,
+    spreadsheetId,
+    created,
     rowCount: selection.rows.length,
-    share: shareWith === undefined ? "not-requested" : "granted",
+    share,
   };
 }
