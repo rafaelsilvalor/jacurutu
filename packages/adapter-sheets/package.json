@@ -9,6 +9,8 @@
     "build": "tsc -p ."
   },
   "dependencies": {
-    "@saci/core": "*"
+    "@saci/core": "*",
+    "@saci/adapter-drive": "*",
+    "googleapis": "173.0.0"
   }
 }

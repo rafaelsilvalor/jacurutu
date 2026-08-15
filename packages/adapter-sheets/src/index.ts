@@ -1,3 +1,48 @@
-// Phase 1 placeholder. Real Google Sheets adapter lands in Phase 4.
-import { SACI_CORE_PHASE } from "@saci/core";
-export const ADAPTER_SHEETS_PHASE = SACI_CORE_PHASE;
+// Public surface of @saci/adapter-sheets: the SpreadsheetGateway implementation of the
+// core port, the injected Google-call seam, and one convenience factory. The
+// composition root wires this adapter into core (R25); core never imports it.
+//
+// No command wires it yet — the `saci` subcommand that produces a real report, and the
+// product decisions about what the report shows, belong to the next brief.
+
+import {
+  authorize,
+  defaultCredentialPaths,
+  type AuthorizeLog,
+  type CredentialPaths,
+} from "@saci/adapter-drive";
+
+import { createGoogleSpreadsheetApi } from "./client.js";
+import { SpreadsheetGateway } from "./gateway.js";
+
+export { SpreadsheetGateway } from "./gateway.js";
+export type { SpreadsheetGatewayOptions } from "./gateway.js";
+
+export { createGoogleSpreadsheetApi } from "./client.js";
+export type {
+  CreatedSpreadsheet,
+  GoogleAuthClient,
+  PermissionInput,
+  SpreadsheetApi,
+} from "./client.js";
+
+/** Inputs for `createSpreadsheetGateway`; both default to the standard ~/.saci setup. */
+export interface CreateSpreadsheetGatewayOptions {
+  /** Credential locations. Defaults to `defaultCredentialPaths()`. */
+  paths?: CredentialPaths;
+  /** Sink for authorization progress lines. Defaults to stdout. */
+  log?: AuthorizeLog;
+}
+
+/**
+ * Resolve credentials, authorize, and return a ready gateway — the one call the smoke
+ * and the future report command need. Authorization is adapter-drive's: one Google
+ * grant, one `~/.saci/token.json`, no second browser round-trip for the same user (D8).
+ */
+export async function createSpreadsheetGateway(
+  options: CreateSpreadsheetGatewayOptions = {},
+): Promise<SpreadsheetGateway> {
+  const paths = options.paths ?? defaultCredentialPaths();
+  const auth = await authorize(options.log === undefined ? { paths } : { paths, log: options.log });
+  return new SpreadsheetGateway({ api: createGoogleSpreadsheetApi(auth) });
+}

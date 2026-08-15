@@ -41,6 +41,7 @@
 | `G-JIRA` | Jira adapter — REST semantics, auth, search endpoint behavior |
 | `G-HOOK` | Claude Code hooks — registration, project-dir resolution, branch-scoped availability |
 | `G-GIT` | Git semantics — squash-merge consequences, containment checks, branch and worktree lifecycle |
+| `G-SHEETS` | Google Sheets adapter — Sheets API enablement, A1 ranges, values semantics |
 
 Categories grow as needed. New category: lowercase shortcode, all-caps in IDs.
 
@@ -327,6 +328,35 @@ Both trees were `ae79eb91e32c226575dc3b0a03a075784902d4e8`. The branch had `orig
 The `origin/` requirement was measured the same day, on the session that wrote the correction above — by running this entry's own Workaround against that session's task branch, `docs/gotchas-squash-containment`, to check a claim its recap had already asserted. The claim was wrong. `git diff --stat main <branch>`, run literally, reported **21 insertions and 5 deletions** and read as unique work; the local `main` was one commit behind at `d517144`, because the merge happened on the server and `git fetch` had moved only `origin/main`. The same command against `origin/main` was empty, with both trees at `b7f8fcf2e9976d7755040b9f5fc06285a0dd08f4`. Nothing about the branch changed between the two commands — only the reference did. Unlike the measurements above, **this one reproduces**: check out any worktree cut from a SHA whose `main` has since advanced, and both answers are still there. Recorded in `docs/sessions/2026-08-11-orchestrator-gotchas-squash-containment.md` as F-3.
 
 The warning quoted in the Cause was captured on 2026-08-11, cleaning up that same session — and the cleanup produced the entry's tightest demonstration, because it ran `git branch -d` over **three** branches in one command. All three had been verified contained by the tree check first: remainder empty against `origin/main`, and the led files showing `0/260` and `4/8` added-over-deleted, i.e. `origin/main` strictly ahead. `-d` then answered in opposite directions. `docs/gotchas-squash-containment` was deleted, over the warning above. `docs/session-recap-gotchas-squash-containment` and `docs/gotchas-origin-main-reference` were **refused** — `error: the branch '...' is not fully merged` — and needed `-D`. The variable was not containment, which was identical in all three: GitHub had auto-deleted the remote branches of the latter two on merge and a `git fetch --prune` had removed their remote-tracking refs, leaving `-d` to fall back to `HEAD`; the first still had its `origin/` ref alive. Same repository, same minute, same containment, three branches, two opposite verdicts. This measurement is recorded **here and nowhere else**: it was taken after that session's recap had already merged, so the recap does not contain it. The three tips were `8dcf0a6`, `f7e2ed6` and `4bbc897`.
+
+---
+
+### G-SHEETS-1 — A disabled Sheets API answers 403 and reads exactly like a scope failure
+
+**Symptom:** The first `spreadsheets.values.update` against a Cloud project that has never used the Sheets API answers `403 Google Sheets API has not been used in project <project-number> before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/sheets.googleapis.com/overview?project=<project-number> then retry.` The status code is the same one an insufficient-scope denial carries, and everything around the call looks like an authorization problem: the token was just used successfully for a Drive call, the app is a Desktop OAuth client, the scope list is short. A classifier that treats every 403 as a scope signal files this as "the granted scopes are not enough" — and then the reader deletes `~/.saci/token.json`, re-consents in the browser, and gets the identical failure, because nothing about the grant was ever wrong.
+
+**Cause:** Enabling the Sheets API is a **project-level** setting, entirely separate from the OAuth grant. It was measured, not reasoned: the same cached token, carrying the same granted scope string, produced a failing call before the API was enabled and a passing one after — with no re-consent, no new token, and no edit to the requested scopes in between. The scopes were sufficient the whole time and the 403 was never about them. What the API rejects the request on internally, and whether it consults the grant at all before answering, was **not established** — and it does not need to be: the measurement rules out scopes as the variable, which is the only thing the reader has to know.
+
+**Workaround:** Enable the Google Sheets API in the Cloud project (the console URL in the error message points straight at it). It does not touch the OAuth grant, does not invalidate `~/.saci/token.json`, and forces no existing user back through browser consent — `G-DRIVE-1` does not fire for this change.
+
+In code, classify by **message signature before status**, and put the service-disabled signature first: match `has not been used in project` / `SERVICE_DISABLED` ahead of any insufficient-scope signature, and report a 401 or 403 that matches no signature as an authorization failure of unknown cause rather than borrowing the scope verdict. The live example is `MESSAGE_RULES` in `packages/adapter-sheets/src/errors.ts`; `errors.test.ts` pins the order with a message carrying **both** signatures, because a message carrying only one classifies correctly under either order and would not catch a reversal.
+
+**Evidence:** The two transcripts in `docs/tasks/2026-08-15-spike-sheets-report/notes.md`, measured 2026-08-15 against the owner's Cloud project. Run 1: `STEP 2a: FAIL 403 Google Sheets API has not been used in project <PROJECT-NUMBER> before or it is disabled.` Run 2, after enabling the API: `STEP 2a: PASS — values.update wrote 51 cells at 'Página1'!A1:Q3`. Both runs reused the same cached token and both printed the granted scope string as `STEP 4` — `drive.file` + `drive.metadata.readonly`, identical — which is what makes the conclusion airtight: the scope list could not have been the variable, because it did not vary. The same note records that the spike's own probe mislabeled run 1 as a scope signal, and keeps that wrong label in the transcript rather than retouching it.
+
+---
+
+### G-SHEETS-2 — The default sheet is named in the account's locale
+
+**Symptom:** A range qualified with a sheet name works on the machine of whoever wrote it and, on another account, addresses a sheet that is not there.
+
+**Cause:** This entry has a measured half and an inferred half, and they are **not** the same claim.
+
+- **Measured.** The default sheet of a newly created spreadsheet is named in the account's own language. A `values.update` sent with the unqualified range `A1` came back echoing `updatedRange = 'Página1'!A1:Q3` on a pt-BR account: Google resolved the unqualified range against the first sheet and reported that sheet's localized name back.
+- **Inferred, never exercised.** That a range written `Sheet1!A1` would therefore *fail* on that same account is a reasonable reading of the echo above and nothing more. No qualified range was ever sent, by that run or any other, so the failure mode has no measurement behind it — not its error, not its status, not even that it fails at all. Do not let this half acquire the confidence of the one above it because the two sit in the same entry.
+
+**Workaround:** Never qualify a range with a sheet name. An unqualified A1 range targets the first sheet, which is the only form this project has exercised — `VALUES_RANGE` and `CLEAR_RANGE` in `packages/adapter-sheets/src/constants.ts` both rely on it, and both say so where they are declared. A hardcoded English sheet name is the thing to avoid whether or not the inferred half is true: it can only ever be right by coincidence of locale.
+
+**Evidence:** Run 2 of the spike, `docs/tasks/2026-08-15-spike-sheets-report/notes.md`, 2026-08-15: `STEP 2a: PASS — values.update wrote 51 cells at 'Página1'!A1:Q3`. That single echo is the whole of the measurement.
 
 ---
 
