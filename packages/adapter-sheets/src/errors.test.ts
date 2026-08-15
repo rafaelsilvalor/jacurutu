@@ -78,8 +78,10 @@ test("(a) a disabled Sheets API is reported as a project setting, not an auth pr
   assert.match(message, /status=403/);
   assert.match(message, /not enabled in this Cloud project/);
   assert.match(message, /G-SHEETS-1/);
-  // The whole point of the rule: a 403 from a disabled API says nothing about the grant.
-  assert.match(message, /never reached authorization/);
+  // The whole point of the rule: a 403 from a disabled API says nothing about the
+  // grant — asserted on what the spike measured (same token, same granted scopes,
+  // success once the API was enabled), never on where Google checks the grant.
+  assert.match(message, /No token or grant needs changing/);
   assert.ok(!message.includes(TOKEN_PATH_HINT));
 });
 

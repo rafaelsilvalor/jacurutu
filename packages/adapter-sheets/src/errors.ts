@@ -10,8 +10,9 @@
 //
 // ORDER IS LOAD-BEARING, and it is a correction the spike paid for. Its first probe
 // called every 403 a scope signal; the 403 it actually met meant "the Sheets API is
-// not enabled in this Cloud project" — a call that never reached authorization and
-// therefore said nothing about scopes. Filing that as a scope answer is the
+// not enabled in this Cloud project" — and the same token, carrying the same granted
+// scopes, made the same call succeed once the API was enabled, so the scopes were
+// never the cause. Filing that as a scope answer is the
 // assume-instead-of-measure failure the spike existed to prevent. Service-disabled is
 // therefore tested BEFORE the scope signature, and a 401/403 matching no rule reports
 // itself as unknown rather than borrowing the scope verdict.
@@ -52,8 +53,9 @@ const MESSAGE_RULES: readonly { pattern: RegExp; hint: string }[] = [
     pattern: /has not been used in project|SERVICE_DISABLED|API .* is disabled/i,
     hint:
       "the Google Sheets API is not enabled in this Cloud project — enable it in the " +
-      "Google Cloud console and retry. This is not an authorization problem: the call " +
-      "never reached authorization, and no token or grant needs changing (G-SHEETS-1)",
+      "Google Cloud console and retry. No token or grant needs changing: the same " +
+      "token and the same granted scopes answered this call successfully once the " +
+      "API was enabled (G-SHEETS-1)",
   },
   {
     pattern:
