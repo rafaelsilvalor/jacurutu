@@ -3,6 +3,7 @@
 // never depends on an adapter (R25). The Jira/Sheets/Drive wire concerns live in
 // the future adapters, not here.
 
+import type { ColumnSelection } from "./export.js";
 import type { Issue } from "./payload.js";
 
 /**
@@ -35,16 +36,47 @@ export interface JiraGateway {
 }
 
 /**
- * Port for the production-tracking spreadsheet. Methods are named in domain
- * terms; the gspread-specific `native` qualifier from the seed
- * (`write_rows_native`) is an adapter concern and does not appear here.
- * Grounded in automation/lib_sheets.py `read_rows` / `write_rows_native`.
+ * A spreadsheet as the port surfaces it: identity only. Enough to write into it,
+ * share it, and hand a person its id — and nothing about its content, because the
+ * projection is one-way and the port never reads back.
  */
-export interface SheetGateway {
-  /** Read all data rows (header skipped) as string-keyed records. */
-  readRows(): Promise<Record<string, string>[]>;
-  /** Write rows starting at the given 1-based row index. */
-  writeRows(startRow: number, rows: Record<string, string>[]): Promise<void>;
+export interface SpreadsheetRef {
+  id: string;
+  name: string;
+}
+
+/**
+ * Port for the team report: a spreadsheet Saci creates, fills, and shares with
+ * people who never run Saci. It replaces the 019 `SheetGateway`, whose
+ * `readRows` / `writeRows(startRow, ...)` pair existed only while the Sheet held
+ * production state — the application has owned that state since the 2026-06-12
+ * pivot, and the 2026-08-14 reversal made the spreadsheet a one-way report
+ * instead. Every method is grounded in an operation measured live in the
+ * 2026-08-15 spike, under the scopes `adapter-drive` already holds; the port
+ * deliberately cannot express what that spike did not measure.
+ */
+export interface SpreadsheetGateway {
+  /**
+   * Create an empty spreadsheet named `name` and return its identity. It lands in
+   * the account's My Drive root: creating inside a folder was not measured, so
+   * there is no parent parameter to get wrong.
+   */
+  createSpreadsheet(name: string): Promise<SpreadsheetRef>;
+
+  /**
+   * Replace the first sheet's contents with `table` — header row, then one row
+   * per record, anchored at A1. Replace, not append: a run with fewer rows must
+   * not leave the previous run's tail below the new grid. `ColumnSelection` is
+   * the export projection's own output type, so a report and a CSV of the same
+   * profile cannot drift in column selection or order.
+   */
+  writeGrid(spreadsheetId: string, table: ColumnSelection): Promise<void>;
+
+  /**
+   * Grant one workspace user read access. One user as reader is exactly what was
+   * measured, which is why neither the role nor the grantee type is a parameter.
+   */
+  shareAsReader(spreadsheetId: string, recipient: string): Promise<void>;
 }
 
 /**

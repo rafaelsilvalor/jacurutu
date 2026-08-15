@@ -34,7 +34,8 @@ export type { PayloadMeta } from "./assemble.js";
 
 export type {
   JiraGateway,
-  SheetGateway,
+  SpreadsheetGateway,
+  SpreadsheetRef,
   DriveGateway,
   DriveItem,
 } from "./gateways.js";
