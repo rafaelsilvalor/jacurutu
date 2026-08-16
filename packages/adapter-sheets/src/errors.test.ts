@@ -204,6 +204,56 @@ test("(m) toSheetsError keeps message, status and stack on a sanitized cause", (
   assert.strictEqual(cause.stack, original.stack);
 });
 
+test("(p) a 400 on shareAsReader names both candidate causes and picks neither", () => {
+  // The 2026-08-15 live failure, verbatim in shape: Google answered 400 and its
+  // message arrived in pt-BR. Nothing here reads that message — the rule is keyed on
+  // the operation and the status, which is the only pair that survives a locale.
+  const portuguese =
+    'Bad Request. User message: "Voce esta tentando convidar <address>. Como nao ha ' +
+    'uma Conta do Google associada a esse endereco de e-mail, voce precisara ' +
+    'selecionar a caixa Notificar pessoas para convidar o destinatario."';
+  const message = sheetsErrorMessage("shareAsReader", TARGET, apiError(400, portuguese));
+
+  assert.match(message, /status=400/);
+  assert.match(message, /rejected the share as a bad request/);
+  // Both candidate causes present, neither asserted: the run measured that the
+  // request was refused, never why.
+  assert.match(message, /may have no Google account/);
+  assert.match(message, /may require the notification flag/);
+  assert.match(message, /never measured/);
+  // It must not read as unclassified any more, which is what it did live.
+  assert.ok(!message.includes("unclassified"));
+});
+
+test("(q) a 400 on another operation does not borrow the share hint", () => {
+  const message = sheetsErrorMessage("writeGrid", TARGET, apiError(400, "Bad Request."));
+  assert.ok(
+    !message.includes("rejected the share as a bad request"),
+    "a 400 on writeGrid borrowed shareAsReader's hint: the rule is keyed on the " +
+      "operation AND the status, and keying it on status alone would tell a reader " +
+      "to check an address that no writeGrid call ever had",
+  );
+  assert.match(message, /unclassified/);
+});
+
+test("(r) service-disabled still outranks the operation rule on a share", () => {
+  // The order the spike paid for, re-asserted at the seam A3 added: a message rule
+  // must win over operation+status, or a disabled API on a share would be reported
+  // as a bad address.
+  const message = sheetsErrorMessage(
+    "shareAsReader",
+    TARGET,
+    apiError(400, SERVICE_DISABLED_MESSAGE),
+  );
+  assert.match(
+    message,
+    /not enabled in this Cloud project/,
+    "the operation+status rule outranked the message rules: MESSAGE_RULES must be " +
+      "consulted first, or service-disabled stops being the first answer",
+  );
+  assert.ok(!message.includes("rejected the share as a bad request"));
+});
+
 test("(n) a wrapped refresh failure prints no refresh token (G-DRIVE-3)", () => {
   const original = refreshFailureError();
   // Non-vacuity guard: if the fixture does not carry the leak, the assertion below

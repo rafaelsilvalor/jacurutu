@@ -3,8 +3,16 @@ import assert from "node:assert";
 
 import type { Issue, Payload } from "@saci/core";
 
-import { renderFetch, renderExport, renderStart, EMPTY_CELL, EMPTY_STATE } from "./display.js";
+import {
+  renderFetch,
+  renderExport,
+  renderReport,
+  renderStart,
+  EMPTY_CELL,
+  EMPTY_STATE,
+} from "./display.js";
 import type { ExportRunResult } from "./run-export.js";
+import type { ReportRunResult } from "./run-report.js";
 import type { StartRunResult } from "./run-start.js";
 
 // All cases drive the PUBLIC surface (renderFetch / renderExport). The module
@@ -110,6 +118,54 @@ test("export confirmation states rowCount 0 explicitly", () => {
     rowCount: 0,
   };
   assert.strictEqual(renderExport(result), "wrote 0 rows to out/looker.json (json)\n");
+});
+
+function reportResult(overrides: Partial<ReportRunResult> = {}): ReportRunResult {
+  return {
+    spreadsheetId: "sheet-abc",
+    created: true,
+    rowCount: 12,
+    share: "granted",
+    ...overrides,
+  };
+}
+
+test("report on a creating run names the id, the rows, and the share", () => {
+  const out = renderReport(reportResult());
+  assert.strictEqual(
+    out,
+    "Created report sheet-abc with 12 rows; shared as reader with the address you gave.\n",
+  );
+  // The address is a personal identifier and never reaches this line (constraint 2);
+  // the id does, because it is the operator's only handle on the report.
+  assert.ok(!out.includes("@"));
+});
+
+test("report announces a share granted on a refresh run, not only on creation", () => {
+  // The case D3 made unreachable: a report that already exists, shared now. It is
+  // how a failed first share is ever recovered from (2026-08-15 evidence).
+  const out = renderReport(reportResult({ created: false, share: "granted" }));
+  assert.strictEqual(
+    out,
+    "Updated report sheet-abc with 12 rows; shared as reader with the address you gave.\n",
+  );
+  assert.ok(!out.includes("@"));
+});
+
+test("report gives the same, actionable share advice on a creating run and a refresh", () => {
+  // The clause no longer depends on `created`: --share-with works on either run, so
+  // the advice is usable in both. Only the verb differs.
+  const creating = renderReport(reportResult({ share: "not-requested" }));
+  const refresh = renderReport(reportResult({ created: false, share: "not-requested" }));
+  assert.strictEqual(
+    creating,
+    "Created report sheet-abc with 12 rows; not shared — pass --share-with to give someone access.\n",
+  );
+  assert.strictEqual(
+    refresh,
+    "Updated report sheet-abc with 12 rows; not shared — pass --share-with to give someone access.\n",
+  );
+  assert.strictEqual(creating.replace("Created", "Updated"), refresh);
 });
 
 test("start with a template names folder, editable dir, and the applied template", () => {

@@ -8,6 +8,7 @@
 
 import type { ExportColumnId, Payload } from "@saci/core";
 import type { ExportRunResult } from "./run-export.js";
+import type { ReportRunResult } from "./run-report.js";
 import type { StartRunResult } from "./run-start.js";
 
 /**
@@ -106,6 +107,35 @@ export function renderFetch(payload: Payload, outputPath: string): string {
  */
 export function renderExport(result: ExportRunResult): string {
   return `wrote ${result.rowCount} rows to ${result.outputPath} (${result.format})${TRAILING_NEWLINE}`;
+}
+
+/**
+ * The share clause of the report line. Two outcomes, two clauses, and no dependence
+ * on whether the run created the report: `--share-with` acts on every run, so the
+ * advice is actionable whatever the run did. This function used to branch on
+ * `created` — that branching existed only while sharing was confined to the creating
+ * run, and it went away with the confinement (2026-08-15 evidence).
+ */
+function renderShare(result: ReportRunResult): string {
+  return result.share === "granted"
+    ? "; shared as reader with the address you gave"
+    : "; not shared — pass --share-with to give someone access";
+}
+
+/**
+ * Render the `report` confirmation from the ReportRunResult runReport returns: one
+ * line carrying created-or-updated, the spreadsheet id, the row count, and the share
+ * outcome.
+ *
+ * The id is printed because it is the only handle the operator has on the report —
+ * composing a Google URL out of it was never measured, so this layer does not invent
+ * one. The recipient address is never printed: it is a personal identifier, and a
+ * result line is a log line waiting to happen (brief constraint 2).
+ */
+export function renderReport(result: ReportRunResult): string {
+  const verb = result.created ? "Created" : "Updated";
+  const opening = `${verb} report ${result.spreadsheetId} with ${result.rowCount} rows`;
+  return `${opening}${renderShare(result)}.${TRAILING_NEWLINE}`;
 }
 
 /**

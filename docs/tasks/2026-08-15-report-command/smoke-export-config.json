@@ -1,0 +1,17 @@
+{
+  "operator": "smoke-fixture",
+  "jiraBaseUrl": "https://jira.example.invalid",
+  "profiles": {
+    "smoke": {
+      "format": "csv",
+      "output": "smoke-out.csv",
+      "columns": [
+        { "id": "key", "rename": "TASK" },
+        { "id": "parent_summary", "rename": "PROJECT" },
+        { "id": "summary", "rename": "DELIVERABLE" },
+        { "id": "status_jira", "rename": "STATUS" },
+        { "id": "entrega_iso", "rename": "DUE" }
+      ]
+    }
+  }
+}

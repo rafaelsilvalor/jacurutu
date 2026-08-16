@@ -74,6 +74,28 @@ const MESSAGE_RULES: readonly { pattern: RegExp; hint: string }[] = [
 ];
 
 /**
+ * Operation + status -> hint, consulted after the message rules and before the
+ * status-only table. Keyed on the operation and the HTTP status, never on message
+ * text: the 2026-08-15 live failure arrived as pt-BR prose, so a substring guard
+ * would have worked for whoever wrote it and failed for the next account
+ * (`G-JIRA-1`, now in a second vendor).
+ *
+ * The share entry names two candidate causes and picks neither. What was measured is
+ * that the request was rejected — not why — and the two readings that fit are that
+ * the address has no Google account behind it, or that the grant needed the
+ * notification flag. Choosing one here would be an inference dressed as a finding.
+ */
+const OPERATION_STATUS_HINTS: ReadonlyMap<string, string> = new Map([
+  [
+    "shareAsReader:400",
+    "Drive rejected the share as a bad request — the recipient may have no Google " +
+      "account behind that address, or the grant may require the notification flag; " +
+      "this was never measured, so check the address for a typo first. The report " +
+      "itself is unaffected: only the share failed",
+  ],
+]);
+
+/**
  * Status -> hint, for failures no message rule claimed. The 404 line states the
  * `drive.file` visibility caveat and stops there: what this scope does with items
  * created by other accounts was never measured (spike, "What was not measured"), so
@@ -134,12 +156,36 @@ function errorStatus(error: unknown): number | string {
   return UNKNOWN_STATUS;
 }
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+/** Stand-in for a recipient address removed from a message that leaves this module. */
+const RECIPIENT_PLACEHOLDER = "<recipient>";
+
+/**
+ * Remove `secret` from a message Google composed. Measured need, not a precaution:
+ * on 2026-08-15 a rejected share came back with the recipient's address quoted
+ * inside Google's own text, which the adapter then carried into its message. The
+ * previous task recorded that exact case as an uncovered bound; eight days later it
+ * happened.
+ *
+ * The empty-string guard is load-bearing — `replaceAll("")` splices the placeholder
+ * between every character, turning a leak into what reads like a corruption bug.
+ */
+function redact(message: string, secret: string | undefined): string {
+  if (secret === undefined || secret === "") {
+    return message;
+  }
+  return message.replaceAll(secret, RECIPIENT_PLACEHOLDER);
 }
 
-/** Apply the ordered rules: message signatures first, then status, then unknown. */
-function hintFor(status: number | string, message: string): string {
+function errorMessage(error: unknown, secret?: string): string {
+  return redact(error instanceof Error ? error.message : String(error), secret);
+}
+
+/**
+ * Apply the ordered rules: message signatures first, then operation+status, then
+ * status, then unknown. The message rules stay FIRST — that order is what the spike
+ * paid for, and service-disabled must win over everything, including on a share.
+ */
+function hintFor(operation: string, status: number | string, message: string): string {
   for (const rule of MESSAGE_RULES) {
     if (rule.pattern.test(message)) {
       return rule.hint;
@@ -147,6 +193,10 @@ function hintFor(status: number | string, message: string): string {
   }
   if (typeof status !== "number") {
     return UNCLASSIFIED_HINT;
+  }
+  const byOperation = OPERATION_STATUS_HINTS.get(`${operation}:${status}`);
+  if (byOperation !== undefined) {
+    return byOperation;
   }
   const mapped = STATUS_HINTS.get(status);
   if (mapped !== undefined) {
@@ -164,10 +214,16 @@ function hintFor(status: number | string, message: string): string {
  * names the spreadsheet the call addressed — never the share recipient, whose address
  * is a personal identifier that must not reach a log line (brief constraint 2).
  */
-export function sheetsErrorMessage(operation: string, target: string, error: unknown): string {
+export function sheetsErrorMessage(
+  operation: string,
+  target: string,
+  error: unknown,
+  secret?: string,
+): string {
   const status = errorStatus(error);
-  const message = errorMessage(error);
+  const message = errorMessage(error, secret);
   return `Sheets ${operation} failed for ${target}: status=${status} message="${message}". Hint: ${hintFor(
+    operation,
     status,
     message,
   )}`;
@@ -189,14 +245,21 @@ export function sheetsErrorMessage(operation: string, target: string, error: unk
  * (the frames R4 wants kept). The incoming error is never mutated — it belongs to the
  * library.
  */
-function sanitizedCause(error: unknown): Error {
-  const cause = new Error(errorMessage(error));
+function sanitizedCause(error: unknown, secret?: string): Error {
+  // Redacted HERE as well as in the composed message, and that is not belt-and-braces:
+  // this is the object Node prints on an unhandled rejection, which is the path
+  // G-DRIVE-3 exists for. Cleaning one and not the other closes nothing.
+  const cause = new Error(errorMessage(error, secret));
   const status = errorStatus(error);
   if (status !== UNKNOWN_STATUS) {
     Object.assign(cause, { status });
   }
   if (error instanceof Error && typeof error.stack === "string") {
-    cause.stack = error.stack;
+    // The stack is redacted too. A V8 stack string OPENS with the error's message,
+    // so copying it raw re-imports the address the line above just removed — and the
+    // stack is the part that actually prints. Caught by gateway.test.ts (i)'s
+    // full-depth inspect, not by reasoning.
+    cause.stack = redact(error.stack, secret);
   }
   return cause;
 }
@@ -206,8 +269,13 @@ function sanitizedCause(error: unknown): Error {
  * of the original as `cause` so the stack is not lost (R4 — surfaced, never swallowed)
  * and no credential material travels with the thrown error.
  */
-export function toSheetsError(operation: string, target: string, error: unknown): Error {
-  return new Error(sheetsErrorMessage(operation, target, error), {
-    cause: sanitizedCause(error),
+export function toSheetsError(
+  operation: string,
+  target: string,
+  error: unknown,
+  secret?: string,
+): Error {
+  return new Error(sheetsErrorMessage(operation, target, error, secret), {
+    cause: sanitizedCause(error, secret),
   });
 }

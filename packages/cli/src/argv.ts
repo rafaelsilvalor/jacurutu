@@ -16,6 +16,8 @@ export const USAGE = `Usage:
   saci fetch --jql <string> [--out <path>] [--allow-empty]
              [--field-config <path> --project <KEY>]
   saci export --payload <path> --config <path> --profile <name>
+  saci report --payload <path> --config <path> --profile <name>
+              [--share-with <address>]
   saci start <KEY> --workspace-root <path> [--templates-root <path>]
              [--variation <text>] [--blank] [--open]
   saci start --local --vertical <SIGLA> --title <text> --workspace-root <path>
@@ -39,6 +41,14 @@ export type ParsedCommand =
       project?: string;
     }
   | { kind: "export"; payload: string; config: string; profile: string }
+  | {
+      kind: "report";
+      payload: string;
+      config: string;
+      profile: string;
+      /** Optional: used only on the run that creates the report (D3). */
+      shareWith?: string;
+    }
   | {
       kind: "start";
       key: string;
@@ -76,6 +86,7 @@ const CLI_OPTIONS = {
   payload: { type: "string" },
   config: { type: "string" },
   profile: { type: "string" },
+  "share-with": { type: "string" },
   "workspace-root": { type: "string" },
   "templates-root": { type: "string" },
   blank: { type: "boolean" },
@@ -98,6 +109,7 @@ type CliValues = {
   payload?: string;
   config?: string;
   profile?: string;
+  "share-with"?: string;
   "workspace-root"?: string;
   "templates-root"?: string;
   blank?: boolean;
@@ -254,6 +266,27 @@ function routeCommand(values: CliValues, positionals: string[]): ParsedCommand {
         payload: values.payload,
         config: values.config,
         profile: values.profile,
+      };
+    }
+    case "report": {
+      if (
+        values.payload === undefined ||
+        values.config === undefined ||
+        values.profile === undefined
+      ) {
+        return {
+          kind: "usage",
+          message: `Missing required flag(s) --payload / --config / --profile for report.\n\n${USAGE}`,
+        };
+      }
+      return {
+        kind: "report",
+        payload: values.payload,
+        config: values.config,
+        profile: values.profile,
+        // Forwarded raw and unvalidated, like --templates-root: an address is not
+        // this parser's to check, and D3 uses it only on a run that creates.
+        shareWith: values["share-with"],
       };
     }
     case "start": {

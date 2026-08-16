@@ -11,15 +11,18 @@ import path from "node:path";
 import pkg from "../package.json" with { type: "json" };
 
 import { JiraGateway, type ResolvedFieldMapping } from "@saci/adapter-jira";
+import { createSpreadsheetGateway } from "@saci/adapter-sheets";
 
 import { parseArgv, type ParsedCommand } from "./argv.js";
 import { loadFieldMapping } from "./field-config.js";
 import { IDENTITY_DIR_NAME, IDENTITY_FILENAME } from "./identity.js";
 import { openPath } from "./open-path.js";
+import { REPORT_STATE_FILENAME } from "./report-state.js";
 import { runFetch, type MakeGateway } from "./run-fetch.js";
 import { runExport } from "./run-export.js";
+import { runReport } from "./run-report.js";
 import { runStart, runStartLocal, type StartLocalOptions } from "./run-start.js";
-import { renderFetch, renderExport, renderStart } from "./display.js";
+import { renderFetch, renderExport, renderReport, renderStart } from "./display.js";
 
 /** Credential env vars read by the fetch composition root (D-a3). */
 const ENV_BASE_URL = "SACI_JIRA_BASE_URL";
@@ -84,6 +87,16 @@ function resolveIdentityFilePath(): string {
   return path.join(os.homedir(), IDENTITY_DIR_NAME, IDENTITY_FILENAME);
 }
 
+/**
+ * Resolve the report-state file path: beside the identity file, under the same
+ * per-user `.saci` dir, composed with os.homedir() + path.join (R1). report-state.ts
+ * itself composes no path and reads no env — this is the only place that decides
+ * where the file lives.
+ */
+function resolveReportStatePath(): string {
+  return path.join(os.homedir(), IDENTITY_DIR_NAME, REPORT_STATE_FILENAME);
+}
+
 /** Map the parsed start-local command to runStartLocal options (identity path resolved here). */
 function toStartLocalOptions(
   command: Extract<ParsedCommand, { kind: "start-local" }>,
@@ -123,6 +136,22 @@ async function runCommand(command: ParsedCommand): Promise<void> {
     case "export": {
       const result = await runExport(command.payload, command.config, command.profile);
       process.stdout.write(renderExport(result));
+      return;
+    }
+    case "report": {
+      // The factory authorizes (browser on first use, cached token after) and is
+      // called here and nowhere else (D7). Nothing wraps it: an authorization or
+      // Sheets failure already arrives named and actionable from the adapter, and
+      // main()'s catch reports it at EXIT_RUNTIME. A friendlier message here would
+      // only hide which of the two layers failed.
+      const result = await runReport(() => createSpreadsheetGateway(), {
+        payloadPath: command.payload,
+        configPath: command.config,
+        profileName: command.profile,
+        statePath: resolveReportStatePath(),
+        shareWith: command.shareWith,
+      });
+      process.stdout.write(renderReport(result));
       return;
     }
     case "start": {
