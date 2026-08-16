@@ -97,6 +97,30 @@ single source during the window; the board is a projection. If the pilot
 passes, the phase-item bullets become a pointer to the board and the
 duplication ends. If it fails, the board is deleted and nothing in git moved.
 
+## How to back out, and what keeps it cheap
+
+Today the exit is two actions and neither is a revert:
+
+1. Trash the Notion database (`Saci — Dev Queue`).
+2. Flip this note's disposition to `discarded — <date>` with the reason, and
+   add the changelog line. The note itself is never deleted; the contract in
+   `docs/explorations/README.md` keeps discarded notes as the record.
+
+Nothing else moves, because nothing else was touched. `docs/ROADMAP.md` still
+carries all 21 items as bullets, unedited. The board was seeded *from* them and
+never replaced them.
+
+**That is not an accident, and it is the reason the duplication above is
+tolerable.** The ROADMAP bullets are the rollback image. The moment the closing
+edit replaces them with a pointer to the board, backing out stops being a
+disposition flip and becomes reconstructing 21 bullets out of a Notion
+database — a reconciliation with no source of truth to check against.
+
+So the rule for the window is narrow and worth stating on its own: **do not
+remove the ROADMAP bullets before the window closes, however well the board is
+working.** The cheap exit and the early cleanup are the same lever pulled in
+opposite directions, and the exit is worth more until the pilot has a verdict.
+
 ## How the pilot is judged
 
 Window: three weeks of work from the 2026-08-16 seed.
