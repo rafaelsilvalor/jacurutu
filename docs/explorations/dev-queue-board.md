@@ -82,9 +82,17 @@ items are cheap to migrate; waiting on an admin is not.
 in the work (wiring a `saci` command to `adapter-sheets`, already in flight on
 `feat/report-command`, seeded as In progress).
 
-The link between the two surfaces is a one-way pointer: when a card becomes a
-brief, the card carries the brief's path and the brief's Context cites the
-card's `Ref`. **The card holds the state; the brief holds the contract.**
+The link between the two surfaces runs one way only: **the card points at the
+brief; git never points at the card.** When a card becomes a brief, the card
+carries the brief's path, and that is the whole of it. A brief wanting
+traceability cites its ROADMAP anchor, which is durable.
+
+The card holds the state; the brief holds the contract — and the contract has
+to outlive the card. A Notion `Ref` (`SACI-n`) does not survive a move to Jira,
+which is a live enough possibility to design against: a `SACI-n` written into a
+brief or a commit message is a dead pointer inside a permanent artifact, aimed
+at a board the rollback section below says may be deleted. Git must not depend
+on the board, for the same reason the ROADMAP bullets stay where they are.
 
 ## The cost this accepts on purpose
 
