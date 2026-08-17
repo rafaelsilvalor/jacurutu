@@ -38,8 +38,14 @@ $ grep -h '^Disposition:' docs/explorations/*.md | sed 's/ *—.*//' \
 **16 of the 22 dispositions are dated 2026-08-06** — the day brief 051 migrated
 them in bulk. Six have moved since. Eleven sit in `deferred` behind triggers no
 board can evaluate ("Phase 4 shipped", "a concrete downstream consumer
-arrives"). This folder is a knowledge archive with a status field, and moving
-it to a board would trade prose for cards and gain nothing.
+arrives"). This folder is a knowledge archive with a status field, and seeding
+it wholesale would trade prose for cards and gain nothing.
+
+Refined on 2026-08-17, when the rename became a card: the cut is not the folder,
+it is the disposition. A `deferred` note waits on a trigger no board evaluates
+and stays out. A `candidate` note is, by this folder's own contract, "shaped
+enough to become a brief" — that is queue material and belongs on the board.
+Two notes are candidates today.
 
 The queue with no state surface at all is in the ROADMAP: the unshipped `[prod]`
 items of Phase 3, its eight *Open items inside this phase*, and the four
@@ -77,10 +83,12 @@ items are cheap to migrate; waiting on an admin is not.
 
 ## The board
 
-`Saci — Dev Queue`, a Notion database seeded on 2026-08-16 with 22 items:
+`Jacurutu — Dev Queue`, a Notion database seeded on 2026-08-16 with 22 items:
 9 Phase 3 items, 8 Phase 3 open questions, 4 Phase 4 items, and one discovered
 in the work (wiring a `saci` command to `adapter-sheets`, already in flight on
-`feat/report-command`, seeded as In progress).
+`feat/report-command`, seeded as In progress). It was seeded under the name
+`Saci — Dev Queue`, as a workspace-level private page; on 2026-08-17 it was
+renamed and moved into the `Jacurutu` teamspace, under a page named `Dev`.
 
 The link between the two surfaces runs one way only: **the card points at the
 brief; git never points at the card.** When a card becomes a brief, the card
@@ -93,6 +101,49 @@ which is a live enough possibility to design against: a `SACI-n` written into a
 brief or a commit message is a dead pointer inside a permanent artifact, aimed
 at a board the rollback section below says may be deleted. Git must not depend
 on the board, for the same reason the ROADMAP bullets stay where they are.
+
+## What changed after the seed
+
+Recorded because the window is judged on whether the board moved, and none of
+this is movement.
+
+On 2026-08-17, before any real use had accumulated:
+
+- Two properties were added. `Wave` (`Now` / `Next`, blank meaning later) marks
+  what is in flight. `Must land before` is a self-relation stating timing as a
+  relation between cards rather than as a date — a date ages unread, a relation
+  stays evaluable, and it maps to a Jira issue link if the board ever moves.
+- A `Source` option `Exploration — candidate` was added, for the refined rule
+  above.
+- The card "Primary command set — fetch / list / start / ship / load / status"
+  was split into four: `saci ship`, `saci list`, `saci load`, `saci status`.
+  Six commands in one card, two of them already shipped, could not answer what
+  we are working on — which is the board's only job. It had inherited the
+  ROADMAP's granularity, which groups by theme rather than by investment.
+- That card was kept as a tombstone carrying a `SUPERSEDED` note rather than
+  trashed, because deleting it erases the record of the split.
+- The rename card was created under the new source, `Wave: Now`, with
+  `Must land before` pointing at `saci ship`.
+- The board took the new product name while this repository still carries the
+  old one. That is deliberate: the board is a live surface the rename brief
+  cannot reach, and renaming it twice costs more than a few days of mismatch.
+
+The count went from 22 to 27 — 22 seeded, 4 from the split, 1 for the rename —
+one of which is the tombstone.
+
+**None of that is a status transition and none of it counts as pilot activity.**
+Adding a property, splitting a card and writing a tombstone are changes to the
+instrument, not readings from it. When the window is judged, what counts is a
+card changing `Status`, or a card born of the work rather than of this
+bookkeeping. Exactly one real transition has happened so far: Ref 22 reached
+`Done` when the report command shipped as `0a7f05f` (#154).
+
+One tooling trap, recorded because it gave a wrong answer twice in one session:
+**`ancestor-path` cannot distinguish a workspace-level private page from a page
+at the top of a teamspace.** Neither has a *page* ancestor, so both come back
+empty, and reading it as "not in the teamspace" is reading a signal that cannot
+carry that meaning. What discriminates is `notion-list-private-pages`: present
+means private, absent means it lives somewhere else.
 
 ## The cost this accepts on purpose
 
@@ -109,7 +160,8 @@ duplication ends. If it fails, the board is deleted and nothing in git moved.
 
 Today the exit is two actions and neither is a revert:
 
-1. Trash the Notion database (`Saci — Dev Queue`).
+1. Trash the Notion database (`Jacurutu — Dev Queue`, under `Dev` in the
+   `Jacurutu` teamspace).
 2. Flip this note's disposition to `discarded — <date>` with the reason, and
    add the changelog line. The note itself is never deleted; the contract in
    `docs/explorations/README.md` keeps discarded notes as the record.
@@ -157,3 +209,9 @@ document.
   reach and authority; Notion chosen over Jira and Trello on measured
   connector capability; board seeded with 22 items; disposition proposed
   `open` pending the pilot's verdict.
+- 2026-08-17 — the card/repo link was corrected to run one way only; the seeding
+  rule was refined from "no exploration notes" to "candidate notes only"; two
+  properties, one source option and a four-way split took the board to 27 cards;
+  the board was renamed `Jacurutu — Dev Queue` and moved into the `Jacurutu`
+  teamspace under a page named `Dev`; Ref 22 reached `Done` — the first, and so
+  far only, real transition.
