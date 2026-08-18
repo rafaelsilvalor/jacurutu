@@ -24,7 +24,12 @@ const PLACEHOLDER_SEGMENT = /[*<>]/;
 // door for a Brazilian design team, not an agent-consumed document. Note that
 // `docs/explorations/README.md` is NOT exempt — it is doctrine, and `^docs/`
 // still covers it. The exception is one file, not a filename.
-const ENGLISH_ONLY = [/^CLAUDE\.md$/, /^docs\//, /^\.claude\//];
+//
+// `AGENTS.md` is here because it was a 209-line untracked duplicate of
+// `CLAUDE.md` until 2026-08-18, carrying 8 dead `.Codex/` paths that no check
+// could see. It is a pointer now; listing it keeps the path check watching in
+// case it grows back into a document.
+const ENGLISH_ONLY = [/^CLAUDE\.md$/, /^AGENTS\.md$/, /^docs\//, /^\.claude\//];
 const PT_BR_MARKERS =
   /\b(não|para|que|também|então|mas|porque|quando|onde|apenas|sempre|nunca|deve|pode)\b/i;
 const CODE_FENCE = /^```/;

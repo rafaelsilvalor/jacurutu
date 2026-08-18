@@ -11,3 +11,7 @@ token.json
 /payload.json
 # Internal reports built from live Jira/Drive data. Local only, never on GitHub.
 /reports/
+# Codex-convention mirrors of `.claude/`, written by a generator outside this
+# repository. `.claude/` is authoritative; a second copy only drifts from it.
+/.agents/
+/.codex/
