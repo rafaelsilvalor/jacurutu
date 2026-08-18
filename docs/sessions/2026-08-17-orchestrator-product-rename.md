@@ -113,8 +113,14 @@ subject checks, it makes them inert. Green by absence of data.
   merge no commit-level check proves containment (`G-GIT-1`), and content
   comparison was used instead.
 - `AGENTS.md` was found to be an untracked, unreviewed copy of `CLAUDE.md` that
-  has already drifted — it still says `SheetGateway`, renamed by #153. Queued
-  as a follow-up rather than fixed in passing.
+  had already drifted — it still said `SheetGateway`, renamed by #153. Queued
+  as a follow-up rather than fixed in passing, and closed by #157 within the
+  day: it is a tracked six-line pointer now, and `.agents/` and `.codex/` are
+  gitignored. Measuring it afterwards found it worse than stale — the generator
+  had rewritten `.claude/` to `.Codex/` throughout, producing **8 paths that
+  never existed anywhere**. A sweep matching strings would have preserved every
+  one of them, which is the argument D4 makes in the abstract, met in the
+  concrete one directory over.
 - The board took the product's new name before the repository did, deliberately,
   and its note records why.
 
