@@ -204,6 +204,21 @@ What the move costs, stated so it is not discovered later:
   so item age before 2026-08-19 survives only in the snapshot named below. Cycle
   time is measurable forward from the seed, not backward.
 
+**Seeded the same day, and verified rather than assumed.** 26 cards as `JAC-1`
+through `JAC-26`, every field checked back by JQL: `Source is EMPTY` returns
+zero, and the four cards carrying `Wave` or `Brief` are the same four the
+snapshot names. `JAC-21` (the report command) was created and moved straight to
+`Done`; `JAC-26` (the rename) sits in `In Progress` with `Wave: Now`. Eleven
+`Blocks` links carry the dependencies the Notion notes stated, five of them into
+`JAC-22` (`saci ship`) — which the graph exposes as the product's bottleneck,
+and **three of those five blockers are decisions, not code.** The shortest path
+to unblocking `ship` is a session of deciding, not of building.
+
+The tombstone did not travel. Notion's Ref 2 existed only to keep the record of
+a four-way split, and the snapshot above now holds that record in git — a better
+home than a card parked in `To Do` forever on a board whose one job is saying
+what is in play. 26 seeded out of 27 rows, by decision.
+
 ## The card contract
 
 The board acquired a reader who does not hold `docs/ROADMAP.md` in their head,
@@ -267,6 +282,25 @@ of done — without making the card unreadable to the person it exists for.
 The contract is applied by hand — by the agent on every card it creates through
 MCP, by the owner on the rare card typed into the UI. That is the cost decision
 above, recorded here so the absence of enforcement does not read as an oversight.
+
+**Work discovered mid-flight.** A card under way regularly surfaces something
+new, most often a decision. Which relation it gets is settled by one test: *is
+this part of finishing the card, or something the card is now waiting on?*
+
+| What surfaced | Relation | Why |
+|---|---|---|
+| A decision or task that stops the card | a sibling `Task`, `Source: Descoberto no trabalho`, `Blocks` → the card that surfaced it | a subtask does not appear on the board, and an invisible decision is one nobody takes; one blocker often blocks several cards, which a parent-child relation cannot express |
+| An internal step with no schedule of its own | a `Subtask` of the card | it dies with its parent and nobody needs it in the queue |
+| The card turning out to be two cards | new `Task`s plus `Issue split` links (`10103`) | the Notion board had no relation for this and used a `SUPERSEDED` tombstone instead |
+
+The default is the first row, and the board was seeded that way: `JAC-9`,
+`JAC-13` and `JAC-14` are decisions blocking `saci ship`, as siblings rather
+than as children.
+
+Every such card is born in `To Do` with `Wave` empty. The agent creates without
+asking — asking each time would restore the friction the queue exists to remove
+— and whether the thing enters `Now` stays the owner's call, which is the
+authority rule from 2026-08-16 unchanged.
 
 ## The cost this accepts on purpose
 
@@ -402,3 +436,8 @@ at the issue.
   the authority. The Notion board was read and frozen as
   `dev-queue-board-snapshot-2026-08-19.md`, 27 rows verbatim — layer 2 of the
   exit.
+- 2026-08-19 — the queue was seeded into `JAC`: 26 cards, 11 `Blocks` links, the
+  Ref 2 tombstone left behind with the snapshot holding its record, every field
+  verified by JQL. The mid-flight rule was fixed — a decision that stops a card
+  becomes a sibling `Task` with a `Blocks` link, not a subtask — and `Issue
+  split` was adopted for the case Notion had to fake with a tombstone.
