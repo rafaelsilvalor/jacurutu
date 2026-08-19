@@ -441,3 +441,9 @@ at the issue.
   verified by JQL. The mid-flight rule was fixed — a decision that stops a card
   becomes a sibling `Task` with a `Blocks` link, not a subtask — and `Issue
   split` was adopted for the case Notion had to fake with a tombstone.
+- 2026-08-19 — the Notion database was frozen once `#160` merged. Notion has no
+  read-only state an API can reach, so the freeze is marked where a reader meets
+  it: the database is retitled `Jacurutu — Dev Queue (congelado 2026-08-19)` and
+  its description names `JAC` as the live queue, the snapshot as the record, and
+  the reason it is not deleted. It is not trashed and not emptied — the rule above
+  holds until the Jira board has carried transitions that came from work.
