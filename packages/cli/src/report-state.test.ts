@@ -11,7 +11,7 @@ import {
   REPORT_STATE_FILENAME,
 } from "./report-state.js";
 
-// Every case runs against a temp dir: no network, no credentials, no ~/.saci. The
+// Every case runs against a temp dir: no network, no credentials, no ~/.jacurutu. The
 // path is injected exactly as cli.ts injects it (D1), so nothing here can reach the
 // operator's real state file.
 

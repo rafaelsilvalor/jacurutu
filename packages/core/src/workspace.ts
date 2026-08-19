@@ -1,4 +1,4 @@
-// TaskManifest contract (schemaVersion 2): the `.saci.json` a task folder
+// TaskManifest contract (schemaVersion 2): the `.jacurutu.json` a task folder
 // carries at its root. Pure domain — no file I/O, no Drive access, no CLI
 // wiring (those are composition-root concerns). `parseManifest` validates
 // `unknown` → TaskManifest fail-loud (R4) and lazily migrates schemaVersion 1
@@ -237,7 +237,7 @@ export function displayKey(manifest: TaskManifest): string {
 }
 
 /**
- * Produce the `.saci.json` string for a manifest: pretty-printed (2-space) with
+ * Produce the `.jacurutu.json` string for a manifest: pretty-printed (2-space) with
  * a trailing newline. Human-inspected and diffed by Drive's native revision
  * history, so readable output is intentional; round-trips with `parseManifest`.
  */

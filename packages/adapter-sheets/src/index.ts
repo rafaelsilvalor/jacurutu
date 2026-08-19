@@ -27,7 +27,7 @@ export type {
   SpreadsheetApi,
 } from "./client.js";
 
-/** Inputs for `createSpreadsheetGateway`; both default to the standard ~/.saci setup. */
+/** Inputs for `createSpreadsheetGateway`; both default to the standard ~/.jacurutu setup. */
 export interface CreateSpreadsheetGatewayOptions {
   /** Credential locations. Defaults to `defaultCredentialPaths()`. */
   paths?: CredentialPaths;
@@ -38,7 +38,7 @@ export interface CreateSpreadsheetGatewayOptions {
 /**
  * Resolve credentials, authorize, and return a ready gateway — the one call `jacurutu
  * report` makes, in cli.ts and nowhere else. Authorization is adapter-drive's: one
- * Google grant, one `~/.saci/token.json`, no second browser round-trip for the same
+ * Google grant, one `~/.jacurutu/token.json`, no second browser round-trip for the same
  * user (D8).
  */
 export async function createSpreadsheetGateway(

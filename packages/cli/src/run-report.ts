@@ -20,7 +20,7 @@ export type MakeSpreadsheetGateway = () => Promise<SpreadsheetGateway>;
  * designer renaming the file in Drive breaks nothing — which is the reason this name
  * needs no configuration.
  */
-const SPREADSHEET_NAME_TEMPLATE = "Saci report: {profile}";
+const SPREADSHEET_NAME_TEMPLATE = "Jacurutu report: {profile}";
 /** The single substitution point in SPREADSHEET_NAME_TEMPLATE. */
 const PROFILE_PLACEHOLDER = "{profile}";
 /** Google's answer for a spreadsheet that is deleted, trashed, or another account's. */
@@ -87,7 +87,7 @@ function notFoundError(
 ): Error {
   const cause = error instanceof Error ? error.message : String(error);
   return new Error(
-    `Report for profile "${profileName}" points at spreadsheet ${spreadsheetId}, which Google answered 404 for. Saci will not create a replacement: remove the "${profileName}" entry from ${statePath} and the next run creates a fresh report. Cause: ${cause}`,
+    `Report for profile "${profileName}" points at spreadsheet ${spreadsheetId}, which Google answered 404 for. Jacurutu will not create a replacement: remove the "${profileName}" entry from ${statePath} and the next run creates a fresh report. Cause: ${cause}`,
     // Safe to carry: adapter-sheets already replaced the library's error with a
     // sanitized stand-in before it reached this module (G-DRIVE-3).
     { cause: error },

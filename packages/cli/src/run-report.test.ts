@@ -168,7 +168,7 @@ test("first run with no state creates, persists the id, shares, and writes the g
     });
     // Grid BEFORE share: the report is complete before the share is attempted.
     assert.deepStrictEqual(fake.calls, [
-      `createSpreadsheet:Saci report: team`,
+      `createSpreadsheet:Jacurutu report: team`,
       `writeGrid:${CREATED_ID}`,
       `shareAsReader:${CREATED_ID}`,
     ]);
@@ -289,7 +289,7 @@ test("a share failure on a creating run still leaves the grid written and the id
     assert.deepStrictEqual(
       fake.calls,
       [
-        `createSpreadsheet:Saci report: team`,
+        `createSpreadsheet:Jacurutu report: team`,
         `writeGrid:${CREATED_ID}`,
         `shareAsReader:${CREATED_ID}`,
       ],
@@ -322,7 +322,7 @@ test("first run without --share-with creates and writes but never calls shareAsR
     assert.strictEqual(result.created, true);
     assert.strictEqual(result.share, "not-requested");
     assert.deepStrictEqual(fake.calls, [
-      `createSpreadsheet:Saci report: team`,
+      `createSpreadsheet:Jacurutu report: team`,
       `writeGrid:${CREATED_ID}`,
     ]);
     assert.strictEqual(fake.grids.length, 1);

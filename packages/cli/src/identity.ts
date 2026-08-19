@@ -10,7 +10,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 
 /** Default identity dir leaf under the user's home dir (P1); cli.ts composes the full path. */
-export const IDENTITY_DIR_NAME = ".saci";
+export const IDENTITY_DIR_NAME = ".jacurutu";
 /** Default identity filename under `IDENTITY_DIR_NAME` (P1). */
 export const IDENTITY_FILENAME = "identity.json";
 

@@ -25,7 +25,7 @@ import { dirname, join } from "node:path";
 const TELEMETRY_DIR_NAME = "telemetry";
 const TELEMETRY_FILE_NAME = "gates.jsonl";
 // The override exists for the tests. Production resolves from import.meta.url.
-const TELEMETRY_DIR_ENV = "SACI_TELEMETRY_DIR";
+const TELEMETRY_DIR_ENV = "JACURUTU_TELEMETRY_DIR";
 const SESSION_ENV = "CLAUDE_CODE_SESSION_ID";
 const UNKNOWN_SESSION = "unknown";
 const HASH_ALGORITHM = "sha256";

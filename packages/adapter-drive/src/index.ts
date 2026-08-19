@@ -22,7 +22,7 @@ export type { CredentialPaths } from "./credentials.js";
 
 export { DRIVE_SCOPES, FOLDER_MIME_TYPE } from "./constants.js";
 
-/** Inputs for `createDriveGateway`; both default to the standard ~/.saci setup. */
+/** Inputs for `createDriveGateway`; both default to the standard ~/.jacurutu setup. */
 export interface CreateDriveGatewayOptions {
   /** Credential locations. Defaults to `defaultCredentialPaths()`. */
   paths?: CredentialPaths;

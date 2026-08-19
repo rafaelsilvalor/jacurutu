@@ -291,7 +291,7 @@ test("the CLI reports on a real stream, an empty one, and a truncated one", () =
 // proves the default is resolved rather than assumed.
 test("the CLI falls back to the default stream path", () => {
   withTempDir((dir) => {
-    const result = runCli([], { env: { ...process.env, SACI_TELEMETRY_DIR: dir } });
+    const result = runCli([], { env: { ...process.env, JACURUTU_TELEMETRY_DIR: dir } });
     assert.equal(result.status, 1);
     assert.match(result.stderr, new RegExp("gates\\.jsonl"));
   });
