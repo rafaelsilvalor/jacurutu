@@ -80,7 +80,7 @@ Shell is limited to **non-mutating** commands:
 Anything that changes repository or workspace state is out, whether or not
 it appears in the forbidden list of section 6.
 `npm test` is deliberately absent: in a session worktree it either matches zero
-compiled tests and exits `0` on a vacuous green, or resolves `@saci/*` to the
+compiled tests and exits `0` on a vacuous green, or resolves `@jacurutu/*` to the
 main checkout (`docs/GOTCHAS.md` G-NODE-2). A Mentor session reads and reasons;
 it has no use for a result that needs interpreting before it means anything.
 

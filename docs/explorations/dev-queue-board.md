@@ -17,7 +17,7 @@ Three decisions the owner closed on 2026-08-16:
 | Decision | Choice |
 |---|---|
 | Scope | The queue only. Briefs, recaps, doctrine and the ROADMAP's *Identity shifts* stay in git. |
-| Reach | Outside the product's. Saci never reads this board, so `adapter-jira` and the `saci export` fact table are untouched. |
+| Reach | Outside the product's. Jacurutu never reads this board, so `adapter-jira` and the `jacurutu export` fact table are untouched. |
 | Authority | The agent creates cards freely; moving one to Done needs the owner's explicit go — the gate that closes Pause 3. |
 
 ## What the measurement changed
@@ -210,9 +210,18 @@ zero, and the four cards carrying `Wave` or `Brief` are the same four the
 snapshot names. `JAC-21` (the report command) was created and moved straight to
 `Done`; `JAC-26` (the rename) sits in `In Progress` with `Wave: Now`. Eleven
 `Blocks` links carry the dependencies the Notion notes stated, five of them into
-`JAC-22` (`saci ship`) — which the graph exposes as the product's bottleneck,
+`JAC-22` (`jacurutu ship`) — which the graph exposes as the product's bottleneck,
 and **three of those five blockers are decisions, not code.** The shortest path
 to unblocking `ship` is a session of deciding, not of building.
+
+**The command cards took the new name later that day.** The rename shipped on
+2026-08-19 (`JAC-26`, moved to `Done` after the four commits landed), and the
+five cards naming a command were retitled with it: `JAC-5`, `JAC-22`, `JAC-23`,
+`JAC-24` and `JAC-25` now read `jacurutu config` / `ship` / `list` / `load` /
+`status`. The card titles quoted in this note are the current ones. The status
+claims in the paragraph above are not updated as the board moves — they record
+what was verified at seeding, which is the only thing that made the seeding
+provable.
 
 The tombstone did not travel. Notion's Ref 2 existed only to keep the record of
 a four-way split, and the snapshot above now holds that record in git — a better
@@ -247,7 +256,7 @@ commits.
 
 **The title.** Imperative verb plus object, ≤ 72 characters. The test is one
 sentence: *read the title alone, out of context — does it say what will exist
-once this lands?* A bare noun (`Sheets`, `saci list`) never passes; it names a
+once this lands?* A bare noun (`Sheets`, `jacurutu list`) never passes; it names a
 subject, not a unit of work.
 
 The ≤ 72 and the imperative are borrowed from `R10`'s commit subject on purpose,
@@ -294,7 +303,7 @@ this part of finishing the card, or something the card is now waiting on?*
 | The card turning out to be two cards | new `Task`s plus `Issue split` links (`10103`) | the Notion board had no relation for this and used a `SUPERSEDED` tombstone instead |
 
 The default is the first row, and the board was seeded that way: `JAC-9`,
-`JAC-13` and `JAC-14` are decisions blocking `saci ship`, as siblings rather
+`JAC-13` and `JAC-14` are decisions blocking `jacurutu ship`, as siblings rather
 than as children.
 
 Every such card is born in `To Do` with `Wave` empty. The agent creates without

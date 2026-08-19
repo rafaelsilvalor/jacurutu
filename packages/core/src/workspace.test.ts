@@ -27,7 +27,7 @@ function makeManifest(overrides: Partial<TaskManifest> = {}): TaskManifest {
 
 /**
  * The legacy v1 on-disk shape: scalar timestamps, no `localKey` or `history`
- * keys at all — exactly what a pre-v2 `.saci.json` carries. Kept as its own
+ * keys at all — exactly what a pre-v2 `.jacurutu.json` carries. Kept as its own
  * builder so migration tests exercise the real legacy layout, not a v2
  * fixture with fields renamed.
  */

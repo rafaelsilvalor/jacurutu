@@ -12,7 +12,7 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { parseManifest, type Issue } from "@saci/core";
+import { parseManifest, type Issue } from "@jacurutu/core";
 
 import { runStart, runStartLocal, type StartLocalOptions } from "./run-start.js";
 import type { MakeGateway } from "./run-fetch.js";
@@ -44,7 +44,7 @@ const VERIFY_CREDENTIALS = "verifyCredentials";
 const FETCH_ISSUE_BY_KEY = "fetchIssueByKey";
 
 /** Env prefix the Jira credentials live under; the offline path must read none of them. */
-const JIRA_ENV_PREFIX = "SACI_JIRA_";
+const JIRA_ENV_PREFIX = "JACURUTU_JIRA_";
 
 /**
  * A gateway factory whose single-key lookup returns a canned issue and which
@@ -77,7 +77,7 @@ function fakeMakeGateway(
 }
 
 /**
- * Run `body` with every `SACI_JIRA_*` var removed, restoring them afterwards.
+ * Run `body` with every `JACURUTU_JIRA_*` var removed, restoring them afterwards.
  * A run that survives this consulted no credential — the observable stand-in
  * for "constructed no gateway" at this layer.
  */
@@ -104,7 +104,7 @@ async function withoutJiraEnv(body: () => Promise<void>): Promise<void> {
  * has the expected shape (or a deliberately wrong one).
  */
 function makeSandbox(templateFiles: string[]): { base: string; workspaceRoot: string } {
-  const base = mkdtempSync(path.join(tmpdir(), "saci-runstart-"));
+  const base = mkdtempSync(path.join(tmpdir(), "jacurutu-runstart-"));
   const workspaceRoot = path.join(base, "workspace");
   mkdirSync(workspaceRoot, { recursive: true });
   if (templateFiles.length > 0) {
@@ -147,7 +147,7 @@ test("start scaffolds dirs, copies the template, and writes a valid manifest", a
 
     // The manifest round-trips through parseManifest with every field correct.
     const manifest = parseManifest(
-      JSON.parse(readFileSync(path.join(leafFolder, ".saci.json"), "utf8")),
+      JSON.parse(readFileSync(path.join(leafFolder, ".jacurutu.json"), "utf8")),
     );
     assert.deepStrictEqual(manifest, {
       schemaVersion: 2,
@@ -207,7 +207,7 @@ test("start --blank skips the copy but writes the same dirs and a blank-template
     assert.ok(!existsSync(path.join(leafFolder, "editaveis", "ec_mca-101_banner-principal_carrossel.psd")));
 
     const manifest = parseManifest(
-      JSON.parse(readFileSync(path.join(leafFolder, ".saci.json"), "utf8")),
+      JSON.parse(readFileSync(path.join(leafFolder, ".jacurutu.json"), "utf8")),
     );
     assert.strictEqual(manifest.template, "blank");
     assert.strictEqual(manifest.slug, "banner-principal");
@@ -239,13 +239,13 @@ test("start refuses to overwrite an existing leaf folder and writes nothing new 
       (error: Error) => {
         assert.match(error.message, /already exists/);
         assert.match(error.message, /editaveis\/: present/);
-        assert.match(error.message, /\.saci\.json: absent/);
+        assert.match(error.message, /\.jacurutu\.json: absent/);
         return true;
       },
     );
 
     // Nothing new was written: no manifest, no copied editable.
-    assert.ok(!existsSync(path.join(leafFolder, ".saci.json")));
+    assert.ok(!existsSync(path.join(leafFolder, ".jacurutu.json")));
     assert.ok(!existsSync(path.join(leafFolder, "editaveis", "ec_mca-101_banner-principal.psd")));
   } finally {
     rmSync(base, { recursive: true, force: true });
@@ -379,7 +379,7 @@ test("start --local scaffolds offline, mints the key, and increments the counter
     );
 
     const manifest = parseManifest(
-      JSON.parse(readFileSync(path.join(leafFolder, ".saci.json"), "utf8")),
+      JSON.parse(readFileSync(path.join(leafFolder, ".jacurutu.json"), "utf8")),
     );
     assert.deepStrictEqual(manifest, {
       schemaVersion: 2,
@@ -399,7 +399,7 @@ test("start --local scaffolds offline, mints the key, and increments the counter
   }
 });
 
-// WHEN runStartLocal runs, it shall scaffold with every SACI_JIRA_* var absent:
+// WHEN runStartLocal runs, it shall scaffold with every JACURUTU_JIRA_* var absent:
 // the local path takes no gateway, so the pre-flight added to runStart must not
 // leak into the shared pipeline. A gateway built here would need credentials
 // that are not there.
@@ -409,7 +409,7 @@ test("start --local scaffolds with no credential in the environment (no pre-flig
     await withoutJiraEnv(async () => {
       const result = await runStartLocal(localOptions(workspaceRoot, identityFilePath));
       assert.strictEqual(result.localKey, "RAF-1");
-      assert.ok(existsSync(path.join(result.folderPath, ".saci.json")));
+      assert.ok(existsSync(path.join(result.folderPath, ".jacurutu.json")));
     });
   } finally {
     rmSync(base, { recursive: true, force: true });
@@ -469,7 +469,7 @@ test("a validation failure before the persist point consumes no sequence number 
     );
 
     assert.strictEqual(nextSeqOnDisk(identityFilePath), 1);
-    assert.ok(!existsSync(path.join(leafFolder, ".saci.json")));
+    assert.ok(!existsSync(path.join(leafFolder, ".jacurutu.json")));
   } finally {
     rmSync(base, { recursive: true, force: true });
   }

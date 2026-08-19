@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert";
 
-import type { Issue } from "@saci/core";
+import type { Issue } from "@jacurutu/core";
 
 import { JiraGateway, type IssueDropLog } from "./gateway.js";
 import type { FetchLike } from "./http.js";

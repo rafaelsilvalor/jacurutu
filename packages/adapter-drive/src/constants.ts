@@ -12,7 +12,7 @@ export const DRIVE_SCOPES: readonly string[] = [
 ];
 
 /** Credential dir leaf under the user's home dir; shares the task-036 identity dir (D5). */
-export const CREDENTIALS_DIR_NAME = ".saci";
+export const CREDENTIALS_DIR_NAME = ".jacurutu";
 /** Desktop-app OAuth client JSON, placed by hand (D5). Never enters the repo. */
 export const OAUTH_CLIENT_FILENAME = "oauth_client.json";
 /** Token cache written by the loopback flow (D5). Never enters the repo. */

@@ -96,15 +96,15 @@ uniformly, growth alone is 5,796 → 7,251, **+1,455 (+25%) in six days**. The
 coordination state and the application took that role over. The ruling does not
 restore the Sheet as a state surface; it adds a consumer the 2026-06-12 pivot did
 not have. The spreadsheet becomes a **report for the team** — people who never run
-Saci still need what it shows, the team has leaned on it heavily in recent months,
-and Saci gains the ability to create spreadsheets and share them inside the Google
+Jacurutu still need what it shows, the team has leaned on it heavily in recent months,
+and Jacurutu gains the ability to create spreadsheets and share them inside the Google
 workspace. That is a one-way projection target, which is what the pivot already
 said a spreadsheet should be. The 1,451 lines move to portable.
 
 Two things the ruling does not settle, recorded so no brief assumes them. The
 destination is "ports", not "ports as written": most of `sync.py` is diff engine,
 cell ownership and write-conditionals — machinery that exists because the Sheet
-was reconciled cell by cell — and a report Saci creates and shares needs
+was reconciled cell by cell — and a report Jacurutu creates and shares needs
 create/write/share rather than diff, so these lines likely shrink sharply in
 translation. And whether creating and sharing a spreadsheet exceeds
 `adapter-drive`'s current OAuth scopes (`drive.file` + `drive.metadata.readonly`)
@@ -194,7 +194,7 @@ reason is the alternative.
   tried first, as the finer-grained classification, and does not serve — the
   reasons are in the body so the next reader does not re-try it.
 - 2026-08-14 — the owner un-sentenced the Sheets code: the spreadsheet becomes a
-  team report and Saci gains spreadsheet creation and workspace sharing, so
+  team report and Jacurutu gains spreadsheet creation and workspace sharing, so
   `sync.py` and `lib_sheets.py` moved to portable and the portable surface is
   7,251. `CLAUDE.md` and `docs/ROADMAP.md` carried the "never ported" and
   "parking lot" claims and were corrected in the same PR.

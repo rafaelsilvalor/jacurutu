@@ -21,9 +21,9 @@ import {
   type Payload,
   type PayloadMeta,
   type PayloadWarning,
-} from "@saci/core";
-import type { IssueDropLog } from "@saci/adapter-jira";
-import type { IssueWarningLog } from "@saci/adapter-jira";
+} from "@jacurutu/core";
+import type { IssueDropLog } from "@jacurutu/adapter-jira";
+import type { IssueWarningLog } from "@jacurutu/adapter-jira";
 
 /** JSON serialization indent, mirroring the seed's `json.dump(..., indent=2)`. */
 const PAYLOAD_INDENT = 2;

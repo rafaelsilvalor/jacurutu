@@ -3,7 +3,7 @@
 // fetch.py): main design search -> status/Template filters -> sister (COPYWRITER)
 // + parent searches -> second Template filter against real parent summaries ->
 // per-issue mapping. The shape-independent decisions (copy precedence, token
-// argmax) stay in @saci/core via the mapper/navigation layers (R25).
+// argmax) stay in @jacurutu/core via the mapper/navigation layers (R25).
 //
 // D2: JQL, auth, baseUrl, and the field mapping are injected at CONSTRUCTION,
 // not as method parameters; `fetchIssues()` takes none. Core never sees JQL.
@@ -11,7 +11,7 @@
 // `warnings` arrays are NOT serialized — every drop and every partial failure is
 // LOGGED through an injected sink (R4 — no silent failure), then discarded.
 
-import type { Issue, JiraGateway as JiraGatewayPort } from "@saci/core";
+import type { Issue, JiraGateway as JiraGatewayPort } from "@jacurutu/core";
 
 import {
   COPYWRITER_ISSUETYPE,

@@ -13,7 +13,7 @@
 
 import { createReadStream } from "node:fs";
 
-import type { DriveItem } from "@saci/core";
+import type { DriveItem } from "@jacurutu/core";
 import { google, type drive_v3 } from "googleapis";
 
 import { CHILD_LIST_FIELDS, ITEM_FIELDS } from "./constants.js";

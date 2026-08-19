@@ -31,9 +31,9 @@ import path from "node:path";
 /**
  * Credential locations quoted in hints — composed, never hardcoded as a platform path
  * (R1). Duplicated from adapter-drive's constants for the D8 reason above; they are
- * the same two names because there is one `~/.saci` and one token file per user.
+ * the same two names because there is one `~/.jacurutu` and one token file per user.
  */
-const CREDENTIALS_DIR_NAME = ".saci";
+const CREDENTIALS_DIR_NAME = ".jacurutu";
 const TOKEN_FILENAME = "token.json";
 const TOKEN_PATH_HINT = path.join(CREDENTIALS_DIR_NAME, TOKEN_FILENAME);
 

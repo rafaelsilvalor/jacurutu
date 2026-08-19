@@ -11,13 +11,13 @@ import {
   REPORT_STATE_FILENAME,
 } from "./report-state.js";
 
-// Every case runs against a temp dir: no network, no credentials, no ~/.saci. The
+// Every case runs against a temp dir: no network, no credentials, no ~/.jacurutu. The
 // path is injected exactly as cli.ts injects it (D1), so nothing here can reach the
 // operator's real state file.
 
 /** Sandbox holding one state file path; `content` seeds it, `null` leaves it missing. */
 function makeSandbox(content: string | null): { base: string; filePath: string } {
-  const base = mkdtempSync(path.join(tmpdir(), "saci-report-state-"));
+  const base = mkdtempSync(path.join(tmpdir(), "jacurutu-report-state-"));
   // path.join, never a literal separator (R1) — and the same constant cli.ts uses.
   const filePath = path.join(base, REPORT_STATE_FILENAME);
   if (content !== null) {
@@ -70,7 +70,7 @@ test("writing a second profile leaves the first profile's entry intact (D1)", as
     // This is the decision this test exists to pin, not a behavior it happens to
     // cover. A blind overwrite here would erase the first profile's spreadsheet id
     // while that spreadsheet stays alive in Drive and the team keeps opening it —
-    // Saci would then create a second report nobody is shared into, and the team
+    // Jacurutu would then create a second report nobody is shared into, and the team
     // would go on reading the first one as if it were current.
     assert.deepStrictEqual(
       state.reports["looker"],

@@ -4,14 +4,14 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "no
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import type { ColumnSelection, Issue, Payload, SpreadsheetGateway, SpreadsheetRef } from "@saci/core";
+import type { ColumnSelection, Issue, Payload, SpreadsheetGateway, SpreadsheetRef } from "@jacurutu/core";
 
 import { runReport, type MakeSpreadsheetGateway } from "./run-report.js";
 import { readReportEntry } from "./report-state.js";
 import type { ExportConfig } from "./run-export.js";
 
 // No network and no credentials anywhere in this file (constraint 3): the gateway is a
-// fake, the state file is a temp file, and nothing imports @saci/adapter-sheets.
+// fake, the state file is a temp file, and nothing imports @jacurutu/adapter-sheets.
 
 /** A fixed clock, so the stored createdAt is asserted exactly rather than by shape. */
 const FIXED_NOW = "2026-08-15T12:00:00.000Z";
@@ -57,7 +57,7 @@ interface Sandbox {
 
 /** Temp dir with a payload, an export config, and a state path that may not exist. */
 function makeSandbox(issues: Issue[] = [sampleIssue("MCA-100"), sampleIssue("MCA-101")]): Sandbox {
-  const base = mkdtempSync(path.join(tmpdir(), "saci-run-report-"));
+  const base = mkdtempSync(path.join(tmpdir(), "jacurutu-run-report-"));
   const payloadPath = path.join(base, "payload.json");
   const configPath = path.join(base, "export-config.json");
   const statePath = path.join(base, "report.json");
@@ -168,7 +168,7 @@ test("first run with no state creates, persists the id, shares, and writes the g
     });
     // Grid BEFORE share: the report is complete before the share is attempted.
     assert.deepStrictEqual(fake.calls, [
-      `createSpreadsheet:Saci report: team`,
+      `createSpreadsheet:Jacurutu report: team`,
       `writeGrid:${CREATED_ID}`,
       `shareAsReader:${CREATED_ID}`,
     ]);
@@ -289,7 +289,7 @@ test("a share failure on a creating run still leaves the grid written and the id
     assert.deepStrictEqual(
       fake.calls,
       [
-        `createSpreadsheet:Saci report: team`,
+        `createSpreadsheet:Jacurutu report: team`,
         `writeGrid:${CREATED_ID}`,
         `shareAsReader:${CREATED_ID}`,
       ],
@@ -322,7 +322,7 @@ test("first run without --share-with creates and writes but never calls shareAsR
     assert.strictEqual(result.created, true);
     assert.strictEqual(result.share, "not-requested");
     assert.deepStrictEqual(fake.calls, [
-      `createSpreadsheet:Saci report: team`,
+      `createSpreadsheet:Jacurutu report: team`,
       `writeGrid:${CREATED_ID}`,
     ]);
     assert.strictEqual(fake.grids.length, 1);

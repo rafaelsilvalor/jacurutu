@@ -1,5 +1,5 @@
 // The projection half of the export pipeline, extracted from run-export.ts so that
-// `saci export` and `saci report` run the same one: read a payload.json and a JSON
+// `jacurutu export` and `jacurutu report` run the same one: read a payload.json and a JSON
 // export config from disk, resolve a named profile, project every issue through the
 // pure core projection, apply the profile's filters, and select its columns.
 //
@@ -23,7 +23,7 @@ import {
   type ExportContext,
   type ExportFilters,
   type Payload,
-} from "@saci/core";
+} from "@jacurutu/core";
 
 /** Per-profile CSV options (D4). Defaults: delimiter ";", BOM on. */
 export interface CsvOptions {

@@ -1,6 +1,6 @@
 # Gotchas
 
-> Catalog of known technical traps in Saci's stack. Each entry has a permanent ID (`G-CAT-N`) for reference in commits, PRs, and issues.
+> Catalog of known technical traps in Jacurutu's stack. Each entry has a permanent ID (`G-CAT-N`) for reference in commits, PRs, and issues.
 > This file grows with use. Add a new entry whenever you (or an agent) lose time to a stack quirk that wasn't obvious from the code.
 
 ## How to add a new gotcha
@@ -123,7 +123,7 @@ Categories grow as needed. New category: lowercase shortcode, all-caps in IDs.
 
 **Symptom:** Tempting shortcut: "just enable nodeIntegration so the renderer can `require('fs')` directly". Then any script the renderer loads (including pasted clipboard content rendered as HTML) can read disk and exec processes.
 
-**Cause:** Both flags broaden the renderer's capability surface. Saci's content-security model assumes the renderer is sandboxed and only reaches the main process via the `contextBridge`-exposed `window.api`.
+**Cause:** Both flags broaden the renderer's capability surface. Jacurutu's content-security model assumes the renderer is sandboxed and only reaches the main process via the `contextBridge`-exposed `window.api`.
 
 **Workaround:** Keep `contextIsolation: true` and `nodeIntegration: false` (current defaults at `main.js:191-194`). New main↔renderer features always go through `ipcMain.handle` + `contextBridge.exposeInMainWorld`. Never widen the preload surface beyond the explicit handler list. Mirrors `CLAUDE.md` A5.
 
@@ -203,11 +203,11 @@ If folder sizes grow into thousands of files and the hitch becomes user-visible,
 
 ---
 
-### G-NODE-2 — Worktree sessions silently resolve `@saci/*` imports to the main checkout
+### G-NODE-2 — Worktree sessions silently resolve `@jacurutu/*` imports to the main checkout
 
-**Symptom:** In a Claude Code session worktree (created under `.claude/worktrees/`), `npm run build` fails with `TS2305` on a symbol that exists in the worktree's own source — e.g. `Module '"@saci/core"' has no exported member 'buildEditableStem'` — even though the worktree's `core` package compiles cleanly. Worse, when no new symbol is involved, build and tests pass while silently exercising stale code.
+**Symptom:** In a Claude Code session worktree (created under `.claude/worktrees/`), `npm run build` fails with `TS2305` on a symbol that exists in the worktree's own source — e.g. `Module '"@jacurutu/core"' has no exported member 'buildEditableStem'` — even though the worktree's `core` package compiles cleanly. Worse, when no new symbol is involved, build and tests pass while silently exercising stale code.
 
-**Cause:** A fresh session worktree starts with an empty or absent `node_modules`. Node's module resolution walks up the directory tree, so `@saci/*` imports resolve to the main checkout's `node_modules` workspace symlinks — which point at the main checkout's `packages/*`, not the worktree's. `npm run build` and `npm test` in the worktree therefore compile and test against the main checkout's (potentially pre-change) `dist`. The root cause is Node resolution behavior, but the trap bites agent worktree sessions specifically — that is where fresh worktrees with empty `node_modules` appear routinely.
+**Cause:** A fresh session worktree starts with an empty or absent `node_modules`. Node's module resolution walks up the directory tree, so `@jacurutu/*` imports resolve to the main checkout's `node_modules` workspace symlinks — which point at the main checkout's `packages/*`, not the worktree's. `npm run build` and `npm test` in the worktree therefore compile and test against the main checkout's (potentially pre-change) `dist`. The root cause is Node resolution behavior, but the trap bites agent worktree sessions specifically — that is where fresh worktrees with empty `node_modules` appear routinely.
 
 **Workaround:** Run `npm install` at the worktree root to materialize workspace symlinks against the worktree's own `packages/*`. Guard: after the install, `git status --short` must show no tracked-file changes (especially `package-lock.json`); if it does, STOP and report — no lockfile drift may land. Then re-run `npm run build` and the full `npm test` suite.
 
@@ -219,9 +219,9 @@ If folder sizes grow into thousands of files and the hitch becomes user-visible,
 
 **Symptom:** After editing `DRIVE_SCOPES`, Drive calls keep failing with 403 / `insufficient` or `invalid_scope`, and no browser consent appears.
 
-**Cause:** `~/.saci/token.json` caches the grant issued for the *previous* scope set; the adapter finds a token file, reuses it, and never re-runs consent. Google enforces the granted scope string in the cached token, not the constant in the code.
+**Cause:** `~/.jacurutu/token.json` caches the grant issued for the *previous* scope set; the adapter finds a token file, reuses it, and never re-runs consent. Google enforces the granted scope string in the cached token, not the constant in the code.
 
-**Workaround:** Delete `~/.saci/token.json` and re-run; authorize again in the browser. Every scope change requires this.
+**Workaround:** Delete `~/.jacurutu/token.json` and re-run; authorize again in the browser. Every scope change requires this.
 
 **Evidence:** `docs/tasks/046-spike-adapter-drive/run-instructions.md` §2 and `docs/explorations/drive-oauth.md` §4; adopted by brief 047.
 
@@ -333,11 +333,11 @@ The warning quoted in the Cause was captured on 2026-08-11, cleaning up that sam
 
 ### G-SHEETS-1 — A disabled Sheets API answers 403 and reads exactly like a scope failure
 
-**Symptom:** The first `spreadsheets.values.update` against a Cloud project that has never used the Sheets API answers `403 Google Sheets API has not been used in project <project-number> before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/sheets.googleapis.com/overview?project=<project-number> then retry.` The status code is the same one an insufficient-scope denial carries, and everything around the call looks like an authorization problem: the token was just used successfully for a Drive call, the app is a Desktop OAuth client, the scope list is short. A classifier that treats every 403 as a scope signal files this as "the granted scopes are not enough" — and then the reader deletes `~/.saci/token.json`, re-consents in the browser, and gets the identical failure, because nothing about the grant was ever wrong.
+**Symptom:** The first `spreadsheets.values.update` against a Cloud project that has never used the Sheets API answers `403 Google Sheets API has not been used in project <project-number> before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/sheets.googleapis.com/overview?project=<project-number> then retry.` The status code is the same one an insufficient-scope denial carries, and everything around the call looks like an authorization problem: the token was just used successfully for a Drive call, the app is a Desktop OAuth client, the scope list is short. A classifier that treats every 403 as a scope signal files this as "the granted scopes are not enough" — and then the reader deletes `~/.jacurutu/token.json`, re-consents in the browser, and gets the identical failure, because nothing about the grant was ever wrong.
 
 **Cause:** Enabling the Sheets API is a **project-level** setting, entirely separate from the OAuth grant. It was measured, not reasoned: the same cached token, carrying the same granted scope string, produced a failing call before the API was enabled and a passing one after — with no re-consent, no new token, and no edit to the requested scopes in between. The scopes were sufficient the whole time and the 403 was never about them. What the API rejects the request on internally, and whether it consults the grant at all before answering, was **not established** — and it does not need to be: the measurement rules out scopes as the variable, which is the only thing the reader has to know.
 
-**Workaround:** Enable the Google Sheets API in the Cloud project (the console URL in the error message points straight at it). It does not touch the OAuth grant, does not invalidate `~/.saci/token.json`, and forces no existing user back through browser consent — `G-DRIVE-1` does not fire for this change.
+**Workaround:** Enable the Google Sheets API in the Cloud project (the console URL in the error message points straight at it). It does not touch the OAuth grant, does not invalidate `~/.jacurutu/token.json`, and forces no existing user back through browser consent — `G-DRIVE-1` does not fire for this change.
 
 In code, classify by **message signature before status**, and put the service-disabled signature first: match `has not been used in project` / `SERVICE_DISABLED` ahead of any insufficient-scope signature, and report a 401 or 403 that matches no signature as an authorization failure of unknown cause rather than borrowing the scope verdict. The live example is `MESSAGE_RULES` in `packages/adapter-sheets/src/errors.ts`; `errors.test.ts` pins the order with a message carrying **both** signatures, because a message carrying only one classifies correctly under either order and would not catch a reversal.
 
@@ -428,7 +428,7 @@ operation+status classification and recipient redaction — shipped in the same 
 
 **Symptom:** There is none. That is the entry.
 
-`saci report` prints its ordinary success line —
+`jacurutu report` prints its ordinary success line —
 
 ```
 Updated report <SPREADSHEET-ID> with 1 rows; not shared — pass --share-with to give someone access.
@@ -456,7 +456,7 @@ one of them. So the write succeeds, the port reports success, and the command re
 success, each correctly, about a report no reader can reach.
 
 **Workaround:** There is none, and this entry does not invent one. Today the operator has
-to notice — by opening the report, or by a teammate saying the link is broken. Saci
+to notice — by opening the report, or by a teammate saying the link is broken. Jacurutu
 cannot currently tell the difference between a live report and a trashed one, and no
 amount of care at the call site changes that, because the information is not in any
 answer the command receives.

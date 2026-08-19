@@ -25,7 +25,7 @@ código **não** são desta sessão — isso é sessão Orchestrator
 ## --- COPIAR ---
 
 ```
-Continuando o projeto Saci em sessão Mentor (faixa conceitual).
+Continuando o projeto Jacurutu em sessão Mentor (faixa conceitual).
 
 Invoca a skill `mentor-mode` agora, na abertura da sessão, antes de
 qualquer resposta substantiva.

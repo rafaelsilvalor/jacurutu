@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert";
 
-import type { Issue, Payload } from "@saci/core";
+import type { Issue, Payload } from "@jacurutu/core";
 
 import {
   renderFetch,

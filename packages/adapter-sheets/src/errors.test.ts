@@ -9,7 +9,7 @@ const OPERATION = "writeGrid";
 const TARGET = "spreadsheet test-spreadsheet-id";
 
 /** The relative token path the hints quote, composed the way errors.ts composes it (R1). */
-const TOKEN_PATH_HINT = path.join(".saci", "token.json");
+const TOKEN_PATH_HINT = path.join(".jacurutu", "token.json");
 
 // Obvious placeholders — no value here is shaped like a real credential (binding —
 // docs/explorations/drive-oauth.md §10).

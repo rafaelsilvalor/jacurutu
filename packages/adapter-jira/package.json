@@ -1,5 +1,5 @@
 {
-  "name": "@saci/adapter-jira",
+  "name": "@jacurutu/adapter-jira",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,6 +9,6 @@
     "build": "tsc -p ."
   },
   "dependencies": {
-    "@saci/core": "*"
+    "@jacurutu/core": "*"
   }
 }

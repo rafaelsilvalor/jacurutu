@@ -50,5 +50,5 @@ test("(g) an unknown extension falls back to the default", () => {
 test("(h) a name with no usable extension falls back to the default", () => {
   assert.strictEqual(uploadMimeType("README"), DEFAULT_UPLOAD_MIME_TYPE);
   assert.strictEqual(uploadMimeType("trailing."), DEFAULT_UPLOAD_MIME_TYPE);
-  assert.strictEqual(uploadMimeType(".saci.json"), "application/json");
+  assert.strictEqual(uploadMimeType(".jacurutu.json"), "application/json");
 });

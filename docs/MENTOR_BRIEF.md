@@ -7,7 +7,7 @@
 
 ## 1. Who the user is
 
-**Rafael Silva** (`rafaelgslor@gmail.com` / `rafael.silva@estrategia.com`) — solo developer of the Saci project, working at Estratégia (Brazilian education company; the design team is the user base).
+**Rafael Silva** (`rafaelgslor@gmail.com` / `rafael.silva@estrategia.com`) — solo developer of the Jacurutu project, working at Estratégia (Brazilian education company; the design team is the user base).
 
 **Career stage:** recently graduated, little professional experience yet. Self-aware about it — explicitly framed his use of AI agents as "compensating for inexperience while I learn".
 
@@ -28,8 +28,8 @@
 
 ## 2. Where we are in the project
 
-- **Project:** Saci — an **individual production assistant** for the
-  Estratégia design team. Saci v2 automates the repetitive actions
+- **Project:** Jacurutu — an **individual production assistant** for the
+  Estratégia design team. Jacurutu v2 automates the repetitive actions
   around a Jira task — create the local folder, find the right
   template, open it in the editor, ship the result to Drive — and,
   since 2026-08-13, renders the art itself from a structured brief
@@ -57,8 +57,8 @@
   > The state half of this entry stands: the application owns production state
   > and a spreadsheet is a one-way projection target, not a state surface. What
   > the owner reversed is the fate of the Python Sheets code. The spreadsheet
-  > becomes a **report for the team** — read by people who never run Saci — and
-  > Saci is to create spreadsheets and share them inside the Google workspace.
+  > becomes a **report for the team** — read by people who never run Jacurutu — and
+  > Jacurutu is to create spreadsheets and share them inside the Google workspace.
   > `sync.py` and `lib_sheets.py` are portable again; what ports is the
   > projection, not the cell-by-cell reconciliation, which existed only because
   > the Sheet held state. `docs/ROADMAP.md` carries the same note beneath its own
@@ -66,20 +66,20 @@
   > surface (4,714 → 7,251) is in `docs/explorations/python-laboratory-lane.md`.
 - **CLI on-ramp shipped 2026-06-19 (brief 026):** the test-only `runFetch`
   (022) / `runExport` (023) composition functions are now wired into real
-  `saci fetch --jql … [--out …]` and `saci export --payload … --config …
+  `jacurutu fetch --jql … [--out …]` and `jacurutu export --payload … --config …
   --profile …` commands, via a pure `parseArgs`-based argv parser/router
   (`packages/cli/src/argv.ts`) behind the `cli.ts` shell. Credentials come from
-  env (`SACI_JIRA_*`); `mainJql` from `--jql`; exit codes 0/2/1; one minimal
+  env (`JACURUTU_JIRA_*`); `mainJql` from `--jql`; exit codes 0/2/1; one minimal
   result line per command. This closes the 023 D9 deferral and active-focus
   item #1 below. Rich human-facing display remains a separate Phase 3 item.
-- **Per-project FieldMapping shipped 2026-06-21 (brief 029):** `saci fetch`
+- **Per-project FieldMapping shipped 2026-06-21 (brief 029):** `jacurutu fetch`
   accepts `--field-config <path> --project <KEY>` to override the global
   `DEFAULT_FIELD_MAPPING` per project; the mapping also derives the narrow
   fetched field list, and configured ids are validated fail-loud against the
   Jira field catalog (R4). This is **Axis A** of the configurable-mapping work
   and closes active-focus item #1's FieldMapping clause (023 D5). Forward
   items: **Axis B** (status-value normalization on `statusCategory`), **Axis C**
-  (dates from text-embedded summary/description), the `saci config project add`
+  (dates from text-embedded summary/description), the `jacurutu config project add`
   discovery generator, and per-project/`createmeta` screen-applicability
   validation (029 checks global field existence only).
 - **Art arm added 2026-08-13:** the product gained a rendering arm —
@@ -100,9 +100,9 @@
   chain's two stacked blockers (Drive scope, `.docx` format) are
   untouched by this. Full record: `docs/ROADMAP.md` identity shifts.
 - **Phase transition (recorded 2026-05-15, still in force):**
-  - **Saci-Electron-v1** (the existing pure-JS codebase) is in
+  - **Jacurutu-Electron-v1** (the existing pure-JS codebase) is in
     **freeze** — critical bugs only, no new features.
-  - **Saci v2** is being built as a **TypeScript monorepo** (npm
+  - **Jacurutu v2** is being built as a **TypeScript monorepo** (npm
     workspaces, `strict: true`, `node:test`, no bundler), following
     **Hexagonal (Ports & Adapters)** architecture. Planned packages:
     `core` (domain + ports), `adapter-jira`, `adapter-drive`,
@@ -128,7 +128,7 @@
      (brief 029) have all shipped (dated bullets above). Remaining
      input-resolution work is forward, not active focus: Axis B (status
      normalization), Axis C (text-derived dates), and the
-     `saci config project add` generator.
+     `jacurutu config project add` generator.
   2. Phase 3 state design — the app owns production state over time
      (local now); the `derivePath` hierarchy rule is the open design
      question.
@@ -137,11 +137,11 @@
   - **Two operating modes, same core (recorded 2026-05-15, refined
     2026-05-28):**
     - *Production mode (primary)* — each designer runs locally,
-      scoped to their own tasks, files, and identity. `saci config`
+      scoped to their own tasks, files, and identity. `jacurutu config`
       per-machine is a day-1 requirement (multi-tenant per machine,
       mono-user per instance). Tasks are portable via `TaskManifest`
       in their Drive folder; another designer can pick up a task
-      with `saci load <drive-url>`.
+      with `jacurutu load <drive-url>`.
     - *Coordination mode (secondary)* — the team-level view consumes
       a projection of the app-owned shared state. A Sheet is one
       optional one-way projection target (a reader), not a holder of
@@ -164,7 +164,7 @@
     before bootstrap. The Google Sheets library is no longer
     pre-adapter: it is gated on the parking-lot promotion.
   - **Node runtime target: ≥22.0.0** (pinned 2026-05-27 in task
-    016). Saci v2 runs on Node 22 LTS — enables ESM import
+    016). Jacurutu v2 runs on Node 22 LTS — enables ESM import
     attributes (`with { type: "json" }`) and gives comfortable
     margin for Phase 3 production. Pinned in three places: root
     `package.json` `engines`, `.nvmrc` at repo root, and
@@ -308,7 +308,7 @@ Caminho B briefs — doctrinal, pipeline-modifying, bootstrap — are authored b
 | `.claude/hooks/` | The executable checks — commit message, architecture rules, file ownership, green boundary, and `validate-brief.mjs` for C1–C11 |
 | `docs/tasks/<task-id>-<slug>/` | Per-task artifacts: `brief.md`, optional `notes.md` (per-session recaps live in `docs/sessions/`) |
 | `harness/` | The user — workflow prompts to start sessions and tasks (parallel manual surface to `.claude/agents/`) |
-| `README.md` | End users — what Saci is and how to install it |
+| `README.md` | End users — what Jacurutu is and how to install it |
 
 ## 8. Context to load per session
 

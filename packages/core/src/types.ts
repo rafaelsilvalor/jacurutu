@@ -1,4 +1,4 @@
-// Shared domain value types for @saci/core.
+// Shared domain value types for @jacurutu/core.
 
 /**
  * Provenance of a resolved copy URL, in precedence order:

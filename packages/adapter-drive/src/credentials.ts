@@ -1,5 +1,5 @@
 // Credential location and parsing for the Drive adapter (D5). Credentials live in
-// ~/.saci/, alongside the task-036 identity file, and every path-taking function
+// ~/.jacurutu/, alongside the task-036 identity file, and every path-taking function
 // receives the home dir explicitly so it is unit-testable; `defaultCredentialPaths`
 // is the single `os.homedir()` caller (the identity.ts seam shape).
 //
@@ -187,7 +187,7 @@ export async function readStoredToken(filePath: string): Promise<StoredToken | n
 
 /**
  * Create the credentials directory owner-only, if it is not there already. First run
- * on a fresh machine has no `~/.saci`, and creation is the only moment the mode can be
+ * on a fresh machine has no `~/.jacurutu`, and creation is the only moment the mode can be
  * set at all — an existing directory keeps its current permissions untouched.
  */
 export async function ensureCredentialsDir(dirPath: string): Promise<void> {

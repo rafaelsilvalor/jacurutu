@@ -4,9 +4,9 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "no
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import type { Issue, JiraGateway, Payload } from "@saci/core";
-import type { IssueDropLog } from "@saci/adapter-jira";
-import type { IssueWarningLog } from "@saci/adapter-jira";
+import type { Issue, JiraGateway, Payload } from "@jacurutu/core";
+import type { IssueDropLog } from "@jacurutu/adapter-jira";
+import type { IssueWarningLog } from "@jacurutu/adapter-jira";
 
 import { runFetch } from "./run-fetch.js";
 
@@ -89,14 +89,14 @@ async function captureWarnings(body: () => Promise<void>): Promise<string[]> {
 }
 
 function sandbox(): { dir: string; outputPath: string } {
-  const dir = mkdtempSync(path.join(tmpdir(), "saci-runfetch-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "jacurutu-runfetch-"));
   return { dir, outputPath: path.join(dir, "payload.json") };
 }
 
 const FIXED_NOW = new Date("2026-06-05T12:25:43-03:00");
 
 test("runFetch writes a payload with seed-order keys and the stamped clock", async () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "saci-runfetch-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "jacurutu-runfetch-"));
   const outputPath = path.join(dir, "payload.json");
   try {
     // Fixed clock: a local time with a known offset. The stamped timestamps must
@@ -141,7 +141,7 @@ test("runFetch writes a payload with seed-order keys and the stamped clock", asy
 });
 
 test("runFetch serialization is indent=2, preserves non-ASCII, and has no trailing newline", async () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "saci-runfetch-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "jacurutu-runfetch-"));
   const outputPath = path.join(dir, "payload.json");
   try {
     const now = new Date("2026-06-05T12:25:43-03:00");

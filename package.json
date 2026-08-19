@@ -1,7 +1,7 @@
 {
-  "name": "saci",
+  "name": "jacurutu",
   "version": "1.0.0",
-  "description": "Saci — área de trabalho do time de design da Estratégia. Encontra modelos, abre arquivos e diagnostica PSDs em um clique.",
+  "description": "Jacurutu — área de trabalho do time de design da Estratégia. Encontra modelos, abre arquivos e diagnostica PSDs em um clique.",
   "private": true,
   "type": "module",
   "main": "main.js",

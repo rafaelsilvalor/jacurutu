@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert";
 import { inspect } from "node:util";
 
-import type { ColumnSelection } from "@saci/core";
+import type { ColumnSelection } from "@jacurutu/core";
 
 import type { CreatedSpreadsheet, PermissionInput, SpreadsheetApi } from "./client.js";
 import { SHARE_ROLE, SHARE_TYPE } from "./constants.js";

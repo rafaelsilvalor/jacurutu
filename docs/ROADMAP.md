@@ -1,19 +1,19 @@
-# Saci — Product Roadmap
+# Jacurutu — Product Roadmap
 
 > **Living document.** Pair with `MENTOR_BRIEF.md` §2 (active architectural decisions) and `CLAUDE.md` (technical rules). Update after every milestone or pivot — when this file disagrees with MENTOR_BRIEF §2, the more recent one wins and the other must be reconciled in the same PR.
 
 ## Product map at a glance
 
-The **production loop is the core**: pull a Jira task → scaffold its folder (template applied, opened in the editor) → work → close → upload the result to Drive. Read/data (the Jira fetch) is the **fuel** that feeds the loop; BI/export is the **periphery** that drains it into fact tables for downstream dashboards. The loop is what makes Saci a production assistant rather than a reporting tool — everything else exists to serve it.
+The **production loop is the core**: pull a Jira task → scaffold its folder (template applied, opened in the editor) → work → close → upload the result to Drive. Read/data (the Jira fetch) is the **fuel** that feeds the loop; BI/export is the **periphery** that drains it into fact tables for downstream dashboards. The loop is what makes Jacurutu a production assistant rather than a reporting tool — everything else exists to serve it.
 
 ### Layers & status
 
 | Layer | Role | Status |
 |---|---|---|
-| Read / data (Jira fetch) | Fuel | **Built** — `saci fetch` (026/028/029); per-project input resolution is **Axis A only** (entrega + vertical field ids). Axis B/C and `config project add` not built. |
+| Read / data (Jira fetch) | Fuel | **Built** — `jacurutu fetch` (026/028/029); per-project input resolution is **Axis A only** (entrega + vertical field ids). Axis B/C and `config project add` not built. |
 | Curated template management | Loop | **Planned** — only `appliedTemplate` / `templateUsed` type fields exist; no catalog, match, or apply code. |
-| Workflow actions — start / close / drive upload | Loop | **In progress** — `saci start --local` shipped (036, smoke-confirmed 2026-07-26); `close` / `ship` not built; `DriveGateway` is a five-primitive port implemented by `adapter-drive` (047, all five confirmed live 2026-08-02), not yet wired into a command. |
-| BI export | Periphery | **Built** — `saci export` CSV/JSON fact table (023). Sheets projection left the parking lot 2026-08-14 (it becomes a team report, plus spreadsheet creation and workspace sharing), but nothing is built: `adapter-sheets` is still a placeholder and no implementation brief is written. Scope question closed 2026-08-15 by the spike in `docs/tasks/2026-08-15-spike-sheets-report/`: creating, writing and sharing a spreadsheet all work under the current `DRIVE_SCOPES`, so the first implementation brief carries no authorization change. That brief shipped the same day (`docs/tasks/2026-08-15-adapter-sheets-report/`): `adapter-sheets` implements the `SpreadsheetGateway` port — create, replace the grid, share as reader — evidenced by an owner-run live smoke. **`saci report --profile <name>` wires it**, shipped the same day (`docs/tasks/2026-08-15-report-command/`): it projects a payload through an existing export profile into one spreadsheet that persists across runs, evidenced by a second owner-run smoke driving the built CLI against synthetic fixtures — no production Jira data has passed through it, and nobody outside that session has run it. |
+| Workflow actions — start / close / drive upload | Loop | **In progress** — `jacurutu start --local` shipped (036, smoke-confirmed 2026-07-26); `close` / `ship` not built; `DriveGateway` is a five-primitive port implemented by `adapter-drive` (047, all five confirmed live 2026-08-02), not yet wired into a command. |
+| BI export | Periphery | **Built** — `jacurutu export` CSV/JSON fact table (023). Sheets projection left the parking lot 2026-08-14 (it becomes a team report, plus spreadsheet creation and workspace sharing), but nothing is built: `adapter-sheets` is still a placeholder and no implementation brief is written. Scope question closed 2026-08-15 by the spike in `docs/tasks/2026-08-15-spike-sheets-report/`: creating, writing and sharing a spreadsheet all work under the current `DRIVE_SCOPES`, so the first implementation brief carries no authorization change. That brief shipped the same day (`docs/tasks/2026-08-15-adapter-sheets-report/`): `adapter-sheets` implements the `SpreadsheetGateway` port — create, replace the grid, share as reader — evidenced by an owner-run live smoke. **`jacurutu report --profile <name>` wires it**, shipped the same day (`docs/tasks/2026-08-15-report-command/`): it projects a payload through an existing export profile into one spreadsheet that persists across runs, evidenced by a second owner-run smoke driving the built CLI against synthetic fixtures — no production Jira data has passed through it, and nobody outside that session has run it. |
 
 (Status cells reflect the v2 source as of this writing, verified against the command surface and adapter implementations — not the prose elsewhere in this doc.)
 
@@ -87,7 +87,7 @@ Two derived shifts follow:
 
 - **Tasks are portable, the app is not.** Each task carries a
   `TaskManifest` (JSON in its Drive folder) so another machine can
-  reconstitute the context via `saci load`. Designer-to-designer
+  reconstitute the context via `jacurutu load`. Designer-to-designer
   handoff is promoted from parking lot to a Phase 3 primary use case.
 - **Drive is a first-class integration.** The repositioning makes the
   Drive round-trip (find template, upload result, read manifest)
@@ -132,7 +132,7 @@ to Phase 3 state, not to the export. Phase 4 is rescoped accordingly and
 > state and a spreadsheet is a one-way projection target. What the owner reversed
 > is the fate of the Python Sheets code and the parking of `adapter-sheets`. The
 > spreadsheet becomes a **report for the team** — read by people who never run
-> Saci, leaned on heavily in recent months — and Saci is to create spreadsheets
+> Jacurutu, leaned on heavily in recent months — and Jacurutu is to create spreadsheets
 > and share them inside the Google workspace. That is the concrete consumer the
 > parking decision was waiting for, so `sync.py` and `lib_sheets.py` are portable
 > again. The projection is what ports; the cell-by-cell reconciliation still does
@@ -143,13 +143,13 @@ to Phase 3 state, not to the export. Phase 4 is rescoped accordingly and
 ### 2026-08-13 — Production assistant → production assistant with an art arm
 
 The 2026-06-12 pivot settled who owns state. This one settles what the product
-*makes*. Saci orchestrated files around a designer's work — pull the task,
+*makes*. Jacurutu orchestrated files around a designer's work — pull the task,
 scaffold the folder, copy the template, ship the result. It now also **generates
 the art itself** from a structured brief, through a rendering arm.
 
 The arm exists already, outside this repository: **Suindara**, an HTML art
 laboratory that renders a PNG from a spec by driving a headless browser. Its
-contract was defined before Saci had any consumer for it; the art-chain spike
+contract was defined before Jacurutu had any consumer for it; the art-chain spike
 (`docs/tasks/2026-08-12-spike-art-chain/`) measured the seam between the two.
 
 **Suindara's engine will be ported into this monorepo, not called across a
@@ -183,6 +183,33 @@ phase the arm belongs to, which units of the engine port first, and whether the
 art chain works end to end. The spike stopped on two stacked blockers — the
 granted Drive scope reaches no file this client did not create, and the copy is
 an uploaded `.docx` rather than text — and a document touches neither.
+
+### 2026-08-19 — Saci → Jacurutu
+
+The product is renamed. The name is not a framing change and this entry claims
+none: the loop, the arm and the ports are exactly what the 2026-08-13 entry left
+them. What moved is the word, on every live surface — the six package names, the
+`bin`, `~/.saci` and `.saci.json`, the five `SACI_*` variables, the canonical
+docs, `.claude/` and `harness/`.
+
+Decided by the owner on 2026-08-16; the target was *Nacurutu* until 2026-08-17,
+when no online reference to it could be found — Jacurutu is the common Brazilian
+name for the great horned owl, Nacurutu only the subspecies epithet. The
+reasoning, the measured surface and the runtime traps are in
+`docs/explorations/product-rename.md`; the execution is
+`docs/tasks/2026-08-17-product-rename/`.
+
+Two things this deliberately does **not** do. It takes **no** backward-compatible
+read path: a fallback would keep `saci` in the code permanently as the legacy
+name being read, and fallbacks exist to protect installed users, of whom there is
+exactly one. And it leaves the record alone — `docs/tasks/**`,
+`docs/sessions/**`, `automation/` and git history keep the old name, because a
+recap describing what shipped as `saci` becomes false if rewritten.
+
+It landed before `ship`, and the ordering was measured rather than preferred:
+`.saci.json` was written into local task folders only, because `ship` does not
+exist. Once it does, manifests live in Drive across designers and this stops
+being a local change.
 
 ## Phases
 
@@ -250,13 +277,13 @@ from its Drive manifest. This is the core of the product after the
   (status-value normalization anchored on `statusCategory`; status names vary
   per project), **Axis C** (delivery dates derived from text-embedded
   summary/description where no structured field exists), and
-  `saci config project add <KEY>` (field-discovery onboarding generator).
+  `jacurutu config project add <KEY>` (field-discovery onboarding generator).
 - `[prod]` 3-level template match: (1) deterministic — strong explicit
   signals pick a template with no confirmation; (2) suggestion-with-
   confirmation — medium signals propose a template, designer confirms
   or picks another; (3) manual — designer picks from the list. MVP
   covers levels 1 and 3; level 2 lands when heuristics mature. Bypass
-  available via `saci start <key> --template <name>`.
+  available via `jacurutu start <key> --template <name>`.
 - `[prod]` Pure Drive-path derivation in `core` (shipped in brief 030):
   `derivePath(input: DerivePathInput) → readonly string[]` returns
   deterministic folder segments under the Drive hierarchy —
@@ -275,7 +302,7 @@ from its Drive manifest. This is the core of the product after the
   and updated by `ship` / `load`. Designer-to-designer handoff
   (designer B picking up a task started by designer A) is a primary
   use case.
-- `[prod]` `saci config` — per-machine identity (multi-tenant per
+- `[prod]` `jacurutu config` — per-machine identity (multi-tenant per
   machine, mono-user per instance). Day-1 requirement: 3+ designers
   running their own instances.
 - `[prod]` Drive adapter (`adapter-drive`, shipped in brief 047) — Google
@@ -287,7 +314,7 @@ from its Drive manifest. This is the core of the product after the
   question was decision #11, closed by spike 046. No command wires it
   yet: composition (folder-tree walking, verify-never-create, manifest
   parsing) belongs to `ship`, a later brief.
-- `[prod]` Designer-friendly packaging — Saci-desktop (Electron)
+- `[prod]` Designer-friendly packaging — Jacurutu-desktop (Electron)
   returns as a host for the CLI on non-technical designers' machines.
 - `[prod]` CLI human-facing display — a read-side command that renders the
   current open demands to the terminal for a person to read. Distinct from the
@@ -306,7 +333,7 @@ from its Drive manifest. This is the core of the product after the
   repo has neither. Evidence and the lab's shape:
   `docs/explorations/python-laboratory-lane.md`.
 
-**Exit criterion:** Rafael's designers can install Saci-desktop, run
+**Exit criterion:** Rafael's designers can install Jacurutu-desktop, run
 their daily production flow end-to-end on three or more machines, and
 Rafael does no manual scaffolding for that flow. A task started on one
 machine can be loaded and continued on another via its Drive manifest.
@@ -336,7 +363,7 @@ machine can be loaded and continued on another via its Drive manifest.
 **Goal:** the app-owned production state becomes shareable across designer
 instances, and the team-level coordination view is rebuilt as a **reader of a
 projection off that shared state** — never a state holder. The legacy Python
-coordination pipeline retires once a coordination consumer reads Saci's state
+coordination pipeline retires once a coordination consumer reads Jacurutu's state
 instead of the legacy Sheet.
 
 **Items:**
@@ -352,7 +379,7 @@ instead of the legacy Sheet.
   is one such consumer (see Parking lot), not the source of truth.
 - `[coord]` Composition root for coordination mode in the `cli` package.
 
-**Exit criterion:** Rafael's coordination view runs entirely on TS Saci, reading
+**Exit criterion:** Rafael's coordination view runs entirely on TS Jacurutu, reading
 a projection of app-owned shared state; the legacy Python coordination pipeline
 is archived.
 
@@ -388,7 +415,7 @@ in the note's changelog, never by deletion. The numbered list that lived here
 `docs/tasks/051-parking-pending-migration/brief.md` maps each number to its
 note.
 
-## Legacy / superseded — Saci-Electron-v1 phases
+## Legacy / superseded — Jacurutu-Electron-v1 phases
 
 The following phases were planned under the Electron-v1 codebase. With v1 entering freeze on 2026-05-15, they are **superseded** by the v2 phases above. Brief slot reservations 004-006 (`refactor/format-registry`, `refactor/renderer-views`, `refactor/action-registry`) were **burned** as part of the v2 pivot — those slot numbers will not be reused.
 

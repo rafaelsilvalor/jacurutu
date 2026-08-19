@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Composition root + shell for the `saci` CLI (brief 026, D-a3/D-a4/D-a5).
+// Composition root + shell for the `jacurutu` CLI (brief 026, D-a3/D-a4/D-a5).
 // The pure parser (`argv.ts`) maps argv to a `ParsedCommand`; this file owns all
 // I/O and process control: read env credentials, construct the JiraGateway,
 // dispatch to the run* composition functions, print one result line, set exit
@@ -10,8 +10,8 @@ import path from "node:path";
 
 import pkg from "../package.json" with { type: "json" };
 
-import { JiraGateway, type ResolvedFieldMapping } from "@saci/adapter-jira";
-import { createSpreadsheetGateway } from "@saci/adapter-sheets";
+import { JiraGateway, type ResolvedFieldMapping } from "@jacurutu/adapter-jira";
+import { createSpreadsheetGateway } from "@jacurutu/adapter-sheets";
 
 import { parseArgv, type ParsedCommand } from "./argv.js";
 import { loadFieldMapping } from "./field-config.js";
@@ -25,11 +25,11 @@ import { runStart, runStartLocal, type StartLocalOptions } from "./run-start.js"
 import { renderFetch, renderExport, renderReport, renderStart } from "./display.js";
 
 /** Credential env vars read by the fetch composition root (D-a3). */
-const ENV_BASE_URL = "SACI_JIRA_BASE_URL";
-const ENV_EMAIL = "SACI_JIRA_EMAIL";
-const ENV_API_TOKEN = "SACI_JIRA_API_TOKEN";
+const ENV_BASE_URL = "JACURUTU_JIRA_BASE_URL";
+const ENV_EMAIL = "JACURUTU_JIRA_EMAIL";
+const ENV_API_TOKEN = "JACURUTU_JIRA_API_TOKEN";
 /** Identity-file override env var (brief 036, P1); same env-not-flag precedent as D-a3. */
-const ENV_IDENTITY_FILE = "SACI_IDENTITY_FILE";
+const ENV_IDENTITY_FILE = "JACURUTU_IDENTITY_FILE";
 
 /** Exit codes (D-a4): success / runtime-IO-network / usage. */
 const EXIT_OK = 0;
@@ -50,7 +50,7 @@ function makeGatewayFactory(jql: string, fieldMapping?: ResolvedFieldMapping): M
 
   if (!baseUrl || !email || !apiToken) {
     // Name only the absent vars: the blanket three-var message masked a
-    // SACI_JIRA_TOKEN vs SACI_JIRA_API_TOKEN typo (session 033).
+    // JACURUTU_JIRA_TOKEN vs JACURUTU_JIRA_API_TOKEN typo (session 033).
     const missing = [
       ...(baseUrl ? [] : [ENV_BASE_URL]),
       ...(email ? [] : [ENV_EMAIL]),
@@ -74,7 +74,7 @@ function makeGatewayFactory(jql: string, fieldMapping?: ResolvedFieldMapping): M
 }
 
 /**
- * Resolve the identity-file path (P1): a non-empty SACI_IDENTITY_FILE wins
+ * Resolve the identity-file path (P1): a non-empty JACURUTU_IDENTITY_FILE wins
  * (absolute or cwd-relative, resolved here — env is a shell concern, never the
  * parser's, D-a3 precedent); else the per-user default composed from the
  * identity.ts constants (R1: os.homedir() + path.join, no hardcoded root).
@@ -89,7 +89,7 @@ function resolveIdentityFilePath(): string {
 
 /**
  * Resolve the report-state file path: beside the identity file, under the same
- * per-user `.saci` dir, composed with os.homedir() + path.join (R1). report-state.ts
+ * per-user `.jacurutu` dir, composed with os.homedir() + path.join (R1). report-state.ts
  * itself composes no path and reads no env — this is the only place that decides
  * where the file lives.
  */
@@ -177,7 +177,7 @@ async function runCommand(command: ParsedCommand): Promise<void> {
     }
     case "start-local": {
       // Fully offline (brief 036, constraint 4): no gateway construction and
-      // no SACI_JIRA_* reads on this path — the identity file is the only
+      // no JACURUTU_JIRA_* reads on this path — the identity file is the only
       // state consulted.
       const result = await runStartLocal(toStartLocalOptions(command));
       process.stdout.write(renderStart(result));
@@ -197,7 +197,7 @@ async function main(): Promise<void> {
   const command = parseArgv(process.argv.slice(2));
 
   if (command.kind === "version") {
-    // pkg.version reflects the internal @saci/cli version (0.0.0 per D5
+    // pkg.version reflects the internal @jacurutu/cli version (0.0.0 per D5
     // versioning defer); product versions live in git tags until Phase 4.
     process.stdout.write(`${pkg.version}\n`);
     process.exit(EXIT_OK);
