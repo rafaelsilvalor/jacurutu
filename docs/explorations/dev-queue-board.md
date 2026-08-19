@@ -209,31 +209,60 @@ What the move costs, stated so it is not discovered later:
 The board acquired a reader who does not hold `docs/ROADMAP.md` in their head,
 which changes what a card must say. Two rules, both cheap.
 
-**The title.** Imperative verb plus object, ≤ 72 characters — deliberately the
-discipline `R10` already imposes on a commit subject, so the card, the branch and
-the commit read alike and nobody translates between them. The test is one
+**The language is pt-BR**, decided on 2026-08-19 when the reader turned out not
+to read English. That reader is the whole of the criterion this board now rests
+on — an English board would serve the agent at the cost of the only human who
+opens it. This is not an exception to `R9`; it is `E7`'s reasoning applied to
+another surface. `E7` keeps the root `README.md` in pt-BR because it is the
+product's front door and the team is Brazilian, and it says the scope is a file
+rather than a filename. A Jira card is the same class of thing: not code, not
+doctrine, something people read.
+
+The cut runs by audience, not by file:
+
+| pt-BR | English, and why |
+|---|---|
+| Card titles | Field names (`Wave`, `Source`, `Brief`, `Roadmap anchor`) — structural identifiers, four of them, written by id |
+| Card bodies | Statuses `To Do` / `In Progress` / `Done`, and `Wave`'s `Now` / `Next` — transparent to a Brazilian reader, and renaming them touches the board columns |
+
+Names of our own things are never translated — `fetch`, `ship`, `manifesto`,
+`fact table`, `composition root`, `claimed_by`. Translating an identifier is
+worse than leaving it: the reader meets the same word in the code and the
+commits.
+
+**The title.** Imperative verb plus object, ≤ 72 characters. The test is one
 sentence: *read the title alone, out of context — does it say what will exist
 once this lands?* A bare noun (`Sheets`, `saci list`) never passes; it names a
 subject, not a unit of work.
+
+The ≤ 72 and the imperative are borrowed from `R10`'s commit subject on purpose,
+but the earlier claim that this makes the card, the branch and the commit read
+alike **died with the language decision**, and is recorded rather than quietly
+dropped: commit subjects stay English under `R9`. The symmetry was worth having;
+the reader is worth more.
 
 **The body.** Three blocks, and no more — a longer template in a one-person
 queue becomes a form left blank:
 
 ```
-**What it is** — two sentences, no jargon: what exists after this lands
-that does not exist today.
-**Why it's in the queue** — the trigger. What stays blocked, breaks, or
-gets paid for twice while this waits.
-**Done when** — checkable lines.
+**O que é** — duas frases, sem jargão: o que passa a existir quando isso
+entrar, que hoje não existe.
+**Por que está na fila** — o gatilho. O que fica travado, quebra ou é pago
+duas vezes enquanto isso espera.
+**Pronto quando** — linhas verificáveis.
 ```
 
 `Roadmap anchor` and `Brief` stay out of the body: they are fields, and the same
 fact in two places is the start of two versions of it. A PR link arrives as a
 comment, because it accumulates.
 
-Where a brief exists, **Done when** is its Done criteria *copied*, not
-paraphrased. A paraphrase creates a second definition of done, and then the card
-and the brief can disagree about whether the work is finished.
+Where a brief exists, **Pronto quando** carries that brief's Done criteria
+translated literally, and **the `Brief` field is the authority: where the card
+and the brief disagree, the brief wins.** The rule was "copied, never
+paraphrased" until 2026-08-19; briefs are English, so copying verbatim would
+have handed the reader the one language they cannot read. Naming the brief as
+the authority keeps what the rule protected — there is still only one definition
+of done — without making the card unreadable to the person it exists for.
 
 The contract is applied by hand — by the agent on every card it creates through
 MCP, by the owner on the rare card typed into the UI. That is the cost decision
@@ -366,3 +395,10 @@ at the issue.
   `open`: the closed set in `docs/explorations/README.md` has no value for
   "adopted", and inventing one to fit the news would cost more than the news is
   worth.
+- 2026-08-19 — the card contract turned pt-BR: the second reader does not read
+  English, which is `E7`'s reasoning rather than an `R9` exception. The
+  card/branch/commit symmetry was retired with the reason recorded, and
+  **Pronto quando** became a literal translation with the `Brief` field named as
+  the authority. The Notion board was read and frozen as
+  `dev-queue-board-snapshot-2026-08-19.md`, 27 rows verbatim — layer 2 of the
+  exit.
