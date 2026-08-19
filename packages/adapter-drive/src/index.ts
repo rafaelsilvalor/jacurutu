@@ -1,4 +1,4 @@
-// Public surface of @saci/adapter-drive: the DriveGateway implementation of the 019
+// Public surface of @jacurutu/adapter-drive: the DriveGateway implementation of the 019
 // port (as revised by brief 047), the injected Drive-call seam, the constants
 // consumers need, and one convenience factory. The composition root wires this
 // adapter into core (R25); core never imports it.

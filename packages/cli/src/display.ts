@@ -1,4 +1,4 @@
-// Pure human-facing display layer for the `saci` CLI (brief 028). It maps the
+// Pure human-facing display layer for the `jacurutu` CLI (brief 028). It maps the
 // values runFetch (a Payload) and runExport (an ExportRunResult) already return
 // to plain, aligned strings. No process, no stdout/stderr, no fs, no clock, no
 // network (D3 purity): cli.ts owns the write. Plain text only, no color, no
@@ -6,7 +6,7 @@
 // list referencing payload / EXPORT_COLUMNS ids (D2), so adding or removing a
 // column is editing one list, not rewriting the formatter.
 
-import type { ExportColumnId, Payload } from "@saci/core";
+import type { ExportColumnId, Payload } from "@jacurutu/core";
 import type { ExportRunResult } from "./run-export.js";
 import type { ReportRunResult } from "./run-report.js";
 import type { StartRunResult } from "./run-start.js";

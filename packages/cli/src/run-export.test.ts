@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import type { Issue, Payload } from "@saci/core";
+import type { Issue, Payload } from "@jacurutu/core";
 
 import { runExport, type ExportConfig } from "./run-export.js";
 
@@ -53,7 +53,7 @@ function writeFixtures(
 }
 
 test("runExport writes CSV with BOM, RFC 4180 quoting, and CRLF endings", async () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "saci-runexport-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "jacurutu-runexport-"));
   try {
     const payload = samplePayload([
       sampleIssue("MCA-100", { summary: "Banner; principal" }),
@@ -94,7 +94,7 @@ test("runExport writes CSV with BOM, RFC 4180 quoting, and CRLF endings", async 
 });
 
 test("runExport honors csv delimiter and includeBom options", async () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "saci-runexport-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "jacurutu-runexport-"));
   try {
     const payload = samplePayload([
       sampleIssue("MCA-100", { summary: "a,b" }),
@@ -127,7 +127,7 @@ test("runExport honors csv delimiter and includeBom options", async () => {
 });
 
 test("runExport writes a JSON array keyed by output headers in profile order", async () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "saci-runexport-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "jacurutu-runexport-"));
   try {
     const payload = samplePayload([sampleIssue("MCA-100")]);
     const config: ExportConfig = {
@@ -167,7 +167,7 @@ test("runExport writes a JSON array keyed by output headers in profile order", a
 });
 
 test("runExport default profile without filters exports one row per issue", async () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "saci-runexport-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "jacurutu-runexport-"));
   try {
     const payload = samplePayload([
       sampleIssue("MCA-100"),
@@ -202,7 +202,7 @@ test("runExport default profile without filters exports one row per issue", asyn
 });
 
 test("runExport applies status and entrega filters from the profile", async () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "saci-runexport-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "jacurutu-runexport-"));
   try {
     const payload = samplePayload([
       // Kept: status matches; entrega 2026-06-10 sits ON the inclusive `from`.
@@ -252,7 +252,7 @@ test("runExport applies status and entrega filters from the profile", async () =
 });
 
 test("runExport overwrites the stable output path on a second run", async () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "saci-runexport-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "jacurutu-runexport-"));
   try {
     const config: ExportConfig = {
       profiles: {
@@ -282,7 +282,7 @@ test("runExport overwrites the stable output path on a second run", async () => 
 });
 
 test("runExport throws on an unknown profile name", async () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "saci-runexport-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "jacurutu-runexport-"));
   try {
     const payload = samplePayload([sampleIssue("MCA-100")]);
     const config: ExportConfig = {

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Composition root + shell for the `saci` CLI (brief 026, D-a3/D-a4/D-a5).
+// Composition root + shell for the `jacurutu` CLI (brief 026, D-a3/D-a4/D-a5).
 // The pure parser (`argv.ts`) maps argv to a `ParsedCommand`; this file owns all
 // I/O and process control: read env credentials, construct the JiraGateway,
 // dispatch to the run* composition functions, print one result line, set exit
@@ -10,8 +10,8 @@ import path from "node:path";
 
 import pkg from "../package.json" with { type: "json" };
 
-import { JiraGateway, type ResolvedFieldMapping } from "@saci/adapter-jira";
-import { createSpreadsheetGateway } from "@saci/adapter-sheets";
+import { JiraGateway, type ResolvedFieldMapping } from "@jacurutu/adapter-jira";
+import { createSpreadsheetGateway } from "@jacurutu/adapter-sheets";
 
 import { parseArgv, type ParsedCommand } from "./argv.js";
 import { loadFieldMapping } from "./field-config.js";
@@ -197,7 +197,7 @@ async function main(): Promise<void> {
   const command = parseArgv(process.argv.slice(2));
 
   if (command.kind === "version") {
-    // pkg.version reflects the internal @saci/cli version (0.0.0 per D5
+    // pkg.version reflects the internal @jacurutu/cli version (0.0.0 per D5
     // versioning defer); product versions live in git tags until Phase 4.
     process.stdout.write(`${pkg.version}\n`);
     process.exit(EXIT_OK);

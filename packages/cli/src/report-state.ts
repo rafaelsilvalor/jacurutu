@@ -1,4 +1,4 @@
-// Per-profile report state for `saci report` (D1): ONE production-state JSON file
+// Per-profile report state for `jacurutu report` (D1): ONE production-state JSON file
 // mapping an export profile name to the spreadsheet that profile's report lives in.
 // Modelled on identity.ts — the path is always injected, this module reads no env and
 // composes no default path (cli.ts resolves it) — with one deliberate divergence:
@@ -24,7 +24,7 @@ export const REPORT_STATE_FILENAME = "report.json";
 /** On-disk indent, mirroring identity.ts's human-inspectable form. */
 const STATE_INDENT = 2;
 
-/** One profile's report: the spreadsheet it writes into, and when Saci created it. */
+/** One profile's report: the spreadsheet it writes into, and when Jacurutu created it. */
 export interface ReportEntry {
   spreadsheetId: string;
   createdAt: string;
@@ -110,7 +110,7 @@ export async function readReportEntry(
 /**
  * Persist one profile's entry, PRESERVING every other profile's. Read-modify-write, not
  * a blind overwrite: another profile's entry names a spreadsheet the team is already
- * opening, and dropping it would leave that report alive in Drive with Saci unable to
+ * opening, and dropping it would leave that report alive in Drive with Jacurutu unable to
  * find it again. The parent directory is created because this file is app-written and a
  * successful read does not precede its first write (identity.ts's opposite case).
  */

@@ -1,4 +1,4 @@
-// The SpreadsheetGateway implementation of the port declared in @saci/core: create a
+// The SpreadsheetGateway implementation of the port declared in @jacurutu/core: create a
 // spreadsheet, replace its grid, share it as reader. Everything above one call — what
 // the report shows, when it refreshes, who else may see it — belongs to the command
 // brief and is deliberately absent here, exactly as 047 left `ship` out of the Drive
@@ -11,7 +11,7 @@ import type {
   ColumnSelection,
   SpreadsheetGateway as SpreadsheetGatewayPort,
   SpreadsheetRef,
-} from "@saci/core";
+} from "@jacurutu/core";
 
 import type { SpreadsheetApi } from "./client.js";
 import { ITEM_FIELDS, SHARE_ROLE, SHARE_TYPE } from "./constants.js";

@@ -1,4 +1,4 @@
-// Public surface of @saci/adapter-jira: the JiraGateway implementation of the
+// Public surface of @jacurutu/adapter-jira: the JiraGateway implementation of the
 // 019 port and its construction config. The composition root (cli) wires this
 // adapter into core (R25).
 

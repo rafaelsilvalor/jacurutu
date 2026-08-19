@@ -110,7 +110,7 @@ test("(g) paths compose under the injected home dir, never a literal separator",
 });
 
 test("(h) readOAuthClient names the absolute path and the fix when the file is absent", async () => {
-  const dir = await mkdtemp(path.join(tmpdir(), "saci-drive-cred-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "jacurutu-drive-cred-"));
   const missing = path.join(dir, OAUTH_CLIENT_FILENAME);
   await assert.rejects(
     () => readOAuthClient(missing),
@@ -125,12 +125,12 @@ test("(h) readOAuthClient names the absolute path and the fix when the file is a
 });
 
 test("(i) readStoredToken returns null when the token file does not exist", async () => {
-  const dir = await mkdtemp(path.join(tmpdir(), "saci-drive-cred-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "jacurutu-drive-cred-"));
   assert.strictEqual(await readStoredToken(path.join(dir, TOKEN_FILENAME)), null);
 });
 
 test("(j) token round-trips through write and read, keeping only known fields", async () => {
-  const dir = await mkdtemp(path.join(tmpdir(), "saci-drive-cred-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "jacurutu-drive-cred-"));
   const file = path.join(dir, TOKEN_FILENAME);
   await writeStoredToken(file, {
     access_token: "test-access-token",
@@ -147,7 +147,7 @@ test("(j) token round-trips through write and read, keeping only known fields", 
 });
 
 test("(k) writeStoredToken creates the credentials dir when it is absent", async () => {
-  const home = await mkdtemp(path.join(tmpdir(), "saci-drive-home-"));
+  const home = await mkdtemp(path.join(tmpdir(), "jacurutu-drive-home-"));
   const dir = credentialsDir(home);
   const file = path.join(dir, TOKEN_FILENAME);
   await writeStoredToken(file, { refresh_token: "test-refresh-token" });
@@ -161,7 +161,7 @@ test("(k) writeStoredToken creates the credentials dir when it is absent", async
 const POSIX_ONLY = process.platform === "win32" ? "POSIX file modes are inert on win32" : false;
 
 test("(l) the token file and the dir it creates are owner-only", { skip: POSIX_ONLY }, async () => {
-  const home = await mkdtemp(path.join(tmpdir(), "saci-drive-home-"));
+  const home = await mkdtemp(path.join(tmpdir(), "jacurutu-drive-home-"));
   const dir = credentialsDir(home);
   const file = path.join(dir, TOKEN_FILENAME);
   await writeStoredToken(file, { refresh_token: "test-refresh-token" });
@@ -170,7 +170,7 @@ test("(l) the token file and the dir it creates are owner-only", { skip: POSIX_O
 });
 
 test("(m) ensureCredentialsDir leaves an existing dir alone", async () => {
-  const home = await mkdtemp(path.join(tmpdir(), "saci-drive-home-"));
+  const home = await mkdtemp(path.join(tmpdir(), "jacurutu-drive-home-"));
   const dir = credentialsDir(home);
   await ensureCredentialsDir(dir);
   await ensureCredentialsDir(dir);
@@ -178,7 +178,7 @@ test("(m) ensureCredentialsDir leaves an existing dir alone", async () => {
 });
 
 test("(n) readStoredToken fails loud on a malformed token file", async () => {
-  const dir = await mkdtemp(path.join(tmpdir(), "saci-drive-cred-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "jacurutu-drive-cred-"));
   const file = path.join(dir, TOKEN_FILENAME);
   await writeFile(file, "{ not json", "utf8");
   await assert.rejects(

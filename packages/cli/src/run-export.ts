@@ -5,7 +5,7 @@
 // .json output. All I/O lives here, never in core (R25 / D9). No credentials,
 // no network: the function is fixture-testable end to end.
 //
-// The projection half now lives in profile-projection.ts, because `saci report`
+// The projection half now lives in profile-projection.ts, because `jacurutu report`
 // runs the same pipeline into a spreadsheet instead of a file. What remains here
 // is the file half: format dispatch, the two serializers, and the output path.
 

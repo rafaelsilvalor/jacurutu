@@ -1,7 +1,7 @@
 // Jira-shape-coupled copy navigation. Ported behavior-preserving from
 // automation/fetch.py (frozen seed): the navigation halves of best_sister_match
 // and resolve_copy. The shape-independent decisions — token-overlap argmax and
-// sister/parent/fallback precedence — are delegated to @saci/core policy
+// sister/parent/fallback precedence — are delegated to @jacurutu/core policy
 // (R25 — policy lives in core, the adapter only adapts data shape). No scoring
 // or precedence logic is re-implemented here.
 
@@ -10,7 +10,7 @@ import {
   bestMatchByTokenOverlap,
   pickCopy,
   type CopySource,
-} from "@saci/core";
+} from "@jacurutu/core";
 
 import { adfExtractDriveUrls, extractUrlsFromComments } from "./extract.js";
 

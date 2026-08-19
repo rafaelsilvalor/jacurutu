@@ -46,8 +46,8 @@ export interface SpreadsheetRef {
 }
 
 /**
- * Port for the team report: a spreadsheet Saci creates, fills, and shares with
- * people who never run Saci. It replaces the 019 `SheetGateway`, whose
+ * Port for the team report: a spreadsheet Jacurutu creates, fills, and shares with
+ * people who never run Jacurutu. It replaces the 019 `SheetGateway`, whose
  * `readRows` / `writeRows(startRow, ...)` pair existed only while the Sheet held
  * production state — the application has owned that state since the 2026-06-12
  * pivot, and the 2026-08-14 reversal made the spreadsheet a one-way report

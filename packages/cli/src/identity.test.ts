@@ -8,7 +8,7 @@ import { readIdentityState, writeIdentityState } from "./identity.js";
 
 /** Sandbox holding one identity file path; `content` seeds it, `null` leaves it missing. */
 function makeSandbox(content: string | null): { base: string; filePath: string } {
-  const base = mkdtempSync(path.join(tmpdir(), "saci-identity-"));
+  const base = mkdtempSync(path.join(tmpdir(), "jacurutu-identity-"));
   const filePath = path.join(base, "identity.json");
   if (content !== null) {
     writeFileSync(filePath, content);

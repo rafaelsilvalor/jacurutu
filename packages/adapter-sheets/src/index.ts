@@ -1,8 +1,8 @@
-// Public surface of @saci/adapter-sheets: the SpreadsheetGateway implementation of the
+// Public surface of @jacurutu/adapter-sheets: the SpreadsheetGateway implementation of the
 // core port, the injected Google-call seam, and one convenience factory. The
 // composition root wires this adapter into core (R25); core never imports it.
 //
-// `saci report --profile <name>` wires it: the composition root builds this gateway and
+// `jacurutu report --profile <name>` wires it: the composition root builds this gateway and
 // hands it the rows an export profile already selects. What the report shows is that
 // profile's business, so it is configured rather than decided here.
 
@@ -11,7 +11,7 @@ import {
   defaultCredentialPaths,
   type AuthorizeLog,
   type CredentialPaths,
-} from "@saci/adapter-drive";
+} from "@jacurutu/adapter-drive";
 
 import { createGoogleSpreadsheetApi } from "./client.js";
 import { SpreadsheetGateway } from "./gateway.js";
@@ -36,7 +36,7 @@ export interface CreateSpreadsheetGatewayOptions {
 }
 
 /**
- * Resolve credentials, authorize, and return a ready gateway — the one call `saci
+ * Resolve credentials, authorize, and return a ready gateway — the one call `jacurutu
  * report` makes, in cli.ts and nowhere else. Authorization is adapter-drive's: one
  * Google grant, one `~/.saci/token.json`, no second browser round-trip for the same
  * user (D8).

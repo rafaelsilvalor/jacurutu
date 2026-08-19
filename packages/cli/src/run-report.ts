@@ -7,7 +7,7 @@
 // cli.ts and nowhere else (D7). The thunk is awaited only after the profile and the
 // state file have both been read, so a config typo can never open a browser.
 
-import type { SpreadsheetGateway } from "@saci/core";
+import type { SpreadsheetGateway } from "@jacurutu/core";
 
 import { projectProfile } from "./profile-projection.js";
 import { readReportEntry, writeReportEntry } from "./report-state.js";

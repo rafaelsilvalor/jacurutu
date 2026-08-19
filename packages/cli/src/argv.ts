@@ -1,4 +1,4 @@
-// Pure argv parser/router for the `saci` CLI (brief 026, D-a1/D-a2/D-a4/D-a6).
+// Pure argv parser/router for the `jacurutu` CLI (brief 026, D-a1/D-a2/D-a4/D-a6).
 // Maps `argv: string[]` to a discriminated `ParsedCommand` value and nothing
 // else: no `process.env`, no `process.exit`, no `fs`, no network. Keeping this
 // layer pure is what makes the command surface unit-testable with `node:test`
@@ -6,24 +6,24 @@
 
 import { parseArgs } from "node:util";
 
-import { parseEntrega } from "@saci/core";
+import { parseEntrega } from "@jacurutu/core";
 
 /** Default `--out` path for `fetch` when the flag is omitted (D-a2). */
 export const DEFAULT_OUT = "payload.json";
 
 /** Usage text owned by the parser (it owns argv defaults and the usage string). */
 export const USAGE = `Usage:
-  saci fetch --jql <string> [--out <path>] [--allow-empty]
-             [--field-config <path> --project <KEY>]
-  saci export --payload <path> --config <path> --profile <name>
-  saci report --payload <path> --config <path> --profile <name>
-              [--share-with <address>]
-  saci start <KEY> --workspace-root <path> [--templates-root <path>]
-             [--variation <text>] [--blank] [--open]
-  saci start --local --vertical <SIGLA> --title <text> --workspace-root <path>
-             [--due <ISO-date>] [--templates-root <path>] [--variation <text>]
-             [--blank] [--open]
-  saci --version`;
+  jacurutu fetch --jql <string> [--out <path>] [--allow-empty]
+                 [--field-config <path> --project <KEY>]
+  jacurutu export --payload <path> --config <path> --profile <name>
+  jacurutu report --payload <path> --config <path> --profile <name>
+                  [--share-with <address>]
+  jacurutu start <KEY> --workspace-root <path> [--templates-root <path>]
+                 [--variation <text>] [--blank] [--open]
+  jacurutu start --local --vertical <SIGLA> --title <text> --workspace-root <path>
+                 [--due <ISO-date>] [--templates-root <path>] [--variation <text>]
+                 [--blank] [--open]
+  jacurutu --version`;
 
 /**
  * The outcome of parsing argv. `usage` carries a stderr-bound message and maps

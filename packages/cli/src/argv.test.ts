@@ -47,7 +47,7 @@ test("fetch with --allow-empty yields allowEmpty true", () => {
 });
 
 // The flag is discoverable: an operator who hits the refusal message reads
-// `--allow-empty` there, and `saci fetch` with no args shall confirm it exists.
+// `--allow-empty` there, and `jacurutu fetch` with no args shall confirm it exists.
 test("USAGE advertises the --allow-empty flag on fetch", () => {
   assert.ok(USAGE.includes("[--allow-empty]"), "usage text must advertise --allow-empty");
 });

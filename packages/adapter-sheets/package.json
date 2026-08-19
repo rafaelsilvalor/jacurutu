@@ -1,5 +1,5 @@
 {
-  "name": "@saci/adapter-sheets",
+  "name": "@jacurutu/adapter-sheets",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,8 +9,8 @@
     "build": "tsc -p ."
   },
   "dependencies": {
-    "@saci/core": "*",
-    "@saci/adapter-drive": "*",
+    "@jacurutu/core": "*",
+    "@jacurutu/adapter-drive": "*",
     "googleapis": "173.0.0"
   }
 }

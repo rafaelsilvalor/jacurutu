@@ -2,7 +2,7 @@
 // derive its workspace folder, scaffold the D-A structure, apply a template
 // (unless --blank), and write the v2 `.saci.json` manifest. Local-only — Drive
 // round-trip is `ship`'s job (D1). All fs/network lives here; path derivation
-// and manifest assembly stay pure in @saci/core (R25).
+// and manifest assembly stay pure in @jacurutu/core (R25).
 //
 // The gateway is injected as a FACTORY (`makeGateway`, shared with run-fetch) so
 // this function carries no credentials and is unit-testable with a fake. The
@@ -32,8 +32,8 @@ import {
   type DerivePathInput,
   type Issue,
   type TaskManifest,
-} from "@saci/core";
-import type { IssueDropLog, IssueWarningLog } from "@saci/adapter-jira";
+} from "@jacurutu/core";
+import type { IssueDropLog, IssueWarningLog } from "@jacurutu/adapter-jira";
 
 import { readIdentityState, writeIdentityState } from "./identity.js";
 import type { MakeGateway } from "./run-fetch.js";
@@ -128,7 +128,7 @@ async function buildCollisionReport(leafFolder: string): Promise<string> {
     `  - ${EDITAVEIS_DIR}/: ${hasEditaveis ? "present" : "absent"}`,
     "Options:",
     "  - keep working in the existing folder, or",
-    "  - rename it manually and re-run `saci start`.",
+    "  - rename it manually and re-run `jacurutu start`.",
   ].join("\n");
 }
 

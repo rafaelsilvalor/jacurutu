@@ -11,7 +11,7 @@
 // the injected logger. The seed's `warnings` array is DEFERRED (D3), so the
 // problem is logged, not serialized.
 
-import type { Issue } from "@saci/core";
+import type { Issue } from "@jacurutu/core";
 
 import { safeGetEntrega, safeGetVertical } from "./extract.js";
 import type { ResolvedFieldMapping } from "./field-mapping.js";

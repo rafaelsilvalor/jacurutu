@@ -9,7 +9,7 @@
 
 import { readFile } from "node:fs/promises";
 
-import type { ResolvedFieldMapping } from "@saci/adapter-jira";
+import type { ResolvedFieldMapping } from "@jacurutu/adapter-jira";
 
 /**
  * One project's override entry on disk (D1 override shape): a SINGLE `entrega`

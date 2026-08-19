@@ -1,8 +1,8 @@
-// OS-native opener for `saci start --open` (brief 040, D4/D5). Command
+// OS-native opener for `jacurutu start --open` (brief 040, D4/D5). Command
 // selection is a pure function of an injectable platform value and the spawn
 // function is injectable, so tests assert command/args per platform without
 // launching anything (R3). OS glue with zero domain logic — it lives in
-// @saci/cli, not behind a core port (R25). Zero new runtime deps (R2).
+// @jacurutu/cli, not behind a core port (R25). Zero new runtime deps (R2).
 //
 // Exit-path safety (brief 033 precedent): the child is detached, its stdio is
 // not inherited, and it is unref()'d immediately, so the parent's event loop

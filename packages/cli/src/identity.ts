@@ -1,6 +1,6 @@
 // Per-designer identity state for local-born task keys (brief 036, D4/D10):
 // ONE production-state JSON file co-locating the designer prefix and the next
-// sequence number. Manually seeded in v0; the future `saci config` command
+// sequence number. Manually seeded in v0; the future `jacurutu config` command
 // becomes the writer of this file, and the on-disk format does not change.
 // This is the first production-state file in v2, so the seam is deliberate:
 // all identity I/O lives here in the composition-root package (R25), and the
@@ -26,7 +26,7 @@ export interface IdentityState {
 /**
  * Guard: narrow parsed JSON to an `IdentityState`, fail-loud naming the
  * offending field (R4). No prefix charset validation — that arrives with
- * `saci config` (D4); the v0 backstop is the folder-collision check at start.
+ * `jacurutu config` (D4); the v0 backstop is the folder-collision check at start.
  */
 function asIdentityState(input: unknown, filePath: string): IdentityState {
   if (typeof input !== "object" || input === null || Array.isArray(input)) {

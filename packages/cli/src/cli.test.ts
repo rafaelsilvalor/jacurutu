@@ -39,7 +39,7 @@ function runCli(
 
 /** Sandbox: workspace/, sibling templates/EC/banner.psd, and a seeded identity file. */
 function makeSandbox(): { base: string; workspaceRoot: string; identityFilePath: string } {
-  const base = mkdtempSync(path.join(tmpdir(), "saci-cli-e2e-"));
+  const base = mkdtempSync(path.join(tmpdir(), "jacurutu-cli-e2e-"));
   const workspaceRoot = path.join(base, "workspace");
   mkdirSync(workspaceRoot, { recursive: true });
   const verticalDir = path.join(base, "templates", "EC");
@@ -129,7 +129,7 @@ test("start with a positional <KEY> plus --local exits 2 with usage", () => {
 // before any gateway is constructed, so `fetch` reaches neither the network nor
 // the identity file — a throwaway path suffices. Absence is asserted on FULL
 // var names only: the three share the SACI_JIRA_ prefix.
-const UNUSED_IDENTITY_FILE = path.join(tmpdir(), "saci-cli-e2e-unused-identity.json");
+const UNUSED_IDENTITY_FILE = path.join(tmpdir(), "jacurutu-cli-e2e-unused-identity.json");
 
 test("fetch with no Jira credentials set names all three env vars", () => {
   const { status, stderr } = runCli(["fetch", "--jql", "project = X"], UNUSED_IDENTITY_FILE);

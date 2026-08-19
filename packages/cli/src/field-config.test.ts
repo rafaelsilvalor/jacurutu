@@ -25,7 +25,7 @@ function writeConfig(dir: string, config: unknown): string {
 }
 
 test("loadFieldMapping normalizes MC override to a 1-element candidate list", async () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "saci-fieldcfg-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "jacurutu-fieldcfg-"));
   try {
     const configPath = writeConfig(dir, SAMPLE_CONFIG);
 
@@ -42,7 +42,7 @@ test("loadFieldMapping normalizes MC override to a 1-element candidate list", as
 });
 
 test("loadFieldMapping resolves PMA to its distinct entrega field", async () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "saci-fieldcfg-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "jacurutu-fieldcfg-"));
   try {
     const configPath = writeConfig(dir, SAMPLE_CONFIG);
 
@@ -58,7 +58,7 @@ test("loadFieldMapping resolves PMA to its distinct entrega field", async () => 
 });
 
 test("loadFieldMapping throws on an unknown project naming key + path", async () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "saci-fieldcfg-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "jacurutu-fieldcfg-"));
   try {
     const configPath = writeConfig(dir, SAMPLE_CONFIG);
 
@@ -78,7 +78,7 @@ test("loadFieldMapping throws on an unknown project naming key + path", async ()
 });
 
 test("loadFieldMapping surfaces malformed JSON (fail-loud, no silent degrade)", async () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "saci-fieldcfg-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "jacurutu-fieldcfg-"));
   try {
     const configPath = path.join(dir, "field-config.json");
     writeFileSync(configPath, "{ not valid json", "utf8");

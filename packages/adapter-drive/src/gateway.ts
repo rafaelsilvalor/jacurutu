@@ -6,7 +6,7 @@
 // The library is injected as a `DriveFilesApi` (D4), so every decision in this class
 // is unit tested against a fake, with no credentials and no network.
 
-import type { DriveGateway as DriveGatewayPort, DriveItem } from "@saci/core";
+import type { DriveGateway as DriveGatewayPort, DriveItem } from "@jacurutu/core";
 
 import type { DriveFilesApi } from "./client.js";
 import { CHILD_PAGE_SIZE, FOLDER_MIME_TYPE } from "./constants.js";

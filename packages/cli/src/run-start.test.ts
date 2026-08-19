@@ -12,7 +12,7 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { parseManifest, type Issue } from "@saci/core";
+import { parseManifest, type Issue } from "@jacurutu/core";
 
 import { runStart, runStartLocal, type StartLocalOptions } from "./run-start.js";
 import type { MakeGateway } from "./run-fetch.js";
@@ -104,7 +104,7 @@ async function withoutJiraEnv(body: () => Promise<void>): Promise<void> {
  * has the expected shape (or a deliberately wrong one).
  */
 function makeSandbox(templateFiles: string[]): { base: string; workspaceRoot: string } {
-  const base = mkdtempSync(path.join(tmpdir(), "saci-runstart-"));
+  const base = mkdtempSync(path.join(tmpdir(), "jacurutu-runstart-"));
   const workspaceRoot = path.join(base, "workspace");
   mkdirSync(workspaceRoot, { recursive: true });
   if (templateFiles.length > 0) {

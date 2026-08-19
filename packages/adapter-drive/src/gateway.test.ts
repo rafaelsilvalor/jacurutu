@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert";
 
-import type { DriveItem } from "@saci/core";
+import type { DriveItem } from "@jacurutu/core";
 
 import type { CreateItemInput, DriveFilesApi } from "./client.js";
 import { CHILD_PAGE_SIZE, DEFAULT_UPLOAD_MIME_TYPE, FOLDER_MIME_TYPE } from "./constants.js";

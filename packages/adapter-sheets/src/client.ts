@@ -19,7 +19,7 @@
 // Not unit tested by design (D6): the smoke covers it, because a fake of the library
 // would only assert that the fake matches itself.
 
-import type { DriveAuthClient } from "@saci/adapter-drive";
+import type { DriveAuthClient } from "@jacurutu/adapter-drive";
 import { google } from "googleapis";
 
 import {
@@ -105,7 +105,7 @@ export function createGoogleSpreadsheetApi(auth: GoogleAuthClient): SpreadsheetA
       await drive.permissions.create({
         fileId: input.spreadsheetId,
         requestBody: { type: input.type, role: input.role, emailAddress: input.recipient },
-        // The recipient learns about the report from the person who ran Saci, not from
+        // The recipient learns about the report from the person who ran Jacurutu, not from
         // a Google notification mail nobody wrote.
         sendNotificationEmail: false,
         supportsAllDrives: true,
