@@ -7,7 +7,9 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/file-ownership.mjs"]
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/file-ownership.mjs"
+            ]
           }
         ]
       },
@@ -17,17 +19,23 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/commit-guard.mjs"]
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/commit-guard.mjs"
+            ]
           },
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/architecture-guard.mjs"]
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/architecture-guard.mjs"
+            ]
           },
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/docs-guard.mjs"]
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/docs-guard.mjs"
+            ]
           }
         ]
       }
@@ -38,8 +46,23 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/green-boundary.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/green-boundary.mjs"
+            ],
             "timeout": 360
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.mjs"
+            ]
           }
         ]
       }
