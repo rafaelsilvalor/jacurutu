@@ -162,7 +162,7 @@ inspecting task folders.
 "Electron host" is currently recorded as a **closed** decision in two
 places: `MENTOR_BRIEF.md` section 2 ("CLI-first, desktop-later … Desktop
 UI (Electron host) reconnects on top") and the ROADMAP Phase 3 packaging
-item ("Saci-desktop (Electron) returns as a host for the CLI"). ROADMAP
+item ("Jacurutu-desktop (Electron) returns as a host for the CLI"). ROADMAP
 Phase 5 is marked sketch-only, so those two records are the load-bearing
 ones.
 

@@ -25,7 +25,7 @@ pré-tarefa, meta-discussão) fica com a sessão Mentor
 ## --- COPIAR ---
 
 ```
-Continuando o projeto Saci em sessão Orchestrator (modelo fundido,
+Continuando o projeto Jacurutu em sessão Orchestrator (modelo fundido,
 docs/AGENT_PLAYBOOK.md capítulo 6).
 
 Modo desta sessão: [modelar tarefa (pipeline) | modelar tarefa —

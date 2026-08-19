@@ -17,7 +17,7 @@ Three decisions the owner closed on 2026-08-16:
 | Decision | Choice |
 |---|---|
 | Scope | The queue only. Briefs, recaps, doctrine and the ROADMAP's *Identity shifts* stay in git. |
-| Reach | Outside the product's. Saci never reads this board, so `adapter-jira` and the `saci export` fact table are untouched. |
+| Reach | Outside the product's. Jacurutu never reads this board, so `adapter-jira` and the `jacurutu export` fact table are untouched. |
 | Authority | The agent creates cards freely; moving one to Done needs the owner's explicit go — the gate that closes Pause 3. |
 
 ## What the measurement changed

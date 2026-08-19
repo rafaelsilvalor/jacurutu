@@ -20,3 +20,7 @@ Phase 2 exit criterion); the Phase 3 serialization half remains open.
 
 - 2026-08-06 — migrated from the ROADMAP Pending decisions #8 by brief 051;
   disposition set to `open`.
+- 2026-08-19 — the product was renamed Saci → Jacurutu, so the file name the
+  entry above proposes reads `.jacurutu.json` today. The entry itself is left
+  verbatim, as its Origin line promises; the open half of the decision (Phase 3
+  serialization) is untouched. See `docs/explorations/product-rename.md`.

@@ -4,7 +4,7 @@ Harness de orquestração — meta-tooling para trabalhar com agentes IA neste p
 
 > **Premissa:** o harness é o scaffolding de orquestração permanente
 > deste repositório — workflows, prompts e doutrina pra trabalhar
-> com agentes IA no Saci. O caso de uso primário é operar o projeto
+> com agentes IA no Jacurutu. O caso de uso primário é operar o projeto
 > dia a dia; o bootstrap em projeto novo (seção secundária abaixo)
 > reaproveita os mesmos artefatos como ponto de partida.
 

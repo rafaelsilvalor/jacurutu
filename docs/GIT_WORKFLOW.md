@@ -1,6 +1,6 @@
 # Git Workflow
 
-> **Operational discipline for Saci.** This is the *how* — concrete commands, hook scripts, PR template, release process, recovery patterns.
+> **Operational discipline for Jacurutu.** This is the *how* — concrete commands, hook scripts, PR template, release process, recovery patterns.
 > The *why* lives in `CLAUDE.md` rules R10–R17. Where this file overlaps with `CLAUDE.md`, both are authoritative — adjusting one without the other is a bug.
 
 ## Hard Rules (G-R*)
@@ -167,7 +167,7 @@ retouched by LF/CRLF normalization.
 
 ## Branch protection on GitHub
 
-Configure on `github.com/rafaelsilvalor/saci` → Settings → Branches → Add rule for `main`:
+Configure on `github.com/rafaelsilvalor/jacurutu` → Settings → Branches → Add rule for `main`:
 
 - ✅ Require a pull request before merging
 - ✅ Require status checks to pass before merging *(enable when CI is set up; pick the `npm test` job)*

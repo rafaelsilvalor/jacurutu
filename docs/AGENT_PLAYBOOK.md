@@ -10,7 +10,7 @@
 
 Most failed sessions start with a wrongly-sized task. Categorize first.
 
-| Size | Time | Characteristics | Example in Saci |
+| Size | Time | Characteristics | Example in Jacurutu |
 |---|---|---|---|
 | **S** | < 30 min | One-line change, clear scope, low risk | Add a new file extension to `SUPPORTED_EXTS`. Rename a single function. |
 | **M** | 30 min – 2 h | One file or two, contained scope, well-understood domain | Add a new IPC handler for "open last folder". Tighten a regex. Extract one helper from `main.js`. |
@@ -114,7 +114,7 @@ This is the **most useful chapter** for a solo dev with no human reviewer. When 
 Look for:
 
 - **A1 — Unawaited promises in handlers.** `ipcMain.handle('foo', async () => { doAsync(); return x; })` — the handler returns before `doAsync` finishes. Should be `await doAsync()`.
-- **A2 — Worker task resolving twice.** Race between timeout firing (`task.resolve(null)`) and the real result arriving from `worker.on('message')`. Saci's `PsdWorkerPool` guards with `if (!task || task.id !== msg.id) return;` — verify any new task type preserves that guard.
+- **A2 — Worker task resolving twice.** Race between timeout firing (`task.resolve(null)`) and the real result arriving from `worker.on('message')`. Jacurutu's `PsdWorkerPool` guards with `if (!task || task.id !== msg.id) return;` — verify any new task type preserves that guard.
 - **A3 — Cache write/read races.** `fs.writeFileSync(cachePath, data)` immediately followed by another request reading the same path. Concurrent thumbnail requests for the same file race; the dedupe set `thumbInflight` in `renderer/app.js` is the guard. New caches need similar dedupe.
 - **A4 — `setTimeout` without cleanup on cancellation.** A timeout that fires after the parent context is gone (worker terminated, IPC disconnected) can crash on undefined references. Always `clearTimeout` in the cancel path.
 - **A5 — Sync FS in async function.** `async function foo() { fs.readFileSync(...) }` — works but blocks the event loop. Either commit to sync (and accept the block) or use `fs.promises.readFile`.
@@ -166,7 +166,7 @@ Look for:
 These are mistakes you (the orchestrator) can make. None of them are the agent's fault. All of them are detectable in real time.
 
 **O1 — Sending a reference without adaptation instructions.**
-*Symptom:* You paste code and say "do this". Agent copies line-for-line, including parts that don't fit Saci.
+*Symptom:* You paste code and say "do this". Agent copies line-for-line, including parts that don't fit Jacurutu.
 *Fix:* Always say what role the reference plays — see lesson #5.
 
 **O2 — Over-explaining out of insecurity.**
@@ -438,4 +438,4 @@ R17 restated for Orchestrator sessions — the letter of the rule holds; the fus
 | `.claude/hooks/` | The executable checks — commit message, architecture rules, file ownership, green boundary, brief validation |
 | `.claude/skills/mentor-mode/` | Mentor session mechanics (skill invoked at session open) |
 | `harness/workflows/` | Pre-built session templates for manual invocation (parallel surface to `.claude/agents/`) |
-| `README.md` | End-user description of Saci |
+| `README.md` | End-user description of Jacurutu |

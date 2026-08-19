@@ -40,7 +40,7 @@ No Drive call was made anywhere.
 
 The probe reuses the adapter's own extraction and the real sister-pairing
 rule (`bestSisterMatch`) rather than reimplementing them, so it measures the
-matcher Saci ships. URLs are stripped before measuring, so a description
+matcher Jacurutu ships. URLs are stripped before measuring, so a description
 containing only a Drive link measures as zero prose rather than as copy.
 
 ## 2. The headline

@@ -13,7 +13,7 @@
 | Where an artifact goes and what it is named | — |
 | What a rule ID like `G-R5` or `M-R12` means and where it lives | — |
 | What the code rules are | `CLAUDE.md` |
-| What Saci is and what it does | `README.md`, `docs/ROADMAP.md` |
+| What Jacurutu is and what it does | `README.md`, `docs/ROADMAP.md` |
 | Where the code lives and how it is layered | `CLAUDE.md` "Architecture" |
 | Which stack traps have already cost time | `docs/GOTCHAS.md` |
 
@@ -292,7 +292,7 @@ grep -rn 'from.*adapter' packages/core/src/ # R25 check: must return nothing
 npx tsc -b && npm test                      # the green boundary
 ```
 
-Two environment facts that are easy to get wrong: the pre-commit hook exists at `.githooks/pre-commit` but `core.hooksPath` may be unset in a given clone, so `npm test` may never run automatically — run it yourself. And in a worktree session, `@saci/*` imports can silently resolve to the main checkout (`docs/GOTCHAS.md` G-NODE-2).
+Two environment facts that are easy to get wrong: the pre-commit hook exists at `.githooks/pre-commit` but `core.hooksPath` may be unset in a given clone, so `npm test` may never run automatically — run it yourself. And in a worktree session, `@jacurutu/*` imports can silently resolve to the main checkout (`docs/GOTCHAS.md` G-NODE-2).
 
 ## 12. Process mistakes new agents make here
 
@@ -326,4 +326,4 @@ Each of these has happened and is documented. They are process failures, not cod
 | `.claude/hooks/lib/commit-message.mjs` | the verb allowlist SSOT |
 | `harness/README.md` | what the harness is; how to bootstrap it elsewhere |
 | `harness/workflows/README.md` | the scenario catalog |
-| `README.md` | what Saci is, for end users |
+| `README.md` | what Jacurutu is, for end users |

@@ -25,11 +25,18 @@ in-progress
       the whole delta is `docs/explorations/product-rename.md` growing from 7 to
       18 lines, and that file is preserved
 - [x] Pause 1 approved, including the five judgment decisions below
+- [x] Edits 2 and 3 committed — then `origin/main` was found five commits ahead
+      (#157-#161) at the Edit 4 scope check. The three commits were rebased onto
+      `6bec1f2` with the owner's approval; no conflict, because main's changes
+      were disjoint from Edits 1-3 (`README.md` did not move on main). Main added
+      23 live occurrences: 18 in the new `dev-queue-board-snapshot-2026-08-19.md`
+      and 5 in `dev-queue-board.md`. Edit 4 was redone against the rebased tree
 
 ## Next steps
-- [ ] Edit 2 — `refactor(packages): rename the package scope to jacurutu`
-- [ ] Edit 3 — `feat(cli): migrate the runtime surfaces to the jacurutu names`
-- [ ] Edit 4 — `docs: rename the product to jacurutu across the canonical docs`
+- [x] Edit 2 — `refactor(packages): rename the package scope to jacurutu`
+- [x] Edit 3 — `feat(cli): migrate the runtime surfaces to the jacurutu names`
+- [x] Edit 4 — `docs: rename the product to jacurutu across the canonical docs`
+- [ ] Report the Edit 5 owner actions as the closing message — never run them
 - [ ] Delete this file at close; **no `git push`** (G-R5)
 
 ## Blockers (if status = blocked)
@@ -49,7 +56,7 @@ mv D:/Projects/saci D:/Projects/jacurutu
 git worktree repair              # absolute paths break on the directory move
 ```
 
-### The 59 lines that keep `saci` on purpose (D4, approved at Pause 1)
+### The 78 lines that keep `saci` on purpose (D4, approved at Pause 1)
 `main.js:161`; `renderer/index.html:6,13,25` (both outside the brief's
 modifiable paths) · `package.json:36,37` (`appId`, `productName` — v1 packaging
 identity; `productName` decides `%APPDATA%\Saci`, so changing it would orphan
@@ -60,12 +67,21 @@ real path that does not move) · `.claude/hooks/lib/architecture.test.mjs` (all
 8 — `architecture.mjs` carries zero `saci`, so the pinned code did not change) ·
 `.claude/hooks/lib/gate-yield.test.mjs:38` (tmpdir prefix) ·
 `.claude/hooks/lib/telemetry.test.mjs` (all 10 — tmpdir prefixes, shim markers,
-synthetic `repoRelative` paths) · `docs/explorations/dev-queue-board.md:74,88,
-90,99,100,119,126` (external facts: the free Jira key, the board's seed name,
-the Notion `SACI-n` Ref prefix, the live card titles) ·
+synthetic `repoRelative` paths) ·
+`docs/explorations/dev-queue-board.md:74,88,90,99,100,119,126,199,201,213,250,297`
+(external facts: the free Jira key, the board's Notion seed name, the dead
+`SACI-n` Ref prefix, and the live card titles now carried by `JAC-13`, `JAC-14`
+and `JAC-22`) · `docs/explorations/dev-queue-board-snapshot-2026-08-19.md` (all
+14 — the file is a dated verbatim dump of the frozen Notion board; rewriting a
+snapshot falsifies the one thing it exists to prove) ·
 `docs/explorations/task-manifest-format.md:11` (a block its own header declares
-preserved verbatim) · `README.md:39,53,63,64` (v1 artifact names, true while
+preserved verbatim) · `README.md:39,53,83,84` (v1 artifact names, true while
 `productName` stays).
+
+The last two entries were not in the Pause 1 list: the snapshot did not exist
+and `dev-queue-board.md` carried 7 preserved lines rather than 12. Both arrived
+with #160/#161 while Edits 2 and 3 were being committed. The judgment applied to
+them is the one Pause 1 approved, unchanged in kind.
 
 ### Two exceptions inside preserved files
 `gate-yield.test.mjs:294` **does** change: it passes `SACI_TELEMETRY_DIR`, which

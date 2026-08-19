@@ -1,16 +1,16 @@
-# Saci
+# Jacurutu
 
 Área de trabalho do time de design da Estratégia. Centraliza modelos, produção diária e diagnóstico de arquivos em uma única interface — abre PSDs, AIs, INDDs e imagens direto no app padrão (Photoshop, Illustrator, InDesign).
 
-> *"O Saci esconde a burocracia. Você cuida da arte."*
+> *"O Jacurutu enxerga no escuro. Você cuida da arte."*
 
-## Por que "Saci"?
+## Por que "Jacurutu"?
 
-O Saci-Pererê — figura travessa do folclore brasileiro de uma perna só, gorro vermelho e cachimbo — é famoso por esconder coisas. Chaves, dedais, ferramentas: o que você precisa, o Saci esconde. É uma travessura, não maldade — e por trás dela há um conhecimento profundo (na lenda, o Saci é guardião das ervas medicinais; decide o que se mostra e o que se guarda).
+O jacurutu — nome brasileiro do maior corujão das Américas — caça no escuro e voa sem fazer barulho. Enxerga o que ninguém enxerga e chega sem que se perceba.
 
-Aqui a metáfora se inverte: o Saci esconde a **burocracia**, não o trabalho. Caminhos de pasta, convenções de nome, links entre Jira e Drive, transições de status, uploads — tudo que separa "vou criar uma arte" de "a arte está entregue" desaparece dentro do redemoinho. O designer vê a tarefa e o arquivo; a infraestrutura some.
+Aqui a metáfora é essa: o jacurutu atravessa a **burocracia** no escuro e em silêncio. Caminhos de pasta, convenções de nome, links entre Jira e Drive, transições de status, uploads — tudo que separa "vou criar uma arte" de "a arte está entregue" acontece fora do seu campo de visão. O designer vê a tarefa e o arquivo; a infraestrutura some.
 
-É a mesma força do personagem, mirando o alvo certo.
+É a mesma discrição, mirando o alvo certo.
 
 ## Funcionalidades atuais
 
@@ -106,7 +106,7 @@ estrategia-dashboard/
 
 ## Origem do nome
 
-Saci-Pererê — figura do folclore brasileiro. Pequeno, ágil, esperto, conhecido por aprontar e por aparecer e sumir como um redemoinho. Dizem também que ajuda a encontrar coisas perdidas. Daí o nome.
+Jacurutu — nome brasileiro do corujão-orelhudo (*Bubo virginianus*), a maior coruja das Américas. Noturno, silencioso, enxerga onde não há luz. Daí o nome.
 
 ## Licença
 
