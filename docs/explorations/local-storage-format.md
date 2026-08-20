@@ -75,12 +75,20 @@ flat layout from a tolerable simplification into a rule that is missing:
   nothing. Adding a per-file override for Jira's credentials would make three
   conventions for four files.
 
-**`JAC-1` owns this.** It is the card that carries the mirror-versus-state split
-and sits in `Wave: Next`. The right move is to widen its body to three
-categories, not to open a fourth card — a new card here would be the duplicate
-`dev-queue-board.md` asks us to check for. Suggested addition to the first block
-of its body: credentials are a third category, and the directory layout has to
-say which of the three a file belongs to.
+**`JAC-1` owns this, and was amended rather than duplicated.** It is the card
+that carries the mirror-versus-state split and sits in `Wave: Next`. Widening its
+body was the right move over opening a fourth card, which would have been the
+duplicate `dev-queue-board.md` asks us to check for.
+
+Done on 2026-08-20 and verified by JQL: the card now names three categories and
+says the format has to declare which one a file belongs to, its title changed
+from "duas categorias locais" to `Separar espelho, estado de produção e
+credenciais no disco local` — the old one asserted a count that had stopped being
+true — and its done-criteria block names the three questions a brief has to answer
+beyond the format: which category each file belongs to and how that is visible,
+whether the mirror shares a backup unit with production state, and whether the
+env overrides stay one-per-file or become a single root. `Source`, `Wave` and its
+three `Blocks` links were left untouched.
 
 ## 4. Two shapes, neither decided
 
@@ -152,3 +160,8 @@ goes when it stops being local-only).
   independent compositions of the directory root and the inconsistent env-override
   surface recorded as evidence. The original SQLite/JSON question is untouched, so
   the disposition stays `open`.
+- 2026-08-20 — the owner ratified the third category and `JAC-1` was amended to
+  carry it: three categories in the body, a title that no longer asserts two, and
+  three questions named in its done-criteria block. §3 records what landed instead
+  of what was proposed. The disposition stays `open` — the amendment moved the
+  card, not the SQLite-or-JSON decision this note is about.
