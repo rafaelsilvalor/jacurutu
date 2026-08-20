@@ -58,6 +58,14 @@ export interface JiraHttpConfig {
   apiToken: string;
   /** Injected transport; defaults to the global `fetch`. */
   fetchImpl?: FetchLike;
+  /**
+   * The token expiry the composition root read out of the credentials file.
+   * OPAQUE to this adapter (D4): it is never parsed, never compared, never
+   * reformatted and never used for a decision — it is received as a string and
+   * concatenated into the credential-rejection message. No clock and no file
+   * path belong here; both stay with the composition root that owns the file.
+   */
+  credentialExpiry?: string;
 }
 
 /**
@@ -90,6 +98,7 @@ export class JiraHttpClient {
   private readonly baseUrl: string;
   private readonly authHeader: string;
   private readonly fetchImpl: FetchLike;
+  private readonly credentialExpiry?: string;
 
   constructor(config: JiraHttpConfig) {
     this.baseUrl = config.baseUrl.replace(/\/+$/, "");
@@ -97,6 +106,7 @@ export class JiraHttpClient {
     // The global `fetch` matches FetchLike structurally (Response is a superset
     // of the narrowed return type); cast through the shared port shape.
     this.fetchImpl = config.fetchImpl ?? (globalThis.fetch as unknown as FetchLike);
+    this.credentialExpiry = config.credentialExpiry;
   }
 
   /**
@@ -128,9 +138,18 @@ export class JiraHttpClient {
     });
 
     if (CREDENTIAL_REJECTED_STATUSES.has(response.status)) {
+      // Appended only when the composition root supplied a recorded expiry, so
+      // an adapter constructed without one throws the byte-identical message it
+      // always threw. Every Atlassian API token issued since December 2024
+      // expires within 365 days, and this is the one moment that date is
+      // decisive for the operator.
+      const recordedExpiry = this.credentialExpiry
+        ? ` The credentials file records this token as expiring on ${this.credentialExpiry}.`
+        : "";
       throw new Error(
         `Jira rejected the configured credentials (HTTP ${response.status} on ${MYSELF_PATH}). ` +
-          "The email / API token pair is invalid, expired, or revoked.",
+          "The email / API token pair is invalid, expired, or revoked." +
+          recordedExpiry,
       );
     }
 

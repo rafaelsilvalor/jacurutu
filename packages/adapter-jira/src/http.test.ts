@@ -181,3 +181,62 @@ test("verifyCredentials ignores a localized error body and still names the crede
     },
   );
 });
+
+// The rejection message this adapter has thrown since brief
+// 2026-08-09-fetch-credential-guard, pinned as a literal. Written out in full
+// rather than matched by pattern: the property under test is BYTE-IDENTITY, and
+// a regex cannot fail on a word that quietly changed.
+const REJECTION_401 =
+  "Jira rejected the configured credentials (HTTP 401 on /rest/api/3/myself). " +
+  "The email / API token pair is invalid, expired, or revoked.";
+
+// Same construction as `buildClient`, plus the recorded expiry. A SECOND helper
+// rather than a parameter on the first: the four pre-existing verifyCredentials
+// tests must keep constructing the adapter exactly as they did before this
+// field existed, which is what proves the field is optional in practice.
+function buildClientWithExpiry(fetchImpl: FetchLike, credentialExpiry: string): JiraHttpClient {
+  return new JiraHttpClient({
+    baseUrl: "https://example.atlassian.net",
+    email: "you@example.com",
+    apiToken: "<a placeholder token>",
+    fetchImpl,
+    credentialExpiry,
+  });
+}
+
+// WHEN no credentialExpiry is supplied, the credential-rejection message shall
+// be byte-identical to the one thrown before the field existed (D4). An adapter
+// constructed without it must be indistinguishable from the adapter that could
+// not accept it.
+test("a rejected credential with no recorded expiry throws the unchanged message", async () => {
+  const transport = myselfFetch({ ok: false, status: 401, body: "{}" });
+  await assert.rejects(
+    () => buildClient(transport.fetchImpl).verifyCredentials(),
+    (error: unknown) => {
+      assert.ok(error instanceof Error);
+      assert.strictEqual(error.message, REJECTION_401);
+      return true;
+    },
+  );
+});
+
+// WHEN the composition root supplied the expiry it read from the credentials
+// file, the same rejection shall append one sentence naming that date (D4). The
+// adapter concatenates an opaque string: it parses nothing, compares nothing,
+// and names no file path — there is one credentials file, and a second path in
+// a message read once a year buys nothing.
+test("a rejected credential with a recorded expiry names that date (D4)", async () => {
+  const transport = myselfFetch({ ok: false, status: 401, body: "{}" });
+  await assert.rejects(
+    () => buildClientWithExpiry(transport.fetchImpl, "2027-08-19").verifyCredentials(),
+    (error: unknown) => {
+      assert.ok(error instanceof Error);
+      assert.strictEqual(
+        error.message,
+        `${REJECTION_401} The credentials file records this token as expiring on 2027-08-19.`,
+      );
+      assert.ok(!error.message.includes("jira-credentials.json"), "no file path in the 401");
+      return true;
+    },
+  );
+});
