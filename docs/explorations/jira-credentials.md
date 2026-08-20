@@ -1,7 +1,8 @@
 # Jira credentials — where they live, and what kind they are
 
 Status: exploration — no implementation mandate
-Disposition: open — 2026-08-19
+Disposition: candidate — 2026-08-20 (was `open` 2026-08-19; the owner ratified
+the A-now recommendation and put `JAC-28` in `Wave: Now`)
 Origin: the 3LO feasibility probe run on 2026-08-09
 (`docs/sessions/2026-08-09-orchestrator-fetch-credential-guard.md`, "The
 unplanned half of the day"), which queued this note as its own item; topic
@@ -396,9 +397,12 @@ days. That is C's real and only unique value for this product.
 
 ## 6. Where this lands
 
-**Recommended: A now, C as a real queued brief.** The open gate changes C's
-status — from "possibly impossible, measure before designing" to "feasible, and
-schedulable" — without changing which one goes first. One line each:
+**Ratified by the owner on 2026-08-20: A now, C as a real queued brief.** This
+section proposed it; the owner closed it and put `JAC-28` in `Wave: Now`, which
+makes A the next thing built rather than the next thing argued about. The open
+gate changed C's status — from "possibly impossible, measure before designing" to
+"feasible, and schedulable" — without changing which one goes first. One line
+each:
 
 - A closes the measured breakage, changes no adapter, needs nothing from
   Atlassian, and is the smallest unit that can be evidenced.
@@ -483,9 +487,15 @@ links.** So the cards stay, on the same reasoning the board used for the Notion
 Ref 2 tombstone — deleting them erases the record that they existed and that the
 deferral's trigger was honoured rather than quietly overridden.
 
-The three false `Blocks` links are a separate matter and are **still on the
-board**, because removing them is outside what an agent can do here. Measured
-rather than assumed, after the obvious attempt:
+The three false `Blocks` links were a separate matter, and the owner removed them
+in the Jira UI on 2026-08-20 — `2360694` (`JAC-32` → `JAC-30`, the harmful one,
+which made `JAC-30` read as blocked), `2360693` (`JAC-32` → `JAC-33`) and
+`2360695` (`JAC-2` → `JAC-33`). Verified by JQL: `JAC-2`, `JAC-32` and `JAC-33`
+all carry `issuelinks: []`, and the four real links are intact — `JAC-28` blocks
+`JAC-22`, `JAC-29` and `JAC-30` block `JAC-31`.
+
+**Why it had to be the owner, recorded because it is a boundary of the agent's
+reach and not an oversight.** Measured after the obvious attempt:
 
 ```
 $ editJiraIssue JAC-32 {"issuelinks": []}
@@ -494,13 +504,8 @@ $ editJiraIssue JAC-32 {"issuelinks": []}
 
 There is no `deleteIssueLink` in this MCP surface, the issue-type metadata offers
 `issuelinks` only the operations `add` and `copy`, and the field rejects update
-outright. The links to remove, by id, in the Jira UI:
-
-| Link id | Relation | Why it is false |
-|---|---|---|
-| `2360694` | `JAC-32` blocks `JAC-30` | **the harmful one** — `JAC-30` reads as blocked and is not |
-| `2360693` | `JAC-32` blocks `JAC-33` | inert; both ends retracted |
-| `2360695` | `JAC-2` blocks `JAC-33` | inert, but it puts a false dependency on a live card |
+outright. So an agent on this surface can create a dependency it cannot retract —
+which is the asymmetry above, in its sharpest form.
 
 **Recorded because it is the more useful lesson of the day: creating a card is
 cheap and un-creating one is not.** The board's authority rule says the agent
@@ -559,6 +564,12 @@ that the asymmetry exists and was not priced in.
   is established, and the 2026-08-09 screenshot incident concerned a client id,
   which is not secret. Four cards were created and verified: `JAC-28` … `JAC-31`
   (§7).
+- 2026-08-20 — **the owner ratified A-now** (§6) and put `JAC-28` in `Wave: Now`,
+  verified by JQL; the disposition moved `open` → `candidate`, since the note is
+  now brief material rather than a live question. The owner also removed the
+  three false `Blocks` links, verified: `JAC-2`, `JAC-32` and `JAC-33` carry no
+  links, the four real ones stand. §8 keeps the reason it had to be the owner —
+  this MCP surface can create an issue link and cannot retract one.
 - 2026-08-19 — a write-to-Jira scope expansion was raised and **withdrawn the
   same day**: the owner had forgotten that [[jira-write-back]] already carries a
   deferral with a declared trigger (`Phase 4 shipped`), and on being reminded
