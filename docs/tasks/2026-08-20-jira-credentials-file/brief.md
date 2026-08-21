@@ -698,9 +698,9 @@ Commit: `docs(explorations): promote the Jira credentials note to a brief`
 9. `docs(explorations): promote the Jira credentials note to a brief`
 
 Every subject is measured with `printf '%s' "<subject>" | wc -c` before its
-Pause 3, and the measurement is pasted into that Pause. Every verb — `add`,
-`update`, `promote` — is on the `VERB_ALLOWLIST` in
-`.claude/hooks/lib/commit-message.mjs`.
+Pause 3, and the measurement is pasted into that Pause. The sequence uses four
+verbs — `add`, `wire`, `update`, `promote` — and every one of them is on the
+`VERB_ALLOWLIST` in `.claude/hooks/lib/commit-message.mjs`.
 
 ### Automated checks (run before each commit)
 
