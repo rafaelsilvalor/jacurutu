@@ -6,6 +6,8 @@ dist/
 config.json
 oauth_client.json
 token.json
+# The Jira site, account email and API token. Local only, never on GitHub.
+jira-credentials.json
 .claude/settings.local.json
 .claude/telemetry/
 /payload.json

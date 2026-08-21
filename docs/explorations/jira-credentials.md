@@ -1,7 +1,8 @@
 # Jira credentials — where they live, and what kind they are
 
 Status: exploration — no implementation mandate
-Disposition: candidate — 2026-08-20 (was `open` 2026-08-19; the owner ratified
+Disposition: promoted to brief 2026-08-20-jira-credentials-file — 2026-08-20
+(was `candidate` earlier the same day, and `open` 2026-08-19; the owner ratified
 the A-now recommendation and put `JAC-28` in `Wave: Now`)
 Origin: the 3LO feasibility probe run on 2026-08-09
 (`docs/sessions/2026-08-09-orchestrator-fetch-credential-guard.md`, "The
@@ -589,3 +590,12 @@ that the asymmetry exists and was not priced in.
   literal truth, so it was removed from the `ancestor-path` / `isPrivate` family,
   which stays at two members. The discovery cost was recorded so a future reader
   does not repeat the revocation, the four attempts and the search.
+- 2026-08-20 — **promoted to brief `2026-08-20-jira-credentials-file`.** Option A
+  shipped: the credential stays an Atlassian API token used with HTTP Basic and
+  moved out of the environment into `~/.jacurutu/jira-credentials.json`, whose
+  recorded `expiresAt` the adapter appends to a rejected-credential message. The
+  three `JACURUTU_JIRA_*` variables were retired with no fallback. Evidenced by
+  an owner-run live smoke on the same day, recorded in the brief's `notes.md`.
+  The body above is untouched and stays the historical record of the thinking;
+  what this note still owns is the four cards it surfaced, of which `JAC-28` is
+  now discharged and `JAC-29` / `JAC-30` / `JAC-31` are not.

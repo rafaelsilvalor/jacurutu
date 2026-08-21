@@ -54,21 +54,34 @@ A configuração fica em `%APPDATA%\Saci\config.json` e persiste entre sessões.
 
 ## Variáveis de ambiente da CLI
 
-A CLI `jacurutu` (v2) lê toda a sua configuração do ambiente — nenhum segredo fica no repositório. São cinco variáveis:
+A CLI `jacurutu` (v2) lê as credenciais do Jira de um arquivo e o resto da sua
+configuração do ambiente — nenhum segredo fica no repositório.
+
+As credenciais do Jira ficam em `~/.jacurutu/jira-credentials.json`, criado à
+mão, com quatro campos: `baseUrl`, `email`, `apiToken` e `expiresAt` (a data de
+validade do token, no formato `AAAA-MM-DD`). Todo token de API da Atlassian
+criado hoje expira em no máximo 365 dias; se o Jira recusar a credencial, a
+mensagem de erro cita essa data. O arquivo guarda um segredo e nunca entra no
+repositório.
+
+As variáveis de ambiente restantes são três:
 
 | Variável | Lida por | O que é |
 |---|---|---|
-| `JACURUTU_JIRA_BASE_URL` | `jacurutu fetch`, `jacurutu start <KEY>` | URL do site Jira, ex. `https://estrategia.atlassian.net` |
-| `JACURUTU_JIRA_EMAIL` | `jacurutu fetch`, `jacurutu start <KEY>` | E-mail da conta Atlassian — metade do Basic auth |
-| `JACURUTU_JIRA_API_TOKEN` | `jacurutu fetch`, `jacurutu start <KEY>` | Token de API da Atlassian — a outra metade |
-| `JACURUTU_IDENTITY_FILE` | `jacurutu start` | Caminho do arquivo de identidade. Ausente ou vazia, cai no padrão `~/.jacurutu/identity.json` |
+| `JACURUTU_JIRA_CREDENTIALS_FILE` | `jacurutu fetch`, `jacurutu start <KEY>` | Caminho do arquivo de credenciais do Jira. Ausente ou vazia, cai no padrão `~/.jacurutu/jira-credentials.json` |
+| `JACURUTU_IDENTITY_FILE` | `jacurutu start --local` | Caminho do arquivo de identidade. Ausente ou vazia, cai no padrão `~/.jacurutu/identity.json` |
 | `JACURUTU_TELEMETRY_DIR` | hooks de gate | Destino do stream `gates.jsonl`. Existe para os testes; em produção o caminho é derivado da localização do próprio módulo |
 
-As três `JACURUTU_JIRA_*` são obrigatórias nos comandos que falam com o Jira. Faltando qualquer uma, o comando falha nomeando exatamente as que faltam — nunca as três em bloco, para que um erro de digitação no nome apareça.
+Nenhuma das três é obrigatória: as três carregam um caminho, e cada uma tem um
+padrão. Faltando o arquivo de credenciais, `jacurutu fetch` e
+`jacurutu start <KEY>` falham citando o caminho absoluto e mostrando o JSON a
+criar — nunca uma credencial pela metade.
 
-`jacurutu export`, `jacurutu report` e `jacurutu start --local` não leem nenhuma delas.
+`jacurutu export` e `jacurutu report` não leem nenhuma das três nem o arquivo
+de credenciais. `jacurutu start --local` lê apenas `JACURUTU_IDENTITY_FILE` — é
+o caminho totalmente offline: sem Jira, sem gateway e sem credencial.
 
-O estado por usuário fica em `~/.jacurutu/`: credenciais OAuth do Google (`token.json`), identidade do designer (`identity.json`) e estado dos relatórios (`report.json`).
+O estado por usuário fica em `~/.jacurutu/`: credenciais OAuth do Google (`token.json`), credenciais do Jira (`jira-credentials.json`), identidade do designer (`identity.json`) e estado dos relatórios (`report.json`).
 
 > Renomeadas de `SACI_*` e `~/.saci` em 2026-08-19. Não existe leitura compatível com os nomes antigos — quem já tem o diretório precisa movê-lo e reexportar as variáveis.
 
