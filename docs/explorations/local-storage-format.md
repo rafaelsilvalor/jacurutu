@@ -55,25 +55,28 @@ carry three different answers to "should I copy this?".
 
 ## 3. The trigger, and why this note moved today
 
-[[jira-credentials]] proposes reading Jira credentials from a file under this
-same directory. **That is the third credential file**, and it is what turns the
-flat layout from a tolerable simplification into a rule that is missing:
+[[jira-credentials]] shipped as brief `2026-08-20-jira-credentials-file`, which
+reads the Jira credentials from a file under this same directory. **The third
+credential file now exists**, and it is what turns the flat layout from a
+tolerable simplification into a rule that is missing:
 
-- Three credential files (`oauth_client.json`, `token.json`, + Jira's) against
-  two state files, with nothing in the name or the location saying which is
-  which. `A3` says wait for the third use; for credentials, the third use is the
-  moment that card lands.
+- Three credential files (`oauth_client.json`, `token.json`,
+  `jira-credentials.json`) against two state files, with nothing in the name or
+  the location saying which is which. `A3` says wait for the third use; for
+  credentials, that third use arrived on 2026-08-20.
 - The naming gives no help. `report.json` and `token.json` are the same shape of
   name for opposite categories.
-- The directory root is composed in **three** places today —
-  `resolveIdentityFilePath` and `resolveReportStatePath` in
-  `packages/cli/src/cli.ts:82-98`, and `defaultCredentialPaths` in
-  `packages/adapter-drive/src/credentials.ts` — each independently joining
-  `os.homedir()` with the `.jacurutu` leaf. A fourth is one card away.
-- The override surface is already inconsistent: `identity.json` has
-  `JACURUTU_IDENTITY_FILE`, `report.json` has nothing, Drive's credentials have
-  nothing. Adding a per-file override for Jira's credentials would make three
-  conventions for four files.
+- The directory root is composed in **four** places today —
+  `resolveIdentityFilePath`, `resolveJiraCredentialsPath` and
+  `resolveReportStatePath` in `packages/cli/src/cli.ts:81-114`, and
+  `defaultCredentialPaths` in `packages/adapter-drive/src/credentials.ts` — each
+  independently joining `os.homedir()` with the `.jacurutu` leaf. The fourth was
+  one card away on 2026-08-19 and landed the next day.
+- The override surface is inconsistent in fact rather than in prospect:
+  `identity.json` has `JACURUTU_IDENTITY_FILE` and `jira-credentials.json` has
+  `JACURUTU_JIRA_CREDENTIALS_FILE`, while `report.json`, `oauth_client.json` and
+  `token.json` have none. Two per-file override variables against five files,
+  and §4 already names four-files-four-overrides as the wrong end state.
 
 **`JAC-1` owns this, and was amended rather than duplicated.** It is the card
 that carries the mirror-versus-state split and sits in `Wave: Next`. Widening its
@@ -165,3 +168,13 @@ goes when it stops being local-only).
   three questions named in its done-criteria block. §3 records what landed instead
   of what was proposed. The disposition stays `open` — the amendment moved the
   card, not the SQLite-or-JSON decision this note is about.
+- 2026-08-20 — the trigger this note recorded became a fact: brief
+  `2026-08-20-jira-credentials-file` shipped `jira-credentials.json`, so §3's two
+  measured claims were corrected in place. The third credential file exists
+  rather than being proposed, and the directory root is composed in **four**
+  places rather than three — the fourth is `resolveJiraCredentialsPath` in
+  `packages/cli/src/cli.ts`. The override surface stopped being inconsistent in
+  prospect and became inconsistent in fact: two per-file variables against five
+  files. §4's two shapes and §5 are untouched — they are options and open
+  questions, not claims about the present. The disposition stays `open`: this
+  brief moved the trigger, not the SQLite-or-JSON decision the note is about.
