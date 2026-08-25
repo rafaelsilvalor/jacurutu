@@ -10,7 +10,11 @@ this recap.
 **Cards:** none touched, in either direction. `JAC-16` was identified as the
 card this session actually answers; `JAC-6` as the host card; the server card
 `D7` calls for was specified and **not** opened.
-**Span:** one day.
+**Span:** 2026-08-24 to 2026-08-25. This line read "one day" until the second
+date was measured — `7f54040` is stamped `2026-08-25T07:42:45-03:00` and
+`f8c7f76` `2026-08-25T10:40:18-03:00`, while the session opened on 2026-08-24.
+The 2026-08-24 stamps on the note's disposition and on this file's name are
+correct and stay: `PROCESS_MAP.md:191` fixes the recap's date as the *session's*.
 
 ## One-line summary
 
@@ -98,6 +102,33 @@ neither is an OAuth-brokering card, which is why `D7` opens one.
    exited 1. The note still says "not measured", which is true and conservative;
    replacing an honest gap with a contaminated figure in a byte-approved file
    would have been a downgrade. The figure lives here instead, with its cause.
+
+### And a fourth, found after the merge, which is the one worth keeping
+
+Preparing the board actions after `#167` merged, the Jira field ids were finally
+read with `expand=names`:
+
+```
+customfield_16743 = Roadmap anchor
+customfield_16744 = Brief
+customfield_16745 = Source
+customfield_16746 = Wave
+```
+
+`customfield_16745` is **Source**. Three lines of the note's §1 had labelled it
+**Wave** — and `Wave` is null on all three cards, which is exactly the state the
+session had been told mattered. This line's own `Span` was wrong in the same
+commit, asserted as "one day" against two commit timestamps that say otherwise.
+
+Both were inferred: one from a field's position in a JSON object, one from an
+impression of elapsed time. Both were one parameter and one `git log` away. So
+this is the **third** occurrence of the class this recap opened by denouncing in
+its predecessor, and the first with this session as the author rather than the
+critic. Denouncing a class does not exempt you from it; only measuring does.
+
+The rule, stated so the next session can apply it without re-deriving it:
+**a field's name is data, not position, and a span is a timestamp, not a
+feeling.** Corrected on the branch `docs/cli-packaging-field-labels`.
 
 One self-correction, recorded once: the approved plan proposed a one-line
 amendment to `desktop-ui-host.md`. The house precedent is the opposite —
