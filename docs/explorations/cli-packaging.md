@@ -37,16 +37,24 @@ the step had **"none, until 2026-08-21"**.
 Measured 2026-08-24 by reading all 35 cards in project `JAC`:
 
 ```
-JAC-6   created 2026-08-19 09:36:33 -0300   Wave: Fase 3 — item
+JAC-6   created 2026-08-19 09:36:33 -0300   Source: Fase 3 — item
         "Empacotar o CLI dentro de um host desktop para designers não técnicos"
 
-JAC-16  created 2026-08-19 09:37:33 -0300   Wave: Fase 3 — questão aberta
+JAC-16  created 2026-08-19 09:37:33 -0300   Source: Fase 3 — questão aberta
         "Decidir o formato de empacotamento e quais sistemas saem primeiro"
 
-JAC-35  created 2026-08-21 20:26:24 -0300   Wave: Descoberto no trabalho
+JAC-35  created 2026-08-21 20:26:24 -0300   Source: Descoberto no trabalho
         "Empacotar e distribuir o Jacurutu para a máquina do designer"
         issuelinks: [JAC-34]
 ```
+
+Those three lines said `Wave` until 2026-08-25, which was wrong: the field ids
+were read by position instead of with `expand=names`. Confirmed by asking —
+`customfield_16745` is **Source** and `customfield_16746` is **Wave** — the
+**`Wave` field is empty on all three cards**, which is the state the emptiness
+was supposed to show. `JAC-35` is also the only one of the three carrying no
+`Roadmap anchor`, while `JAC-6` has "Phase 3 → Items" and `JAC-16` has "Phase 3 →
+Open items inside this phase".
 
 `JAC-16` predates `JAC-35` by **2 days, 10 h and 48 min**, and `JAC-35` links
 neither it nor `JAC-6` — its only `issuelink` is `JAC-34`. `JAC-35`'s own
@@ -287,3 +295,10 @@ which `JAC-17` is blocked by).
   packaging-format half only, following the §0 precedent of
   [[oauth-client-distribution]] — the parent note is not edited. Disposition
   proposed as `candidate`, for the owner to ratify (M-R14).
+- 2026-08-25 — §1 corrected: three lines labelled the `Source` field as `Wave`.
+  The field ids had been read by position rather than with `expand=names`, so
+  the note asserted a value for the one field that is empty on all three cards.
+  This is the third instance of the failure class §1 itself denounces, and the
+  first with this note's own author as the source. The rule it yields: **a
+  field's name is data, not position.** The `Roadmap anchor` observation was
+  added in the same pass, from the same measurement.
