@@ -10,6 +10,7 @@ token.json
 jira-credentials.json
 .claude/settings.local.json
 .claude/telemetry/
+.bancada/telemetry/
 /payload.json
 # Internal reports built from live Jira/Drive data. Local only, never on GitHub.
 /reports/
