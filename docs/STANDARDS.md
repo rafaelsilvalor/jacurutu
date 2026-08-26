@@ -34,7 +34,7 @@ a mandatory artifact. "Have" below is measured as of 2026-08-25.
 | Commit | Conventional Commits + subject cap | yes | yes | yes | yes (gate) |
 | Commit | In-session enforcement (hooks that actually run) | **yes** (.claude/settings.json) | no | no | yes (plugin) |
 | Merge | CI: tests on 3 OSes + hygiene job | **no** | **no** | **no** | **yes** |
-| Release | semver + tag discipline | rule only | rule only | yes (templates) | 3 tags at 0.1.0, **no remote** |
+| Release | semver + tag discipline | rule only | rule only | yes (templates) | 3 tags at 0.1.0, published |
 | Release | CHANGELOG | **no** | no | no | yes |
 | Docs | GOTCHAS catalog, measured entries | yes (24) | yes (30) | no | no |
 | Docs | Decision records (`docs/decisions/`) | sessions/tasks | no | no | yes (2 ADRs) |
@@ -162,13 +162,45 @@ inside core (data flow becomes untraceable).
   stay: `harness` is prompts the owner copies into pt-BR sessions, the root
   README is the design team's front door, and `automation` is a frozen
   provenance snapshot that editing would spoil.
-- **No remote, no adoption.** bancada cut 0.1.0 and carries three tags;
-  `git ls-remote` answers `fatal: 'origin' does not appear to be a git
-  repository`. It is installed in 0 repos and, as things stand, cannot be. That
-  is sharper than the first draft of this line, which said "0 tags" and was
-  already stale when it was written: a tag is local until something can fetch
-  it, so the dependable unit is the remote plus the tag, never the tag alone
-  (SUINDARA-T17 is the same rule for templates).
+- **A version needs a remote, and a remote is not enough.** This line has been
+  wrong twice, so it now carries the whole sequence. It first said bancada had
+  0 tags; bancada had three. It then said the blocker was the missing remote,
+  because `git ls-remote` answered `fatal: 'origin' does not appear to be a git
+  repository`. bancada was published on 2026-08-25 and the three 0.1.0 tags are
+  fetchable, and the blocker moved again rather than clearing: this workspace's
+  enterprise policy refuses **every** marketplace source, the repository one and
+  the local directory alike, and the allowlist is server-side.
+
+  ```
+  $ claude plugin marketplace add rafaelsilvalor/bancada
+  ✘ Marketplace source 'github:rafaelsilvalor/bancada' (github.com) is blocked by
+    enterprise policy.
+  $ claude plugin marketplace add /d/Projects/bancada
+  ✘ Marketplace source 'dir:D:\Projects\bancada' is blocked by enterprise policy.
+  ```
+
+  So adoption is `--plugin-dir` against a machine-local clone, verified end to
+  end on 2026-08-25: a session started that way refused a non-conventional
+  commit through bancada's own hook, reading the guarded repository's
+  `bancada.config.json`. The launch flag is wrapped in the shell profile rather
+  than typed, because a gate you have to remember to switch on is not a gate,
+  and it warns loudly rather than starting silently ungated when the clone is
+  missing.
+
+  **State the price rather than discover it.** The wrapper needs an absolute
+  path, so it cannot live in a repository (R1) and every machine sets it up
+  once. Half the goal survives — each repository still carries only its
+  `bancada.config.json`, which is the part that decides what is enforced — and
+  half does not: updating is pulling the clone, not raising a pinned version, so
+  two machines can disagree about which bancada they run and nothing reports it.
+  The fix is an allowlist entry, which is a request to the workspace's
+  administrators and not an engineering task. Until then, the honest description
+  is "vendored by reference", not "installed" (SUINDARA-T17 is the same rule for
+  templates).
+- **`.bancada/` is gitignored in every repository that adopts it.** The
+  telemetry stream grows on every tool call, and the green boundary reads
+  `git status` to decide whether anything changed — an instrument that registers
+  its own output as a reading is the failure this whole file is about.
 
 ## 6. The documentation baseline
 
@@ -182,7 +214,7 @@ page in the reader is editing the wrong file.
 ## 7. Adoption checklist, in order
 
 - [ ] **tyto**: `bancada.config.json` (4 gates, size 400/600); a `ci.yml` under `.github/workflows`; colocation check with the 13 known gaps as dated exceptions; visual-hash regression script over `plates/` + `samples/`; tag `v0.1.0` at the TS conversion.
-- [ ] **bancada**: publish — a remote, `main` pushed, the three 0.1.0 tags pushed; then the path-reference check as a gate that denies (measured 0 dead references on this repository's live surface, so it needs no repair window); then a fresh tag.
+- [ ] **bancada**: published 2026-08-25, `main` and the three 0.1.0 tags pushed — what remains is the path-reference check as a gate that denies (measured 0 dead references on this repository's live surface, so it needs no repair window), then a fresh tag. Separately, and not an engineering task: ask the workspace administrators to allowlist the marketplace source, which is the only thing standing between `--plugin-dir` and a pinned version.
 - [ ] **jacurutu**: link this file from `CLAUDE.md` and assign the test-taxonomy rule its number via the normal process; a `ci.yml` under `.github/workflows` (test matrix + hygiene, plus one grep for explicit `any`); `CHANGELOG.md` at the next release-worthy change; then delete `.claude/hooks` outright once bancada is published and carries the reference gate.
 - [ ] **suindara host**: `bancada.config.json`; seed `GOTCHAS.md`; CI for `host/` tests.
 
