@@ -30,7 +30,15 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      # electron is the only package in this tree with an install script, and it
+      # fetches a 259 MB binary that nothing here runs: the Electron app is
+      # frozen, and neither `packages/` nor `.claude/hooks/` references it. Three
+      # runners paid for that download on every run until a markdown-only pull
+      # request failed on windows with `ECONNRESET` inside `node install.js`.
+      # The flag is electron's own, read at the top of that file.
       - run: npm ci
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: 1
 
       # Before the tests, and not only to catch type errors: `test:packages`
       # runs the compiled output under dist/, so an unbuilt tree collects no
