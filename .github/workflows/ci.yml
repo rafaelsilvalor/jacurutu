@@ -1,0 +1,100 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Every step runs under bash, on Windows too. `test:packages` globs
+# `packages/*/dist/**/*.test.js`, and the default shell on windows-latest is
+# pwsh, which hands the pattern through unexpanded: the runner then collects
+# zero package tests and exits 0. A suite that reports success having run
+# nothing is the one CI failure mode nobody notices.
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          # Read from .nvmrc so this file and the engine floor cannot disagree.
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # Before the tests, and not only to catch type errors: `test:packages`
+      # runs the compiled output under dist/, so an unbuilt tree collects no
+      # package tests at all. This step is also what enforces the ESM import
+      # rule — moduleResolution is NodeNext, so a relative import missing its
+      # .js extension is TS2835 here, which is why no separate check exists for
+      # it.
+      - run: npm run build
+
+      - run: npm test
+
+  hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # The trailer check reads a commit range, which a shallow clone cannot
+          # produce.
+          fetch-depth: 0
+
+      # Each check below is proved non-vacuous before it is trusted: the pattern
+      # is run against a line that must match, and the job fails if it does not.
+      # A grep that has silently stopped matching anything reports the same green
+      # as a clean repository, and that is the failure this project exists to
+      # avoid.
+
+      - name: core imports no adapter
+        run: |
+          pattern='^[^/*]*\bfrom[[:space:]]+[^;]*adapter'
+          # Anchored on a prefix free of / and *, because core's own doc
+          # comments name the adapters on purpose and a naive pattern flags them.
+          echo 'import { X } from "../../adapter-jira/src/http.js";' \
+            | grep -qE "$pattern" \
+            || { echo "::error::the adapter-import pattern no longer matches a known violation"; exit 1; }
+          if git grep -nE "$pattern" -- 'packages/core/src'; then
+            echo "::error::core imports an adapter; the dependency direction is inward only (R25)"
+            exit 1
+          fi
+
+      - name: no explicit any
+        run: |
+          pattern='(:[[:space:]]*any\b|\bas[[:space:]]+any\b|<any>|\bany\[\])'
+          # tsc under strict does not reject an explicit any, so this is the only
+          # thing that does. Measured 2026-08-25: zero occurrences under
+          # packages/*/src, which is what makes a flat rule affordable. A future
+          # justified escape hatch changes this step on purpose rather than
+          # slipping past it.
+          echo 'function run(payload: any) {}' \
+            | grep -qE "$pattern" \
+            || { echo "::error::the any pattern no longer matches a known violation"; exit 1; }
+          if git grep -nE "$pattern" -- 'packages/*/src'; then
+            echo "::error::explicit any; prefer unknown plus narrowing (R24)"
+            exit 1
+          fi
+
+      - name: no agent trailer in the commit range
+        if: github.event_name == 'pull_request'
+        run: |
+          pattern='^(co-authored-by|signed-off-by):.*(claude|anthropic)|generated with .*claude code'
+          echo 'Co-Authored-By: Claude <noreply@anthropic.com>' \
+            | grep -qiE "$pattern" \
+            || { echo "::error::the trailer pattern no longer matches a known violation"; exit 1; }
+          range="origin/${{ github.base_ref }}..HEAD"
+          if git log --format=%B "$range" | grep -inE "$pattern"; then
+            echo "::error::a commit in this range carries an agent trailer (R10)"
+            exit 1
+          fi
